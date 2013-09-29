@@ -380,7 +380,7 @@ namespace TuanHA_Combat_Routine
                     InLineOfSpellSightCacheAdd(unit, 300);
                     return true;
                 }
-                InLineOfSpellSightCacheAdd(unit);
+                InLineOfSpellSightCacheAdd(unit,100);//.
                 return true;
             }
             return false;

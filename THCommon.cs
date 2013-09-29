@@ -599,7 +599,7 @@ namespace TuanHA_Combat_Routine
 
                     if (BasicCheck(Me.CurrentTarget) &&
                         !CurrentTargetAttackableNoLoS(50) &&
-                        GetBestTarget() &&
+                        GetBestTarget() &&//.
                         Me.CurrentTarget != UnitBestTarget)
                     {
                         UnitBestTarget.Target();
@@ -888,8 +888,8 @@ namespace TuanHA_Combat_Routine
             if (THSettings.Instance.CapacitorProjection &&
                 SpellManager.HasSpell("Totemic Projection"))
             {
-                UnitCapacitorFriendLow = NearbyUnFriendlyPlayers
-                    .OrderByDescending(unit => unit.GetPredictedHealthPercent())
+                UnitCapacitorFriendLow = NearbyUnFriendlyPlayers.Where(BasicCheck)
+                    .OrderByDescending(unit => unit.HealthPercent)
                     .FirstOrDefault(
                         unit =>
                         TalentSort(unit) < 4 &&
@@ -903,8 +903,8 @@ namespace TuanHA_Combat_Routine
             }
             else
             {
-                UnitCapacitorFriendLow = NearbyUnFriendlyPlayers
-                    .OrderByDescending(unit => unit.GetPredictedHealthPercent())
+                UnitCapacitorFriendLow = NearbyUnFriendlyPlayers.Where(BasicCheck)
+                    .OrderByDescending(unit => unit.HealthPercent)
                     .FirstOrDefault(
                         unit =>
                         TalentSort(unit) < 4 &&
@@ -928,8 +928,8 @@ namespace TuanHA_Combat_Routine
             if (THSettings.Instance.CapacitorProjection &&
                 SpellManager.HasSpell("Totemic Projection"))
             {
-                UnitCapacitorEnemyLow = NearbyUnFriendlyPlayers
-                    .OrderBy(unit => unit.GetPredictedHealthPercent())
+                UnitCapacitorEnemyLow = NearbyUnFriendlyPlayers.Where(BasicCheck)
+                    .OrderBy(unit => unit.HealthPercent)
                     .FirstOrDefault(
                         unit =>
                         unit.GetPredictedHealthPercent() <= THSettings.Instance.CapacitorEnemyLowHP &&
@@ -1009,7 +1009,7 @@ namespace TuanHA_Combat_Routine
             if (THSettings.Instance.CapacitorProjection &&
                 SpellManager.HasSpell("Totemic Projection"))
             {
-                UnitCapacitorEnemyPack = NearbyUnFriendlyPlayers
+                UnitCapacitorEnemyPack = NearbyUnFriendlyPlayers.Where(BasicCheck)
                     .OrderBy(CountEnemyPlayerNearCapacitor)
                     .FirstOrDefault(
                         unit =>
@@ -1342,8 +1342,8 @@ namespace TuanHA_Combat_Routine
         {
             PlayerFriendlyCleanseSpiritASAP = null;
 
-            PlayerFriendlyCleanseSpiritASAP = NearbyFriendlyPlayers.FirstOrDefault(
-                unit => BasicCheck(unit) &&
+            PlayerFriendlyCleanseSpiritASAP = NearbyFriendlyPlayers.Where(BasicCheck).FirstOrDefault(
+                unit => //.BasicCheck(unit) &&
                         !DebuffDoNotCleanse(unit) &&
                         UnitHasAura("Hex", unit) &&
                         Healable(unit));
@@ -2843,7 +2843,7 @@ namespace TuanHA_Combat_Routine
         {
             UnitGroundingLow = null;
 
-            UnitGroundingLow = NearbyUnFriendlyPlayers.FirstOrDefault(
+            UnitGroundingLow = NearbyUnFriendlyPlayers.Where(BasicCheck).FirstOrDefault(
                 unit =>
                 //////BasicCheck(unit) &&
                 //////unit.CurrentTarget != null &&
@@ -3305,9 +3305,9 @@ namespace TuanHA_Combat_Routine
                 ret =>
                 THSettings.Instance.HealingStreamTotem &&
                 UnitHealIsValid &&
-                HealWeightUnitHeal > THSettings.Instance.UrgentHeal &&
+                //.HealWeightUnitHeal > THSettings.Instance.UrgentHeal &&
                 HealWeightUnitHeal < THSettings.Instance.HealingStreamTotemHP &&
-                UnitHeal.Distance < 30 &&
+                UnitHeal.Distance < 35 &&
                 //SSpellManager.HasSpell("Healing Stream Totem") &&
                 //!Me.Mounted &&
                 Me.Combat &&
@@ -3463,9 +3463,10 @@ namespace TuanHA_Combat_Routine
 
             if (InArena || InBattleground)
             {
-                UnitHex = NearbyUnFriendlyPlayers.OrderByDescending(TalentSortSimple)
+                UnitHex = NearbyUnFriendlyPlayers.Where(BasicCheck)
+                                                 .OrderByDescending(TalentSortSimple)
                                                  .ThenBy(CountFriendDPSTarget)
-                                                 .ThenByDescending(unit => unit.GetPredictedHealthPercent())
+                                                 .ThenByDescending(unit => unit.HealthPercent)
                                                  .FirstOrDefault(
                                                      unit =>
                                                      //////BasicCheck(unit) &&
@@ -3480,16 +3481,19 @@ namespace TuanHA_Combat_Routine
             }
             else
             {
-                UnitHex = NearbyUnFriendlyUnits.OrderByDescending(unit => unit.CurrentHealth)
+                UnitHex = FarUnFriendlyUnits.Where(BasicCheck)
+                                               .OrderByDescending(unit => unit.CurrentHealth)
                                                .ThenBy(CountFriendDPSTarget)
                                                .FirstOrDefault(
                                                    unit =>
-                                                   BasicCheck(unit) &&
+                                                   //.BasicCheck(unit) &&
                                                    unit.Combat &&
                                                    !unit.IsBoss &&
                                                    (unit.IsHumanoid || unit.IsBeast) &&
-                                                   unit.CurrentTarget != null &&
+                                                   InProvingGrounds ||
+                                                   unit.GotTarget &&
                                                    FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
+                                                   unit != Me.CurrentTarget &&
                                                    Attackable(unit, 30));
             }
             return BasicCheck(UnitHex);
@@ -3631,7 +3635,7 @@ namespace TuanHA_Combat_Routine
                             SpellManager.StopCasting();
                         }
 
-                        LastHotKey1Press = DateTime.Now.AddSeconds(5);
+                        LastHotKey1Press = DateTime.Now.AddSeconds(6);
                         CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey1Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target),
                                   "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey1Spell) + " on " +
@@ -3668,7 +3672,7 @@ namespace TuanHA_Combat_Routine
                         {
                             SpellManager.StopCasting();
                         }
-                        LastHotKey2Press = DateTime.Now.AddSeconds(5);
+                        LastHotKey2Press = DateTime.Now.AddSeconds(6);
                         CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target),
                                   "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey2Spell) + " on " +
@@ -3683,6 +3687,7 @@ namespace TuanHA_Combat_Routine
                 });
         }
 
+        private static DateTime LastHotKey3Press;
         private static Composite Hotkey3()
         {
             return new Action(delegate
@@ -3703,7 +3708,7 @@ namespace TuanHA_Combat_Routine
                         {
                             SpellManager.StopCasting();
                         }
-
+                        LastHotKey3Press = DateTime.Now.AddSeconds(5);
                         CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey3Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target),
                                   "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey3Spell) + " on " +
@@ -3718,6 +3723,7 @@ namespace TuanHA_Combat_Routine
                 });
         }
 
+        private static DateTime LastHotKey4Press;
         private static Composite Hotkey4()
         {
             return new Action(delegate
@@ -3738,7 +3744,7 @@ namespace TuanHA_Combat_Routine
                         {
                             SpellManager.StopCasting();
                         }
-
+                        LastHotKey4Press = DateTime.Now.AddSeconds(5);
                         CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey4Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target),
                                   "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey4Spell) + " on " +
@@ -5269,10 +5275,9 @@ namespace TuanHA_Combat_Routine
 
         private static bool StormlashEnemy()
         {
-            return NearbyUnFriendlyPlayers.Any(
+            return NearbyUnFriendlyPlayers.Where(BasicCheck).Any(
                 unit =>
-                //////BasicCheck(unit) &&
-                unit.GetPredictedHealthPercent() <= THSettings.Instance.StormlashEnemyHP &&
+                unit.HealthPercent <= THSettings.Instance.StormlashEnemyHP &&
                 HasFriendDPSTarget(unit));
         }
 
@@ -6217,7 +6222,7 @@ namespace TuanHA_Combat_Routine
                     !MeHasAura("Sap") &&
                     !MeHasAura("Scatter Shot") &&
                     CanCastCheck("Every Man for Himself", true) &&
-                    DebuffCCDuration(Me, 3000),
+                    DebuffCCDuration(Me, 4000),
                     new Action(delegate
                         {
                             if (THSettings.Instance.AutoTarget && Me.CurrentTarget == null &&
@@ -7333,7 +7338,7 @@ namespace TuanHA_Combat_Routine
 
         private static bool NeedFriendWindwalk()
         {
-            return NearbyFriendlyPlayers.Any(
+            return NearbyFriendlyPlayers.Where(BasicCheck).Any(
                 unit =>
                 unit.Combat &&
                 IsEnemy(unit.CurrentTarget) &&
@@ -7417,7 +7422,7 @@ namespace TuanHA_Combat_Routine
         private static bool HaveWorthyTargetAttackingMe()
         {
             //////WorthyTargetAttackingMe = NearbyUnFriendlyUnits.
-            WorthyTargetAttackingMe = FarUnFriendlyUnits.
+            WorthyTargetAttackingMe = FarUnFriendlyUnits.Where(BasicCheck).
                 FirstOrDefault(
                     unit =>
                     //////BasicCheck(unit) &&
@@ -7425,7 +7430,7 @@ namespace TuanHA_Combat_Routine
                     unit.GotTarget &&
                     //////unit.CurrentTarget != null &&
                     unit.CurrentTarget == Me &&
-                    IsWorthyTarget(unit));
+                    IsWorthyTarget(unit,1,0.3));
 
             return BasicCheck(WorthyTargetAttackingMe);
         }
@@ -7433,7 +7438,7 @@ namespace TuanHA_Combat_Routine
         private static bool IsWorthyTarget(WoWUnit target, double pvEPercent = 1, double pvPPercent = 0.3)
         {
             //////if (!BasicCheck(target) || Me.GetPredictedHealthPercent() < 20)
-            if (Me.GetPredictedHealthPercent() < 20)
+            if (Me.HealthPercent < 20)
             {
                 return false;
             }

@@ -23,8 +23,8 @@ namespace TuanHA_Combat_Routine
                         }
 
                         if (THSettings.Instance.AutoAoE &&
-                            CurrentTargetAttackable(40) &&
-                            CountEnemyNear(Me, 10) >= THSettings.Instance.UnittoStartAoE)
+                            //.CurrentTargetAttackable(40) &&
+                            CountEnemyNear(Me, 10) >= THSettings.Instance.UnittoStartAoE)//.
                         {
                             //Logging.Write("AoEModeOn = true");
                             //Eval("CurrentTargetAttackable(40)", () => CurrentTargetAttackable(40));
@@ -43,7 +43,7 @@ namespace TuanHA_Combat_Routine
                         return RunStatus.Failure;
                     }),
                 //////done
-                AutoTargetMelee(),
+                AutoTargetMelee(),//.
                 MovementMoveToMelee(ret => Me.CurrentTarget),
                 MovementMoveStop(ret => Me.CurrentTarget, 3),
                 TargetMyPetTarget(),
@@ -56,7 +56,7 @@ namespace TuanHA_Combat_Routine
                     ret => !AoEModeOn && !Me.Mounted,
                     new PrioritySelector(
                         ///如果设置了自动攻击,则目标在5码内,自动取消变狼状态,如果10码内,每两秒自动激活自动攻击一次
-                        AutoAttack(),
+                        //.AutoAttack(),
                         ///恢复SM用来回蓝的
                         AutoAttackOffTarget(),
                         ///血少,或者蓝少,且40码内有敌人以我为目标, -30伤害,15秒不耗蓝,未实现插雕文清魔法效果
@@ -66,7 +66,7 @@ namespace TuanHA_Combat_Routine
                         AscendanceEnh(),
                         ///元素掌握,+30%急速?
                         ElementalMastery(),
-                        ///先祖指引，爆发或者按CD使用，需要更新
+                        ///先祖指引，爆发或者按CD使用，需要更新, 例如爆发的时候,如果大家血都多,就不用这个技能了
                         //////done
                         AncestralGuidance(),
                         ///不同天赋对自己或者队友使用幽灵步免疫减速
