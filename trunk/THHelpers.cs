@@ -636,7 +636,7 @@ namespace TuanHA_Combat_Routine
             {
                 if (InArena || InBattleground)
                 {
-                    return NearbyUnFriendlyPlayers.Any(
+                    return NearbyUnFriendlyPlayers.Where(BasicCheck).Any(
                         unit =>
                         unit.IsValid &&
                         //unit.GotTarget &&
@@ -651,7 +651,7 @@ namespace TuanHA_Combat_Routine
                          target == Me &&
                          InLineOfSpellSightCheck(unit)));
                 }
-                return NearbyUnFriendlyUnits.Any(
+                return FarUnFriendlyUnits.Where(BasicCheck).Any(
                     unit =>
                     unit.IsValid &&
                     //unit.GotTarget &&
@@ -690,9 +690,9 @@ namespace TuanHA_Combat_Routine
         {
             if (InArena || InBattleground)
             {
-                return NearbyFriendlyPlayers.Any(
+                return NearbyFriendlyPlayers.Where(BasicCheck).Any(
                     unit =>
-                    BasicCheck(unit) &&
+                    //BasicCheck(unit) &&
                     //unit.GotTarget &&
                     unit.CurrentTarget == target &&
                     (TalentSort(unit) >= 2 &&
@@ -701,9 +701,9 @@ namespace TuanHA_Combat_Routine
                      TalentSort(unit) == 1 &&
                      unit.Location.Distance(target.Location) < 15));
             }
-            return NearbyFriendlyPlayers.Any(
+            return NearbyFriendlyPlayers.Where(BasicCheck).Any(
                 unit =>
-                BasicCheck(unit) &&
+                //BasicCheck(unit) &&
                 //unit.GotTarget &&
                 unit.CurrentTarget == target);
         }
@@ -807,11 +807,13 @@ namespace TuanHA_Combat_Routine
 
         private static int CountEnemyNear(WoWUnit unitCenter, float distance)
         {
-            return NearbyUnFriendlyUnits.Count(
+            return FarUnFriendlyUnits.Count(
                 unit =>
                 BasicCheck(unit) &&
-                !unit.IsPet &&
-                (IsDummy(unit) ||
+                unit.MaxHealth > MeMaxHealth * 0.3 &&
+                //!unit.IsPet &&
+                (InProvingGrounds || 
+                 IsDummy(unit) ||
                  unit.Combat &&
                  FarFriendlyPlayers.Contains(unit.CurrentTarget)) &&
                 GetDistance(unitCenter, unit) <= distance);
@@ -819,9 +821,9 @@ namespace TuanHA_Combat_Routine
 
         private static bool HasEnemyNear(WoWUnit unitCenter, float distance)
         {
-            return FarUnFriendlyUnits.Any(
+            return FarUnFriendlyUnits.Where(BasicCheck).Any(
                 unit =>
-                //////BasicCheck(unit) &&
+                //BasicCheck(unit) &&
                 unit.MaxHealth > MeMaxHealth * 0.3 &&
                 !unit.IsPet &&
                 (InProvingGrounds ||
@@ -857,14 +859,15 @@ namespace TuanHA_Combat_Routine
         private static bool HasEnemyTargettingUnit(WoWUnit target, float distance)
         {
             return
-                NearbyUnFriendlyUnits.Any(
+                FarUnFriendlyUnits.Where(BasicCheck).Any(
                     unit =>
                     unit.IsValid &&
                     GetDistance(unit) < distance &&
                     //unit.GotTarget &&
                     unit.Level <= target.Level + 3 &&
                     //unit.Combat && 
-                    !unit.IsPet &&
+                    unit.MaxHealth > MeMaxHealth * 0.3 &&
+                    //!unit.IsPet &&
                     unit.CurrentTarget == target &&
                     !DebuffCC(unit) &&
                     (target != Me ||
@@ -902,7 +905,7 @@ namespace TuanHA_Combat_Routine
             }
 
             CurrentTargetCheckLast = Me.CurrentTarget;
-            CurrentTargetCheckFacing = Me.IsFacing(Me.CurrentTarget);
+            CurrentTargetCheckFacing = Me.IsSafelyFacing(Me.CurrentTarget,180);
             CurrentTargetCheckDist = GetDistance(Me.CurrentTarget);
 
             CurrentTargetCheckIsEnemy = IsEnemy(Me.CurrentTarget);
@@ -930,7 +933,7 @@ namespace TuanHA_Combat_Routine
             {
                 CurrentTargetCheckInLineOfSpellSight = true;
             }
-            else if (InLineOfSpellSightCheck(Me.CurrentTarget))
+            else if (InLineOfSpellSightCheck(Me.CurrentTarget))//.
             {
                 CurrentTargetCheckInLineOfSpellSight = true;
             }
@@ -1551,15 +1554,47 @@ namespace TuanHA_Combat_Routine
                 }
             }
 
-            if (UnitBestTarget == null && !InBattleground && !InArena)
+            if (UnitBestTarget == null)
             {
-                UnitBestTarget = NearbyUnFriendlyUnits.OrderBy(unit => unit.ThreatInfo.RawPercent).FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    Me.IsFacing(unit) &&
-                    IsMyPartyRaidMember(unit.CurrentTarget) &&
-                    Attackable(unit, 40));
+                UnitBestTarget = FarUnFriendlyUnits.OrderBy(unit => unit.CurrentHealth).FirstOrDefault(
+                        unit =>
+                        BasicCheck(unit) &&
+                        InProvingGrounds ||
+                        unit.GotTarget &&
+                        IsMyPartyRaidMember(unit.CurrentTarget) &&
+                        Attackable(unit, 5));
             }
+            if (UnitBestTarget == null)
+            {
+                UnitBestTarget = FarUnFriendlyUnits.OrderBy(unit => unit.CurrentHealth).FirstOrDefault(
+                        unit =>
+                        BasicCheck(unit) &&
+                        InProvingGrounds ||
+                        unit.GotTarget &&
+                        IsMyPartyRaidMember(unit.CurrentTarget) &&
+                        Attackable(unit, 20));
+            }
+            if (UnitBestTarget == null)
+            {
+                UnitBestTarget = FarUnFriendlyUnits.OrderBy(unit => unit.CurrentHealth).FirstOrDefault(
+                        unit =>
+                        BasicCheck(unit) &&
+                        InProvingGrounds ||
+                        unit.GotTarget &&
+                        IsMyPartyRaidMember(unit.CurrentTarget) &&
+                        Attackable(unit, 40));
+            }
+
+
+            //if (UnitBestTarget == null && !InBattleground && !InArena)
+            //{
+            //    UnitBestTarget = NearbyUnFriendlyUnits.OrderBy(unit => unit.ThreatInfo.RawPercent).FirstOrDefault(
+            //        unit =>
+            //        BasicCheck(unit) &&
+            //        Me.IsFacing(unit) &&
+            //        IsMyPartyRaidMember(unit.CurrentTarget) &&
+            //        Attackable(unit, 40));
+            //}
 
             return BasicCheck(UnitBestTarget);
         }

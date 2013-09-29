@@ -937,12 +937,12 @@ namespace TuanHA_Combat_Routine
 
         private static bool DebuffRoot(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (InRaid)
             {
                 return false;
             }
 
-            AuraCacheUpdate(target);
+            AuraCacheUpdate(target,false);
             return AuraCacheList.Any(
                 aura => aura.AuraCacheUnit == target.Guid &&
                         DebuffRootHS.Contains(aura.AuraCacheId));

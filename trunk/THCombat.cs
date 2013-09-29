@@ -130,10 +130,11 @@ namespace TuanHA_Combat_Routine
                                 .Where(
                                     unit =>
                                     !Blacklist.Contains(unit.Guid, BlacklistFlags.All) &&
-                                    unit.Attackable &&
+                                    //unit.Attackable &&
                                     unit.CanSelect &&
                                     unit.IsAlive &&
-                                    unit.DistanceSqr <= 3600)
+                                    unit.Distance <= 60)
+                                    //unit.DistanceSqr <= 3600)
                                 .ToList();
         }
 
@@ -173,7 +174,8 @@ namespace TuanHA_Combat_Routine
                     //FarFriendlyUnits.Add(Me);
                     //FarFriendlyPlayers.Add(Me);
 
-                    foreach (WoWUnit unit in GetAllUnits().Where(unit => BasicCheck(unit) && unit.Distance <= 60))
+                    //foreach (WoWUnit unit in GetAllUnits().Where(unit => BasicCheck(unit) && unit.Distance <= 60))
+                    foreach (WoWUnit unit in GetAllUnits())
                     {
                         if (FriendListCache.ContainsKey(unit.Guid))
                         {
@@ -392,7 +394,6 @@ namespace TuanHA_Combat_Routine
                 !StyxWoW.IsInWorld ||
                 !Me.IsAlive ||
                 !THSettings.Instance.AutoAttackOutCombat && !Me.Combat ||
-                //////InArena && Me.Name.Length > 2 && !SpellTypeCheck() ||
                 MeHasAura("Food") && HealWeightMe < THSettings.Instance.DoNotHealAbove ||
                 MeHasAura("Drink") && (Me.ManaPercent < THSettings.Instance.DoNotHealAbove ||
                                        Me.GetAuraByName("Drink").TimeLeft.TotalSeconds > 9) ||
@@ -845,37 +846,36 @@ namespace TuanHA_Combat_Routine
                         return RunStatus.Failure;
                     }),
 
-                //////Hold() done
-                Hold(),
+                
+                Hold(),//.
                 //SWStop("Hold"),
-
-                //////Hotkey1() done
-                Hotkey1(),
+                //Hotkey1 & Hotkey2增加了一个6秒的计时,计时内,根据不同计时器名称,判断图腾是丢给目标或者焦点
+                Hotkey1(),//.
                 //SWStop("Hotkey1"),
-                Hotkey2(),
+                Hotkey2(),//.
                 //SWStop("Hotkey2"),
-                Hotkey3(),
+                Hotkey3(),//.
                 //SWStop("Hotkey3"),
-                Hotkey4(),
+                Hotkey4(),//.
                 //SWStop("Hotkey4"),
-                Hotkey5(),
+                Hotkey5(),//.
                 //SWStop("Hotkey5"),
 
                 //UpdateRaidPartyMembersComp(),
 
                 new Decorator(
                     ret => THSettings.Instance.Pause,
-                    new Action(delegate { return RunStatus.Success; })),
+                    new Action(delegate { return RunStatus.Success; })),//.
 
                 //SWStop("Pause"),
                 new Decorator(
                     ret =>
                     THSettings.Instance.UpdateStatus,
-                    new Action(delegate { return RunStatus.Success; })),
+                    new Action(delegate { return RunStatus.Success; })),//.
                 //SWStop("UpdateStatus"),
-                GetUnits(),
+                GetUnits(),//.
                 //SWStop("GetUnits"),
-                GetUnitHeal(),
+                GetUnitHeal(),//.
                 //SWStop("GetUnitHeal"),
                 new Action(delegate
                     {
@@ -944,7 +944,7 @@ namespace TuanHA_Combat_Routine
 
                 new Action(delegate
                     {
-                        CurrentTargetCheck();
+                        CurrentTargetCheck();//.
                         return RunStatus.Failure;
                     }),
                 //SWStop("CurrentTargetCheck"),
@@ -952,6 +952,8 @@ namespace TuanHA_Combat_Routine
                 UseRacial(),
                 //SWStop("UseRacial"),
                 UseProfession(),
+                UseHealthStoneHP(),
+                UseBattleStandard(),
                 //SWStop("UseProfession"),
                 AutoSetFocus(),
                 new Decorator(
