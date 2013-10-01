@@ -45,8 +45,8 @@
   <BattleStandard>True</BattleStandard>
   <BattleStandardHP>50</BattleStandardHP>
   <Backward>4</Backward>
-  <BindElemental>False</BindElemental>
-  <BurstKey>7</BurstKey>
+  <BindElemental>True</BindElemental>
+  <BurstKey>18</BurstKey>
   <BurstHP>95</BurstHP>
   <Burst>False</Burst>
   <CapacitorFriendLow>True</CapacitorFriendLow>
@@ -70,7 +70,7 @@
   <PurifySpiritDebuffNumber>5</PurifySpiritDebuffNumber>
   <DoNotHealAbove>95</DoNotHealAbove>
   <EarthElementalCooldown>False</EarthElementalCooldown>
-  <EarthElementalBurst>True</EarthElementalBurst>
+  <EarthElementalBurst>False</EarthElementalBurst>
   <ElementalBlastEle>True</ElementalBlastEle>
   <ElementalBlastEnh>True</ElementalBlastEnh>
   <ElementalMasteryCooldown>False</ElementalMasteryCooldown>
@@ -103,8 +103,8 @@
   <FrostShockEnhMinDistance>6</FrostShockEnhMinDistance>
   <FrostShockNearby>True</FrostShockNearby>
   <FrostShockNearbyMelee>True</FrostShockNearbyMelee>
-  <FrostShockNearbyRange>True</FrostShockNearbyRange>
-  <FrostShockNearbyHealer>True</FrostShockNearbyHealer>
+  <FrostShockNearbyRange>False</FrostShockNearbyRange>
+  <FrostShockNearbyHealer>False</FrostShockNearbyHealer>
   <FrostShockNearbyMana>30</FrostShockNearbyMana>
   <FrostShockNearbyDist>25</FrostShockNearbyDist>
   <Forward>5</Forward>
@@ -198,7 +198,7 @@
   <OnlyHealMe>False</OnlyHealMe>
   <OnlyHealTarget>False</OnlyHealTarget>
   <OnlyHealFocus>False</OnlyHealFocus>
-  <PauseKey>16</PauseKey>
+  <PauseKey>28</PauseKey>
   <PauseKeyUse>True</PauseKeyUse>
   <ProfBuff>3</ProfBuff>
   <ProfBuffHP>60</ProfBuffHP>
@@ -209,7 +209,7 @@
   <ShamanisticRageMN>False</ShamanisticRageMN>
   <ShamanisticRageMNMN>30</ShamanisticRageMNMN>
   <ShamanisticCC>True</ShamanisticCC>
-  <ShamanisticCCDuration>2000</ShamanisticCCDuration>
+  <ShamanisticCCDuration>3000</ShamanisticCCDuration>
   <SearingTotem>True</SearingTotem>
   <SearingTotemDistance>30</SearingTotemDistance>
   <SpiritLink>False</SpiritLink>
@@ -241,9 +241,9 @@
   <TremorDPS>True</TremorDPS>
   <TurnRight>0</TurnRight>
   <TurnLeft>0</TurnLeft>
-  <Trinket1>0</Trinket1>
+  <Trinket1>3</Trinket1>
   <Trinket1HP>50</Trinket1HP>
-  <Trinket2>4</Trinket2>
+  <Trinket2>0</Trinket2>
   <Trinket2HP>60</Trinket2HP>
   <UrgentHeal>40</UrgentHeal>
   <UnittoStartAoE>3</UnittoStartAoE>
@@ -258,8 +258,8 @@
   <WaterShield>True</WaterShield>
   <WaterShieldAlways>True</WaterShieldAlways>
   <WaterShieldAlwaysMana>30</WaterShieldAlwaysMana>
-  <WeaponMainHand>1</WeaponMainHand>
-  <WeaponOffHand>3</WeaponOffHand>
+  <WeaponMainHand>0</WeaponMainHand>
+  <WeaponOffHand>0</WeaponOffHand>
   <WindShearInterrupt>True</WindShearInterrupt>
   <WindShearInterruptMs>600</WindShearInterruptMs>
   <WindwalkRootMe>True</WindwalkRootMe>

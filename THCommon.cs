@@ -1572,7 +1572,7 @@ namespace TuanHA_Combat_Routine
                     ret =>
                     THSettings.Instance.Earthbind &&
                     (InArena || InBattleground) &&
-                    //SSpellManager.HasSpell("Earthgrab Totem") &&
+                    SpellManager.HasSpell("Earthgrab Totem") &&
                     //!Me.Mounted &&
                     !MyTotemEarthCheck(Me, 40) &&
                     CanCastCheck("Earthgrab Totem") &&
@@ -1586,7 +1586,7 @@ namespace TuanHA_Combat_Routine
                     THSettings.Instance.Earthbind &&
                     (InArena || InBattleground) &&
                     //
-                    //SSpellManager.HasSpell("Earthbind Totem") &&
+                    //SpellManager.HasSpell("Earthbind Totem") &&
                     //!Me.Mounted &&
                     !SpellManager.HasSpell("Earthgrab Totem") &&
                     !MyTotemEarthCheck(Me, 40) &&
