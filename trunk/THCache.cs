@@ -508,8 +508,11 @@ namespace TuanHA_Combat_Routine
 
             double spellCastTime;
             //if (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature &&
-            if (SpellManager.Spells[spellName].School.ToString().Contains("Nature") &&
-                (MeHasAura(16188) || UseSpecialization == 2 && MyAuraStackCount(53817, Me) > 4))
+
+            if (spellName == "Earthgrab Totem" ||
+                (SpellManager.Spells[spellName].School.ToString().Contains("Nature") &&
+                (MeHasAura(16188) || UseSpecialization == 2 && MyAuraStackCount(53817, Me) > 4)) ||
+                (MeHasAura(77762) && spellName == "Lava Burst"))
                 //Nature Swiftness and Maelstrom Weapon
             {
                 spellCastTime = 0;
