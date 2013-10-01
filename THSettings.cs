@@ -15,23 +15,23 @@ namespace TuanHA_Combat_Routine
 
         //public string PathCastSpells = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
         //                                            string.Format(
-        //                                                @"Routines/TuanHAShamanPublicRelease/THListCastSpells.xml"));
+        //                                                @"Routines/shamanspecialedition/THListCastSpells.xml"));
 
         //public string PathChannelSpells = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
         //                                               string.Format(
-        //                                                   @"Routines/TuanHAShamanPublicRelease/THListChannelSpells.xml"));
+        //                                                   @"Routines/shamanspecialedition/THListChannelSpells.xml"));
 
         //public string PathCleanseASAP = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
         //                                             string.Format(
-        //                                                 @"Routines/TuanHAShamanPublicRelease/THListCleanseASAP.xml"));
+        //                                                 @"Routines/shamanspecialedition/THListCleanseASAP.xml"));
 
         //public string PathCleanseDoNot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
         //                                              string.Format(
-        //                                                  @"Routines/TuanHAShamanPublicRelease/THListCleanseDoNot.xml"));
+        //                                                  @"Routines/shamanspecialedition/THListCleanseDoNot.xml"));
 
         //public string PathHealDoNot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
         //                                           string.Format(
-        //                                               @"Routines/TuanHAShamanPublicRelease/THListHealDoNot.xml"));
+        //                                               @"Routines/shamanspecialedition/THListHealDoNot.xml"));
 
 
         public bool UpdateStatus;
@@ -40,7 +40,7 @@ namespace TuanHA_Combat_Routine
             : base(
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                              string.Format(
-                                 @"Routines/TuanHAShamanPublicRelease/TuanHA-Shaman-Settings-20130802-{0}.xml",
+                                 @"Routines/shamanspecialedition/TuanHA-Shaman-Settings-20130802-{0}.xml",
                                  StyxWoW.Me.Name)))
         {
             //DCleanseASAP.ReadXml(PathCleanseASAP);

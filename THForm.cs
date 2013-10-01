@@ -63,17 +63,17 @@ namespace TuanHA_Combat_Routine
 
             if (
                 File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\TuanHA-Shaman-Picture.jpg"))
+                            @"\Routines\shamanspecialedition\TuanHA-Shaman-Picture.jpg"))
             {
                 pictureBox1.ImageLocation = Utilities.AssemblyDirectory +
-                                            @"\Routines\TuanHAShamanPublicRelease\TuanHA-Shaman-Picture.jpg";
+                                            @"\Routines\shamanspecialedition\TuanHA-Shaman-Picture.jpg";
             }
 
             if (File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\SpecialThanks.rtf"))
+                            @"\Routines\shamanspecialedition\SpecialThanks.rtf"))
             {
                 richTextBox1.LoadFile(Utilities.AssemblyDirectory +
-                                      @"\Routines\TuanHAShamanPublicRelease\SpecialThanks.rtf");
+                                      @"\Routines\shamanspecialedition\SpecialThanks.rtf");
             }
 
             #endregion
@@ -380,7 +380,7 @@ namespace TuanHA_Combat_Routine
         private void BDungeon_Click(object sender, EventArgs e)
         {
             if (File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                            @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                             " Shaman Default Dungeon.xml"))
             {
                 MessageBox.Show(
@@ -389,7 +389,7 @@ namespace TuanHA_Combat_Routine
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 THSettings.Instance.LoadFromXML(XElement.Load(Utilities.AssemblyDirectory +
-                                                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " +
+                                                              @"\Routines\shamanspecialedition\Preset\TuanHA " +
                                                               Classname.GetCurrentSpec() +
                                                               " Shaman Default Dungeon.xml"));
                 Logging.Write("----------------------------------");
@@ -402,7 +402,7 @@ namespace TuanHA_Combat_Routine
             {
                 Logging.Write("----------------------------------");
                 Logging.Write("File not exists: " + Utilities.AssemblyDirectory +
-                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                              @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default Dungeon.xml");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default Dungeon Settings from a file fail.");
@@ -418,7 +418,7 @@ namespace TuanHA_Combat_Routine
         private void BRaid_Click(object sender, EventArgs e)
         {
             if (File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                            @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                             " Shaman Default Raid.xml"))
             {
                 MessageBox.Show(
@@ -427,7 +427,7 @@ namespace TuanHA_Combat_Routine
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 THSettings.Instance.LoadFromXML(XElement.Load(Utilities.AssemblyDirectory +
-                                                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " +
+                                                              @"\Routines\shamanspecialedition\Preset\TuanHA " +
                                                               Classname.GetCurrentSpec() + " Shaman Default Raid.xml"));
                 Logging.Write("----------------------------------");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
@@ -439,7 +439,7 @@ namespace TuanHA_Combat_Routine
             {
                 Logging.Write("----------------------------------");
                 Logging.Write("File not exists: " + Utilities.AssemblyDirectory +
-                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                              @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default Raid.xml");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default Raid Settings from a file fail.");
@@ -455,7 +455,7 @@ namespace TuanHA_Combat_Routine
         private void BPvPHelper_Click(object sender, EventArgs e)
         {
             if (File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                            @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                             " Shaman Default PvP.xml"))
             {
                 MessageBox.Show(
@@ -464,7 +464,7 @@ namespace TuanHA_Combat_Routine
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 THSettings.Instance.LoadFromXML(XElement.Load(Utilities.AssemblyDirectory +
-                                                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " +
+                                                              @"\Routines\shamanspecialedition\Preset\TuanHA " +
                                                               Classname.GetCurrentSpec() + " Shaman Default PvP.xml"));
                 Logging.Write("----------------------------------");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
@@ -476,7 +476,7 @@ namespace TuanHA_Combat_Routine
             {
                 Logging.Write("----------------------------------");
                 Logging.Write("File not exists: " + Utilities.AssemblyDirectory +
-                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                              @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default PvP.xml");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default PvP Settings from a file fail.");
@@ -492,7 +492,7 @@ namespace TuanHA_Combat_Routine
         private void BQuestHelper_Click(object sender, EventArgs e)
         {
             if (File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                            @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                             " Shaman Default Quest.xml"))
             {
                 MessageBox.Show(
@@ -501,7 +501,7 @@ namespace TuanHA_Combat_Routine
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 THSettings.Instance.LoadFromXML(XElement.Load(Utilities.AssemblyDirectory +
-                                                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " +
+                                                              @"\Routines\shamanspecialedition\Preset\TuanHA " +
                                                               Classname.GetCurrentSpec() + " Shaman Default Quest.xml"));
                 Logging.Write("----------------------------------");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
@@ -513,7 +513,7 @@ namespace TuanHA_Combat_Routine
             {
                 Logging.Write("----------------------------------");
                 Logging.Write("File not exists: " + Utilities.AssemblyDirectory +
-                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                              @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default Quest.xml");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default Quest Settings from a file fail.");
@@ -529,7 +529,7 @@ namespace TuanHA_Combat_Routine
         private void BFullAfk_Click(object sender, EventArgs e)
         {
             if (File.Exists(Utilities.AssemblyDirectory +
-                            @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                            @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                             " Shaman Default AFK.xml"))
             {
                 MessageBox.Show(
@@ -538,7 +538,7 @@ namespace TuanHA_Combat_Routine
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 THSettings.Instance.LoadFromXML(XElement.Load(Utilities.AssemblyDirectory +
-                                                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " +
+                                                              @"\Routines\shamanspecialedition\Preset\TuanHA " +
                                                               Classname.GetCurrentSpec() + " Shaman Default AFK.xml"));
                 Logging.Write("----------------------------------");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
@@ -550,7 +550,7 @@ namespace TuanHA_Combat_Routine
             {
                 Logging.Write("----------------------------------");
                 Logging.Write("File not exists: " + Utilities.AssemblyDirectory +
-                              @"\Routines\TuanHAShamanPublicRelease\Preset\TuanHA " + Classname.GetCurrentSpec() +
+                              @"\Routines\shamanspecialedition\Preset\TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default AFK.xml");
                 Logging.Write("Load TuanHA " + Classname.GetCurrentSpec() +
                               " Shaman Default AFK Settings from a file fail.");
@@ -569,7 +569,7 @@ namespace TuanHA_Combat_Routine
             saveFileDialog.Filter = "Setting File|*.xml";
             saveFileDialog.Title = "Save Setting to a File";
             saveFileDialog.InitialDirectory = Utilities.AssemblyDirectory +
-                                              @"\Routines\TuanHAShamanPublicRelease\User Settings\";
+                                              @"\Routines\shamanspecialedition\User Settings\";
             saveFileDialog.DefaultExt = "xml";
             saveFileDialog.FileName = "TuanHA " + Classname.GetCurrentSpec() + " Shaman";
 
@@ -600,7 +600,7 @@ namespace TuanHA_Combat_Routine
                     Filter = "Setting File|*.xml",
                     Title = "Load Setting from a File",
                     InitialDirectory =
-                        Utilities.AssemblyDirectory + @"\Routines\TuanHAShamanPublicRelease\User Settings\"
+                        Utilities.AssemblyDirectory + @"\Routines\shamanspecialedition\User Settings\"
                 };
             openFileDialog.ShowDialog();
 
