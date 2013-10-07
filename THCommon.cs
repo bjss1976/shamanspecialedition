@@ -816,10 +816,10 @@ namespace TuanHA_Combat_Routine
 
         private static WoWPoint FindGround(WoWPoint Point, int HoverZ)
         {
-            if (!InArena || !InBattleground)
-            {
-                return Point;
-            }
+            //if (!InArena || !InBattleground)
+            //{
+            //    return Point;
+            //}
 
             var PointHover = new WoWPoint(Point.X, Point.Y, Point.Z + HoverZ);
             var CalculatedPoint = new WoWPoint(Point.X, Point.Y, PointHover.Z - HeightOffTheGround(PointHover, HoverZ));
@@ -831,28 +831,28 @@ namespace TuanHA_Combat_Routine
             return CalculatedPoint;
         }
 
-        private static WoWPoint CalculateDropLocation(WoWUnit target)
+        private static WoWPoint CalculateDropLocation(WoWUnit target, float x, float y)
         {
             WoWPoint dropLocation;
 
             if (!target.IsMoving || target.MovementInfo.MovingBackward || DebuffRoot(target))
             {
-                dropLocation = target.Location;
+                dropLocation = target.Location.Add(x,y,0);
             }
             else if (DebuffSnare(target))
             {
-                dropLocation = WoWMathHelper.CalculatePointBehind(target.Location, target.Rotation, -3);
+                dropLocation = WoWMathHelper.CalculatePointBehind(target.Location, target.Rotation, -3).Add(x,y,0);
                 dropLocation = FindGround(dropLocation, 10);
             }
             else
             {
-                dropLocation = WoWMathHelper.CalculatePointBehind(target.Location, target.Rotation, -6);
+                dropLocation = WoWMathHelper.CalculatePointBehind(target.Location, target.Rotation, -6).Add(x,y,0);
                 dropLocation = FindGround(dropLocation, 10);
             }
 
             if (dropLocation.Distance(Me.Location) > 40)
             {
-                dropLocation = WoWMathHelper.CalculatePointFrom(Me.Location, dropLocation, 39);
+                dropLocation = WoWMathHelper.CalculatePointFrom(Me.Location, dropLocation, 39).Add(x,y,0);
                 dropLocation = FindGround(dropLocation, 10);
             }
             return dropLocation;
@@ -1122,10 +1122,17 @@ namespace TuanHA_Combat_Routine
                 //Logging.Write("Me.CurrentPendingCursorSpell.Id {0}", Me.CurrentPendingCursorSpell.Id);
                 //Logging.Write("ClickRemoteLocation {0}", UnitProject.Location);
                 ObjectManager.Update();
-                //var DropLocation = new WoWPoint(CapacitorTarget.X,
-                //                                CapacitorTarget.Y,
-                //                                CapacitorTarget.Z);
-                SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
+                var DropLocation = new WoWPoint(CapacitorTarget.Location.X + (LastHotKey2PressPosition.X-CapacitorTotem.Location.X),
+                                                CapacitorTarget.Location.Y + (LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y),
+                                                CapacitorTarget.Location.Z);
+                //SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
+                Logging.Write("My location:" + LastHotKey2PressPosition.X + "," + LastHotKey2PressPosition.Y);
+                Logging.Write("Totem location:" + CapacitorTotem.Location.X + "," + CapacitorTotem.Location.Y);
+                Logging.Write("Totem location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y);
+                Logging.Write("Totem location:" + DropLocation.X + "," + DropLocation.Y);
+
+
+                SpellManager.ClickRemoteLocation(CalculateDropLocation(CapacitorTarget,LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y));
             }
         }
 
@@ -2582,8 +2589,8 @@ namespace TuanHA_Combat_Routine
                 (!CurrentTargetAttackable(30) ||
                  !SpellManager.HasSpell("Stormblast") &&
                  (!CurrentTargetAttackable(10) ||
-                  GetDistance(Me.CurrentTarget) > 7 &&
-                  Me.CurrentTarget.IsSafelyBehind(Me))),
+                  (GetDistance(Me.CurrentTarget) > 10 &&
+                   Me.CurrentTarget.IsSafelyBehind(Me)))),
                 //(!CurrentTargetAttackable(10) ||
                 // GetDistance(Me.CurrentTarget) > 7 &&
                 // Me.CurrentTarget.IsSafelyBehind(Me) ||
@@ -3585,6 +3592,7 @@ namespace TuanHA_Combat_Routine
 
         private static DateTime LastHotKey1Press;
 
+
         private static Composite Hotkey1()
         {
             //////return new Action(delegate
@@ -3628,7 +3636,8 @@ namespace TuanHA_Combat_Routine
                          GetAsyncKeyState(IndexToKeysMod(THSettings.Instance.Hotkey1Mod)) < 0) &&
                         GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey1Key)) < 0 &&
                         HotKeyTargetValidate(THSettings.Instance.Hotkey1Target) &&
-                        HotKeySpellValidate(THSettings.Instance.Hotkey1Spell))
+                        HotKeySpellValidate(THSettings.Instance.Hotkey1Spell) &&
+                        CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
                     {
                         if (Me.IsCasting && Me.CastingSpell.Name != HotKeySpelltoName(THSettings.Instance.Hotkey1Spell))
                         {
@@ -3636,6 +3645,7 @@ namespace TuanHA_Combat_Routine
                         }
 
                         LastHotKey1Press = DateTime.Now.AddSeconds(6);
+
                         CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey1Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target),
                                   "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey1Spell) + " on " +
@@ -3652,6 +3662,7 @@ namespace TuanHA_Combat_Routine
         }
 
         private static DateTime LastHotKey2Press;
+        private static WoWPoint LastHotKey2PressPosition;
         private static Composite Hotkey2()
         {
             return new Action(delegate
@@ -3664,15 +3675,17 @@ namespace TuanHA_Combat_Routine
                          GetAsyncKeyState(IndexToKeysMod(THSettings.Instance.Hotkey2Mod)) < 0) &&
                         GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey2Key)) < 0 &&
                         HotKeyTargetValidate(THSettings.Instance.Hotkey2Target) &&
-                        HotKeySpellValidate(THSettings.Instance.Hotkey2Spell))
+                        HotKeySpellValidate(THSettings.Instance.Hotkey2Spell) &&
+                        CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
                     {
-                        SafelyFacingTarget(HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target));
+                        //SafelyFacingTarget(HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target));
 
                         if (Me.IsCasting && Me.CastingSpell.Name != HotKeySpelltoName(THSettings.Instance.Hotkey2Spell))
                         {
                             SpellManager.StopCasting();
                         }
                         LastHotKey2Press = DateTime.Now.AddSeconds(6);
+                        LastHotKey2PressPosition = Me.GetPosition();
                         CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target),
                                   "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey2Spell) + " on " +
