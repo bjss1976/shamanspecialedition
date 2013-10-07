@@ -472,7 +472,6 @@ namespace TuanHA_Combat_Routine
 
             SpellManager.Cast(spellName, target);
 
-
             LastCastSpell = spellName;
             LastCastUnit = target;
             LastCastTime = DateTime.Now;

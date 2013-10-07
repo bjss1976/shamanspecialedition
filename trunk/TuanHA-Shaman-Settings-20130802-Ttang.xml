@@ -2,12 +2,12 @@
 <THSettings>
   <AncestralGuidanceCooldown>False</AncestralGuidanceCooldown>
   <AncestralGuidanceBurst>True</AncestralGuidanceBurst>
-  <AscendanceRestoHP>50</AscendanceRestoHP>
+  <AscendanceRestoHP>40</AscendanceRestoHP>
   <AncestralSwiftnessRes>True</AncestralSwiftnessRes>
-  <AncestralSwiftnessResHP>20</AncestralSwiftnessResHP>
+  <AncestralSwiftnessResHP>40</AncestralSwiftnessResHP>
   <AncestralSwiftnessLB>True</AncestralSwiftnessLB>
   <AscendanceResto>True</AscendanceResto>
-  <AscendanceRestoUnit>2</AscendanceRestoUnit>
+  <AscendanceRestoUnit>1</AscendanceRestoUnit>
   <AscendanceEnhCooldown>False</AscendanceEnhCooldown>
   <AscendanceEnhBurst>True</AscendanceEnhBurst>
   <AscendanceEleCooldown>False</AscendanceEleCooldown>
@@ -33,7 +33,7 @@
   <AutoMove>False</AutoMove>
   <AutoRez>False</AutoRez>
   <AutoRacial>True</AutoRacial>
-  <AutoTarget>True</AutoTarget>
+  <AutoTarget>False</AutoTarget>
   <AutoFace>True</AutoFace>
   <AutoUseFood>True</AutoUseFood>
   <AutoWaterWalking>False</AutoWaterWalking>
@@ -44,21 +44,21 @@
   <AutoAttackOutCombat>True</AutoAttackOutCombat>
   <BattleStandard>True</BattleStandard>
   <BattleStandardHP>50</BattleStandardHP>
-  <Backward>4</Backward>
+  <Backward>19</Backward>
   <BindElemental>True</BindElemental>
   <BurstKey>18</BurstKey>
-  <BurstHP>95</BurstHP>
+  <BurstHP>80</BurstHP>
   <Burst>False</Burst>
   <CapacitorFriendLow>True</CapacitorFriendLow>
   <CapacitorFriendLowHP>60</CapacitorFriendLowHP>
   <CapacitorEnemyLow>True</CapacitorEnemyLow>
-  <CapacitorEnemyLowHP>80</CapacitorEnemyLowHP>
+  <CapacitorEnemyLowHP>60</CapacitorEnemyLowHP>
   <CapacitorEnemyPack>True</CapacitorEnemyPack>
   <CapacitorEnemyPackNumber>3</CapacitorEnemyPackNumber>
   <CapacitorProjection>True</CapacitorProjection>
-  <CapacitorProjectionMs>1000</CapacitorProjectionMs>
+  <CapacitorProjectionMs>800</CapacitorProjectionMs>
   <ChainHeal>False</ChainHeal>
-  <ChainHealUnit>3</ChainHealUnit>
+  <ChainHealUnit>2</ChainHealUnit>
   <ChainHealHP>70</ChainHealHP>
   <ChainLightningEnh>True</ChainLightningEnh>
   <ChainLightningEle>True</ChainLightningEle>
@@ -78,7 +78,7 @@
   <ElementalBlastEnhStack>3</ElementalBlastEnhStack>
   <Earthbind>True</Earthbind>
   <EarthbindUnit>1</EarthbindUnit>
-  <EarthbindDistance>10</EarthbindDistance>
+  <EarthbindDistance>20</EarthbindDistance>
   <Earthquake>True</Earthquake>
   <EarthquakeUnit>7</EarthquakeUnit>
   <EarthShock>True</EarthShock>
@@ -90,7 +90,7 @@
   <FeralSpiritCooldown>False</FeralSpiritCooldown>
   <FeralSpiritBurst>True</FeralSpiritBurst>
   <FeralSpiritLow>True</FeralSpiritLow>
-  <FeralSpiritLowHP>70</FeralSpiritLowHP>
+  <FeralSpiritLowHP>50</FeralSpiritLowHP>
   <FireElementalCooldown>False</FireElementalCooldown>
   <FireElementalBurst>True</FireElementalBurst>
   <FireNova>True</FireNova>
@@ -103,11 +103,11 @@
   <FrostShockEnhMinDistance>6</FrostShockEnhMinDistance>
   <FrostShockNearby>True</FrostShockNearby>
   <FrostShockNearbyMelee>True</FrostShockNearbyMelee>
-  <FrostShockNearbyRange>False</FrostShockNearbyRange>
-  <FrostShockNearbyHealer>False</FrostShockNearbyHealer>
+  <FrostShockNearbyRange>True</FrostShockNearbyRange>
+  <FrostShockNearbyHealer>True</FrostShockNearbyHealer>
   <FrostShockNearbyMana>30</FrostShockNearbyMana>
-  <FrostShockNearbyDist>25</FrostShockNearbyDist>
-  <Forward>5</Forward>
+  <FrostShockNearbyDist>30</FrostShockNearbyDist>
+  <Forward>23</Forward>
   <GreaterHealingWave>True</GreaterHealingWave>
   <GreaterHealingWaveHP>80</GreaterHealingWaveHP>
   <GroundingLow>True</GroundingLow>
@@ -117,23 +117,23 @@
   <GroundingTrap>True</GroundingTrap>
   <HealBalancing>0</HealBalancing>
   <HealingRain>False</HealingRain>
-  <HealingRainUnit>3</HealingRainUnit>
+  <HealingRainUnit>2</HealingRainUnit>
   <HealingRainHP>80</HealingRainHP>
   <HealingSurgeOutCombatEnh>True</HealingSurgeOutCombatEnh>
   <HealingSurgeOutCombatEnhHP>90</HealingSurgeOutCombatEnhHP>
   <HealingSurgeOutCombatEle>True</HealingSurgeOutCombatEle>
   <HealingSurgeOutCombatEleHP>80</HealingSurgeOutCombatEleHP>
   <HealingSurgeInCombatEnh>True</HealingSurgeInCombatEnh>
-  <HealingSurgeInCombatEnhStack>5</HealingSurgeInCombatEnhStack>
-  <HealingSurgeInCombatEnhHP>80</HealingSurgeInCombatEnhHP>
+  <HealingSurgeInCombatEnhStack>3</HealingSurgeInCombatEnhStack>
+  <HealingSurgeInCombatEnhHP>60</HealingSurgeInCombatEnhHP>
   <HealingSurgeInCombatEnhFriend>True</HealingSurgeInCombatEnhFriend>
-  <HealingSurgeInCombatEnhStackFriend>5</HealingSurgeInCombatEnhStackFriend>
-  <HealingSurgeInCombatEnhHPFriend>70</HealingSurgeInCombatEnhHPFriend>
+  <HealingSurgeInCombatEnhStackFriend>3</HealingSurgeInCombatEnhStackFriend>
+  <HealingSurgeInCombatEnhHPFriend>40</HealingSurgeInCombatEnhHPFriend>
   <HealingSurgeInCombatEle>True</HealingSurgeInCombatEle>
-  <HealingSurgeInCombatEleCC>True</HealingSurgeInCombatEleCC>
-  <HealingSurgeInCombatEleHP>50</HealingSurgeInCombatEleHP>
+  <HealingSurgeInCombatEleCC>False</HealingSurgeInCombatEleCC>
+  <HealingSurgeInCombatEleHP>60</HealingSurgeInCombatEleHP>
   <HealingSurgeInCombatEleFriend>True</HealingSurgeInCombatEleFriend>
-  <HealingSurgeInCombatEleFriendCC>True</HealingSurgeInCombatEleFriendCC>
+  <HealingSurgeInCombatEleFriendCC>False</HealingSurgeInCombatEleFriendCC>
   <HealingSurgeInCombatEleFriendHP>40</HealingSurgeInCombatEleFriendHP>
   <HealingSurgeRes>True</HealingSurgeRes>
   <HealingSurgeResHP>70</HealingSurgeResHP>
@@ -149,7 +149,7 @@
   <HealingWaveHP>90</HealingWaveHP>
   <Hex>True</Hex>
   <HexHealer>True</HexHealer>
-  <HexDPS>True</HexDPS>
+  <HexDPS>False</HexDPS>
   <Hotkey1Target>1</Hotkey1Target>
   <Hotkey1Mod>1</Hotkey1Mod>
   <Hotkey1Key>6</Hotkey1Key>
@@ -158,18 +158,18 @@
   <Hotkey2Mod>0</Hotkey2Mod>
   <Hotkey2Key>6</Hotkey2Key>
   <Hotkey2Spell>6</Hotkey2Spell>
-  <Hotkey3Target>2</Hotkey3Target>
-  <Hotkey3Mod>0</Hotkey3Mod>
-  <Hotkey3Key>28</Hotkey3Key>
+  <Hotkey3Target>1</Hotkey3Target>
+  <Hotkey3Mod>1</Hotkey3Mod>
+  <Hotkey3Key>3</Hotkey3Key>
   <Hotkey3Spell>3</Hotkey3Spell>
-  <Hotkey4Target>1</Hotkey4Target>
-  <Hotkey4Mod>1</Hotkey4Mod>
+  <Hotkey4Target>2</Hotkey4Target>
+  <Hotkey4Mod>0</Hotkey4Mod>
   <Hotkey4Key>3</Hotkey4Key>
   <Hotkey4Spell>3</Hotkey4Spell>
   <Hotkey5Target>0</Hotkey5Target>
   <Hotkey5Mod>0</Hotkey5Mod>
-  <Hotkey5Key>0</Hotkey5Key>
-  <Hotkey5Spell>0</Hotkey5Spell>
+  <Hotkey5Key>33</Hotkey5Key>
+  <Hotkey5Spell>2</Hotkey5Spell>
   <InterruptAll>True</InterruptAll>
   <InterruptTarget>False</InterruptTarget>
   <InterruptFocus>False</InterruptFocus>
@@ -188,13 +188,13 @@
   <MagmaTotemEnh>True</MagmaTotemEnh>
   <MagmaTotemEnhUnit>5</MagmaTotemEnhUnit>
   <MagmaTotemEle>True</MagmaTotemEle>
-  <MagmaTotemEleUnit>5</MagmaTotemEleUnit>
+  <MagmaTotemEleUnit>3</MagmaTotemEleUnit>
   <Pause>False</Pause>
   <PriorityHeal>75</PriorityHeal>
   <PurgeASAP>True</PurgeASAP>
   <PurgeASAPMana>30</PurgeASAPMana>
-  <PurgeNormal>True</PurgeNormal>
-  <PurgeNormalMana>70</PurgeNormalMana>
+  <PurgeNormal>False</PurgeNormal>
+  <PurgeNormalMana>60</PurgeNormalMana>
   <OnlyHealMe>False</OnlyHealMe>
   <OnlyHealTarget>False</OnlyHealTarget>
   <OnlyHealFocus>False</OnlyHealFocus>
@@ -203,46 +203,46 @@
   <ProfBuff>3</ProfBuff>
   <ProfBuffHP>60</ProfBuffHP>
   <Riptide>True</Riptide>
-  <RiptideHP>90</RiptideHP>
+  <RiptideHP>95</RiptideHP>
   <ShamanisticRageHP>True</ShamanisticRageHP>
   <ShamanisticRageHPHP>50</ShamanisticRageHPHP>
   <ShamanisticRageMN>False</ShamanisticRageMN>
   <ShamanisticRageMNMN>30</ShamanisticRageMNMN>
   <ShamanisticCC>True</ShamanisticCC>
-  <ShamanisticCCDuration>3000</ShamanisticCCDuration>
+  <ShamanisticCCDuration>4000</ShamanisticCCDuration>
   <SearingTotem>True</SearingTotem>
-  <SearingTotemDistance>30</SearingTotemDistance>
+  <SearingTotemDistance>20</SearingTotemDistance>
   <SpiritLink>False</SpiritLink>
   <SpiritLinkUnit>2</SpiritLinkUnit>
   <SpiritLinkHP>40</SpiritLinkHP>
   <SpiritwalkersGrace>True</SpiritwalkersGrace>
-  <SpiritwalkersGraceHP>60</SpiritwalkersGraceHP>
+  <SpiritwalkersGraceHP>40</SpiritwalkersGraceHP>
   <StoneBulwarkTotem>True</StoneBulwarkTotem>
-  <StoneBulwarkTotemHP>90</StoneBulwarkTotemHP>
+  <StoneBulwarkTotemHP>80</StoneBulwarkTotemHP>
   <StormlashCooldown>False</StormlashCooldown>
   <Stormstrike>True</Stormstrike>
   <StormlashBurst>True</StormlashBurst>
-  <StormlashEnemy>False</StormlashEnemy>
+  <StormlashEnemy>True</StormlashEnemy>
   <StormlashEnemyHP>40</StormlashEnemyHP>
-  <StrafleLeft>19</StrafleLeft>
-  <StrafleRight>6</StrafleRight>
+  <StrafleLeft>17</StrafleLeft>
+  <StrafleRight>5</StrafleRight>
   <Tremor>True</Tremor>
   <ThunderstormMelee>True</ThunderstormMelee>
   <ThunderstormMeleeUnit>1</ThunderstormMeleeUnit>
   <Thunderstorm>True</Thunderstorm>
-  <ThunderstormUnit>5</ThunderstormUnit>
+  <ThunderstormUnit>3</ThunderstormUnit>
   <ThunderstormCast>True</ThunderstormCast>
   <ThunderstormCastMs>3000</ThunderstormCastMs>
   <TremorDuration>3000</TremorDuration>
   <ThunderstormMana>True</ThunderstormMana>
-  <ThunderstormManaMN>50</ThunderstormManaMN>
+  <ThunderstormManaMN>30</ThunderstormManaMN>
   <TremorMe>True</TremorMe>
   <TremorHealer>True</TremorHealer>
   <TremorDPS>True</TremorDPS>
   <TurnRight>0</TurnRight>
   <TurnLeft>0</TurnLeft>
   <Trinket1>3</Trinket1>
-  <Trinket1HP>50</Trinket1HP>
+  <Trinket1HP>80</Trinket1HP>
   <Trinket2>0</Trinket2>
   <Trinket2HP>60</Trinket2HP>
   <UrgentHeal>40</UrgentHeal>
@@ -257,7 +257,7 @@
   <UnleashElementsHS>False</UnleashElementsHS>
   <WaterShield>True</WaterShield>
   <WaterShieldAlways>True</WaterShieldAlways>
-  <WaterShieldAlwaysMana>30</WaterShieldAlwaysMana>
+  <WaterShieldAlwaysMana>40</WaterShieldAlwaysMana>
   <WeaponMainHand>0</WeaponMainHand>
   <WeaponOffHand>0</WeaponOffHand>
   <WindShearInterrupt>True</WindShearInterrupt>
