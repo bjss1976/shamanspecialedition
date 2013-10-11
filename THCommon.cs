@@ -1122,17 +1122,23 @@ namespace TuanHA_Combat_Routine
                 //Logging.Write("Me.CurrentPendingCursorSpell.Id {0}", Me.CurrentPendingCursorSpell.Id);
                 //Logging.Write("ClickRemoteLocation {0}", UnitProject.Location);
                 ObjectManager.Update();
-                var DropLocation = new WoWPoint(CapacitorTarget.Location.X + (LastHotKey2PressPosition.X-CapacitorTotem.Location.X),
-                                                CapacitorTarget.Location.Y + (LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y),
-                                                CapacitorTarget.Location.Z);
+                //var DropLocation = new WoWPoint(CapacitorTarget.Location.X + (LastHotKey2PressPosition.X-CapacitorTotem.Location.X),
+                //                                CapacitorTarget.Location.Y + (LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y),
+                //                                CapacitorTarget.Location.Z);
                 //SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
-                Logging.Write("My location:" + LastHotKey2PressPosition.X + "," + LastHotKey2PressPosition.Y);
-                Logging.Write("Totem location:" + CapacitorTotem.Location.X + "," + CapacitorTotem.Location.Y);
-                Logging.Write("Totem location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y);
-                Logging.Write("Totem location:" + DropLocation.X + "," + DropLocation.Y);
-
-
-                SpellManager.ClickRemoteLocation(CalculateDropLocation(CapacitorTarget,LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y));
+                if (LastHotKey2Press >= DateTime.Now)
+                {
+                    var DropLocation = CalculateDropLocation(CapacitorTarget,LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y);
+                    Logging.Write("My location:" + LastHotKey2PressPosition.X + "," + LastHotKey2PressPosition.Y);
+                    Logging.Write("Totem location:" + CapacitorTotem.Location.X + "," + CapacitorTotem.Location.Y);
+                    Logging.Write("Totem location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y);
+                    Logging.Write("Totem location:" + DropLocation.X + "," + DropLocation.Y);
+                    SpellManager.ClickRemoteLocation(DropLocation);
+                }
+                else
+                {
+                    SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
+                }
             }
         }
 
