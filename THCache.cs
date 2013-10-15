@@ -509,7 +509,11 @@ namespace TuanHA_Combat_Routine
             double spellCastTime;
             //if (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature &&
 
-            if (spellName == "Earthgrab Totem" ||
+            if (!IsMoving(Me))
+            {
+                spellCastTime = 0;
+            }
+            else if (spellName == "Earthgrab Totem" ||
                 (SpellManager.Spells[spellName].School.ToString().Contains("Nature") &&
                 (MeHasAura(16188) || UseSpecialization == 2 && MyAuraStackCount(53817, Me) > 4)) ||
                 (MeHasAura(77762) && spellName == "Lava Burst"))
@@ -539,6 +543,11 @@ namespace TuanHA_Combat_Routine
                 {
                     spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - (TimeSpan.FromMilliseconds(MyLatency) + TimeSpan.FromMilliseconds(300.0));
                 }
+                else if (((spellName == "Lightning Bolt") || (spellName == "Healing Wave")) && (MyLatency > 0.0))
+                {
+                    spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency * 0.5);
+                }
+
                 else
                 {
                     spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency);

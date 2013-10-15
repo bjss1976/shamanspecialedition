@@ -28,6 +28,9 @@ namespace TuanHA_Combat_Routine
                  THSettings.Instance.Burst) &&
                 //SSpellManager.HasSpell("Ancestral Guidance") &&
                 //!Me.Mounted &&
+                //.这个需要考察考察
+                UnitHealIsValid &&
+                UnitHeal.HealthPercent <= 70 &&
                 Me.Combat &&
                 CanCastCheck("Ancestral Guidance", true),
                 new Action(
@@ -117,7 +120,8 @@ namespace TuanHA_Combat_Routine
                 Me.ManaPercent > 20 &&
                 CanCastCheck("Ascendance", true) &&
                 CanCastCheck("Primal Strike") && //Suck to pop CD and no Mana to use seplls
-                (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
+                (InArena && IsWorthyTarget(Me.CurrentTarget, 2, 0.2) ||
+                 IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
                  HaveWorthyTargetAttackingMe()),
                 new Action(
                     ret =>
@@ -1130,10 +1134,12 @@ namespace TuanHA_Combat_Routine
                     Logging.Write("CapacitorTarget location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y + "," + CapacitorTarget.Location.Z);
                     Logging.Write("DropLocation location:" + DropLocation.X + "," + DropLocation.Y + "," + DropLocation.Z);
                     SpellManager.ClickRemoteLocation(DropLocation);
+                    LastHotKey2Press = DateTime.Now;
                 }
                 else
                 {
                     SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
+                    LastHotKey1Press = DateTime.Now;
                 }
                 //var DropLocation = new WoWPoint(CapacitorTarget.Location.X + (LastHotKey2PressPosition.X-CapacitorTotem.Location.X),
                 //                                CapacitorTarget.Location.Y + (LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y),
@@ -2986,6 +2992,7 @@ namespace TuanHA_Combat_Routine
             return new Decorator(
                 ret =>
                 THSettings.Instance.HealingSurgeOutCombatEnh &&
+                !Me.Combat &&
                 UnitHealIsValid &&
                 HealWeightUnitHeal <= THSettings.Instance.HealingSurgeOutCombatEnhHP &&
                 UseSpecialization == 2 &&
@@ -5087,149 +5094,218 @@ namespace TuanHA_Combat_Routine
                 GetDistance(target, unit) < 10);
         }
 
+        private static DateTime StopCastingCheckLast;
+ 
         private void StopCastingCheck()
         {
-            if (!Me.IsCasting)
+            if ((StopCastingCheckLast > DateTime.Now && !InArena) || ((LastCastTime + TimeSpan.FromMilliseconds(2000.0)) < DateTime.Now))
             {
                 return;
             }
 
-            //if (Me.CastingSpellId != 8004 &&
-            //    Me.CastingSpellId != 331 &&
-            //    Me.CastingSpellId != 73920 &&
-            //    Me.CastingSpellId != 77472 &&
-            //    Me.CastingSpellId != 51514 &&
-            //    Me.CastingSpellId != 1064 &&
-            //    Me.CastingSpellId != 403 &&
-            //    Me.CastingSpellId != 117014 &&
-            //    Me.CastingSpellId != 15105 &&
-            //    Me.CastingSpellId != 421)
+            if (Me.IsCasting)
+            {
+                try
+                {
+                    if (Me.CastingSpell.Id == 51514)
+                    {
+                        if (!BasicCheck(LastCastUnit))
+                        {
+                            SpellManager.StopCasting();
+                        }
+                        else
+                        {
+                            AuraCacheUpdate(LastCastUnit, true);
+                        }
+                        if ((InvulnerableSpell(LastCastUnit) || DebuffCCDuration(LastCastUnit, 3000.0, false)) || !CanHex(LastCastUnit))
+                        {
+                            SpellManager.StopCasting();
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
+                            return;
+                        }
+
+                    }
+
+                    //if (Me.CastingSpell.Id == 51514 && //Hex
+                    //    (DebuffCCDuration(LastCastUnit, 3000) ||
+                    //     !CanHex(LastCastUnit)))
+                    //{
+                    //    SpellManager.StopCasting();
+                    //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
+                    //}
+
+                    if ((((UseSpecialization == 3) && (Me.CastingSpell.Id == 403)) && (UnitHealIsValid && HasGlyph.Contains("55453"))) && ((Me.ManaPercent > THSettings.Instance.UrgentHeal) && (UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
+                    }
+                    else if (((UseSpecialization == 2) && (InArena || InBattleground)) && ((Me.CastingSpell.Id == 403) && CurrentTargetAttackable(5.0, false, false)))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
+                    }
+                    else if (((UseSpecialization == 1) && ((Me.CastingSpell.Id == 403) || (Me.CastingSpell.Id == 421))) && (MeHasAura(77762) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
+                    }
+                    else if (((UseSpecialization == 1) && (InArena || InBattleground)) && (((Me.CastingSpell.Id == 117014) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)) && (MeHasAura(77762) && HaveInterrupterRound(Me))))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
+                    }
+                    else if ((((UseSpecialization == 3) && (LastCastSpell == "Greater Healing Wave")) && (Me.CastingSpell.Id == 77472)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.GreaterHealingWaveHP + 20) + THSettings.Instance.HealBalancing))))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
+                    }
+                    else if ((((UseSpecialization == 3) && (LastCastSpell == "Chain Heal")) && (Me.CastingSpell.Id == 1064)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.ChainHealHP + 20) + THSettings.Instance.HealBalancing))))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
+                    }
+                    else if ((((UseSpecialization == 3) && (LastCastSpell == "Healing Surge")) && (Me.CastingSpell.Id == 8004)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.HealingSurgeResHP + 20) + THSettings.Instance.HealBalancing))))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
+                    }
+                    else if (((((UseSpecialization == 3) && !InDungeon) && (!InRaid && !InProvingGrounds)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 331)) && ((Me.ManaPercent > 30.0) && (Me.CurrentCastTimeLeft.TotalMilliseconds > 1300.0)))) && (((LastCastUnit.HealthPercent < (THSettings.Instance.GreaterHealingWaveHP + THSettings.Instance.HealBalancing)) && MyAura("Tidal Waves", Me)) && (LastCastUnit.Combat || Me.Combat)))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
+                    }
+                    else if ((((UseSpecialization == 3) && InRaid) && ((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 331))) && (LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
+                    }
+                    else if (((UseSpecialization == 3) && (InArena || InBattleground)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 331)) && ((LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)) && (Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(600, 1000)))))
+                    {
+                        SpellManager.StopCasting();
+                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
+                    }
+                }
+                catch (Exception)
+                {
+                    Logging.Write("StopCastingCheck Fail");
+                    throw;
+                }
+            }
+        }
+            //if (UseSpecialization == 3 &&
+            //    Me.CastingSpell.Id == 403 && //Lightning Bolt 403
+            //    UnitHealIsValid &&
+            //    HasGlyph.Contains("55453") && //Glyph of Telluric Currents - 55453
+            //    Me.ManaPercent > THSettings.Instance.UrgentHeal &&
+            //    UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)
             //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") +
+            //                  "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
             //    return;
             //}
 
-            if (Me.CastingSpell.Id == 51514 && //Hex
-                (DebuffCCDuration(LastCastUnit, 3000) ||
-                 !CanHex(LastCastUnit)))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
-            }
+            //if (UseSpecialization == 2 &&
+            //    (InArena || InBattleground) &&
+            //    Me.CastingSpell.Id == 403 &&
+            //    CurrentTargetAttackable(5))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
+            //}
 
-            if (UseSpecialization == 3 &&
-                Me.CastingSpell.Id == 403 && //Lightning Bolt 403
-                UnitHealIsValid &&
-                HasGlyph.Contains("55453") && //Glyph of Telluric Currents - 55453
-                Me.ManaPercent > THSettings.Instance.UrgentHeal &&
-                UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") +
-                              "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
-                return;
-            }
+            //if (UseSpecialization == 1 &&
+            //    (Me.CastingSpell.Id == 403 ||
+            //     Me.CastingSpell.Id == 421) &&
+            //    MeHasAura(77762) &&
+            //    Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") +
+            //                  "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
+            //}
 
-            if (UseSpecialization == 2 &&
-                (InArena || InBattleground) &&
-                Me.CastingSpell.Id == 403 &&
-                CurrentTargetAttackable(5))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
-            }
+            //if (UseSpecialization == 1 &&
+            //    (InArena || InBattleground) &&
+            //    Me.CastingSpell.Id == 117014 &&
+            //    Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency &&
+            //    MeHasAura(77762) &&
+            //    HaveInterrupterRound(Me))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") +
+            //                  "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
+            //}
 
-            if (UseSpecialization == 1 &&
-                (Me.CastingSpell.Id == 403 ||
-                 Me.CastingSpell.Id == 421) &&
-                MeHasAura(77762) &&
-                Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") +
-                              "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
-            }
+            //if (UseSpecialization == 3 &&
+            //    Me.CastingSpell.Id == 77472 && //"Greater Healing Wave" &&
+            //    (LastCastUnit.HealthPercent >
+            //     THSettings.Instance.DoNotHealAbove ||
+            //     LastCastUnit.HealthPercent > THSettings.Instance.GreaterHealingWaveHP + 20))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
+            //    return;
+            //}
 
-            if (UseSpecialization == 1 &&
-                (InArena || InBattleground) &&
-                Me.CastingSpell.Id == 117014 &&
-                Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency &&
-                MeHasAura(77762) &&
-                HaveInterrupterRound(Me))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") +
-                              "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
-            }
-
-            if (UseSpecialization == 3 &&
-                Me.CastingSpell.Id == 77472 && //"Greater Healing Wave" &&
-                (LastCastUnit.HealthPercent >
-                 THSettings.Instance.DoNotHealAbove ||
-                 LastCastUnit.HealthPercent > THSettings.Instance.GreaterHealingWaveHP + 20))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
-                return;
-            }
-
-            if (UseSpecialization == 3 &&
-                Me.CastingSpell.Id == 1064 && //"Chain Heal" &&
-                (LastCastUnit.HealthPercent >
-                 THSettings.Instance.DoNotHealAbove ||
-                 LastCastUnit.HealthPercent > THSettings.Instance.ChainHealHP + 20))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
-                return;
-            }
+            //if (UseSpecialization == 3 &&
+            //    Me.CastingSpell.Id == 1064 && //"Chain Heal" &&
+            //    (LastCastUnit.HealthPercent >
+            //     THSettings.Instance.DoNotHealAbove ||
+            //     LastCastUnit.HealthPercent > THSettings.Instance.ChainHealHP + 20))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
+            //    return;
+            //}
 
 
-            if (Me.CastingSpell.Id == 8004 && //"Healing Surge" &&
-                (LastCastUnit.HealthPercent >
-                 THSettings.Instance.DoNotHealAbove ||
-                 LastCastUnit.HealthPercent > THSettings.Instance.HealingSurgeResHP + 20))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
-                return;
-            }
+            //if (Me.CastingSpell.Id == 8004 && //"Healing Surge" &&
+            //    (LastCastUnit.HealthPercent >
+            //     THSettings.Instance.DoNotHealAbove ||
+            //     LastCastUnit.HealthPercent > THSettings.Instance.HealingSurgeResHP + 20))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
+            //    return;
+            //}
 
-            if (UseSpecialization == 3 &&
-                !InDungeon &&
-                !InRaid &&
-                Me.CastingSpell.Id == 331 && //== "Healing Wave" &&
-                Me.ManaPercent > 30 &&
-                Me.CurrentCastTimeLeft.TotalMilliseconds > 1300 &&
-                LastCastUnit.HealthPercent < THSettings.Instance.GreaterHealingWaveHP &&
-                MyAura("Tidal Waves", Me) &&
-                (LastCastUnit.Combat || Me.Combat))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
-                return;
-            }
+            //if (UseSpecialization == 3 &&
+            //    !InDungeon &&
+            //    !InRaid &&
+            //    Me.CastingSpell.Id == 331 && //== "Healing Wave" &&
+            //    Me.ManaPercent > 30 &&
+            //    Me.CurrentCastTimeLeft.TotalMilliseconds > 1300 &&
+            //    LastCastUnit.HealthPercent < THSettings.Instance.GreaterHealingWaveHP &&
+            //    MyAura("Tidal Waves", Me) &&
+            //    (LastCastUnit.Combat || Me.Combat))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
+            //    return;
+            //}
 
-            if (UseSpecialization == 3 &&
-                InRaid &&
-                Me.CastingSpell.Id == 331 && //Healing Wave
-                (LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove ||
-                 LastCastUnit.HealthPercent > THSettings.Instance.HealingWaveHP + 10))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
-                return;
-            }
+            //if (UseSpecialization == 3 &&
+            //    InRaid &&
+            //    Me.CastingSpell.Id == 331 && //Healing Wave
+            //    (LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove ||
+            //     LastCastUnit.HealthPercent > THSettings.Instance.HealingWaveHP + 10))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
+            //    return;
+            //}
 
-            if (UseSpecialization == 3 &&
-                (InArena || InBattleground) &&
-                Me.CastingSpell.Id == 331 && //Healing Wave
-                LastCastUnit.HealthPercent < THSettings.Instance.DoNotHealAbove &&
-                Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(800, 1200))
-            {
-                SpellManager.StopCasting();
-                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
-                return;
-            }
+            //if (UseSpecialization == 3 &&
+            //    (InArena || InBattleground) &&
+            //    Me.CastingSpell.Id == 331 && //Healing Wave
+            //    LastCastUnit.HealthPercent < THSettings.Instance.DoNotHealAbove &&
+            //    Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(800, 1200))
+            //{
+            //    SpellManager.StopCasting();
+            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
+            //    return;
+            //}
 
             //Stop Casting Healing Spells
             //if ((LastCastSpell == "Healing Wave" ||
@@ -5289,7 +5365,7 @@ namespace TuanHA_Combat_Routine
             //        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Unit Full HP");
             //    }
             //}
-        }
+        //}
 
         #endregion
 
@@ -7460,7 +7536,7 @@ namespace TuanHA_Combat_Routine
         private static bool IsWorthyTarget(WoWUnit target, double pvEPercent = 1, double pvPPercent = 0.3)
         {
             //////if (!BasicCheck(target) || Me.GetPredictedHealthPercent() < 20)
-            if (Me.HealthPercent < 20)
+            if (!InArena && Me.HealthPercent < 20)
             {
                 return false;
             }

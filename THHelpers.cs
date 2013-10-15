@@ -2250,13 +2250,13 @@ namespace TuanHA_Combat_Routine
                 }
                 else if (InArena || InBattleground)
                 {
-                    AuraCacheExpire = TimeSpan.FromMilliseconds(50);
-                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(50.0);
+                    AuraCacheExpire = TimeSpan.FromMilliseconds(0);
+                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(0);
                 }
                 else
                 {
                     AuraCacheExpire = TimeSpan.FromMilliseconds(100);
-                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(100.0);
+                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(100);
                 }
             }
         }
@@ -2941,7 +2941,7 @@ namespace TuanHA_Combat_Routine
                     //Disable this, it conflic with the targeting system
                     if (THSettings.Instance.AutoAttack &&
                         MeHasAura("Ghost Wolf") &&
-                        CurrentTargetAttackable(5))
+                        CurrentTargetAttackable(8))
                     {
                         CancelAura("Ghost Wolf", Me);
                         SpellManager.Cast("Auto Attack");

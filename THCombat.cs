@@ -64,7 +64,7 @@ namespace TuanHA_Combat_Routine
 
         public override Composite CombatBehavior
         {
-            get { return CombatRotation(); }
+            get { return MainRotation(); }
         }
 
         //public override Composite HealBehavior
@@ -611,6 +611,23 @@ namespace TuanHA_Combat_Routine
                 //Burst by key press
                 if (THSettings.Instance.BurstKey > 9)
                 {
+                    if(THSettings.Instance.Burst == false &&
+                       CurrentTargetAttackable(30) &&
+                       !Me.CurrentTarget.IsPet &&
+                       Me.CurrentTarget.HealthPercent <= THSettings.Instance.BurstHP &&
+                       !CurrentTargetCheckInvulnerablePhysic &&
+                       !DebuffCC(Me) &&
+                        //SSpellManager.HasSpell("Ascendance") &&
+                       Me.ManaPercent > 20 &&
+                       InArena &&
+                       CanCastCheck("Ascendance", true) &&
+                       CanCastCheck("Primal Strike")) //Suck to pop CD and no Mana to use seplls
+                       {
+                           BurstLast = DateTime.Now.AddSeconds(15);
+                           Logging.Write("Burst Mode Activated on Enemy Health Low");
+                           THSettings.Instance.Burst = true;
+                       }
+
                     //Burst Mode
                     if (GetAsyncKeyState(Keys.LControlKey) < 0 &&
                         GetAsyncKeyState(IndexToKeys(THSettings.Instance.BurstKey - 9)) < 0 &&
@@ -734,7 +751,7 @@ namespace TuanHA_Combat_Routine
             return new Decorator(
                 ret =>
                 !Me.Combat,
-                CombatRotation());
+                MainRotation());
         }
 
         private static bool AoEModeOn;
@@ -743,7 +760,7 @@ namespace TuanHA_Combat_Routine
         private static bool IsOverrideModeOn;
         private static WoWUnit MyLastTarget;
 
-        private static Composite CombatRotation()
+        private static Composite MainRotation()
         {
             return new PrioritySelector(
                 //SWStart(),
