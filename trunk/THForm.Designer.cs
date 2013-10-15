@@ -457,7 +457,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 11);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(760, 378);
+            this.tabControl1.Size = new System.Drawing.Size(886, 378);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -489,7 +489,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(752, 352);
+            this.tabPage2.Size = new System.Drawing.Size(878, 352);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "General";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -512,9 +512,9 @@
             this.groupBox19.Controls.Add(this.ProfBuff);
             this.groupBox19.Controls.Add(this.ProfBuffHP);
             this.groupBox19.Controls.Add(this.Trinket1HP);
-            this.groupBox19.Location = new System.Drawing.Point(3, 132);
+            this.groupBox19.Location = new System.Drawing.Point(7, 132);
             this.groupBox19.Name = "groupBox19";
-            this.groupBox19.Size = new System.Drawing.Size(242, 219);
+            this.groupBox19.Size = new System.Drawing.Size(308, 219);
             this.groupBox19.TabIndex = 105;
             this.groupBox19.TabStop = false;
             this.groupBox19.Text = "Burst, Trinket and Professional Buff";
@@ -591,7 +591,7 @@
             "Ctrl + Down",
             "Ctrl + Left",
             "Ctrl + Right"});
-            this.BurstKey.Location = new System.Drawing.Point(59, 17);
+            this.BurstKey.Location = new System.Drawing.Point(101, 17);
             this.BurstKey.Name = "BurstKey";
             this.BurstKey.Size = new System.Drawing.Size(131, 20);
             this.BurstKey.TabIndex = 63;
@@ -611,7 +611,7 @@
             "On Enemy Health Below",
             "On My Mana Below",
             "On Using My Cooldown"});
-            this.Trinket1.Location = new System.Drawing.Point(59, 41);
+            this.Trinket1.Location = new System.Drawing.Point(101, 41);
             this.Trinket1.Name = "Trinket1";
             this.Trinket1.Size = new System.Drawing.Size(131, 20);
             this.Trinket1.TabIndex = 71;
@@ -631,7 +631,7 @@
             "On Enemy Health Below",
             "On My Mana Below",
             "On Using My Cooldown"});
-            this.Trinket2.Location = new System.Drawing.Point(59, 65);
+            this.Trinket2.Location = new System.Drawing.Point(101, 65);
             this.Trinket2.Name = "Trinket2";
             this.Trinket2.Size = new System.Drawing.Size(131, 20);
             this.Trinket2.TabIndex = 72;
@@ -665,7 +665,7 @@
             "Frostbrand Weapon",
             "Rockbiter Weapon",
             "Earthliving Weapon"});
-            this.WeaponOffHand.Location = new System.Drawing.Point(108, 139);
+            this.WeaponOffHand.Location = new System.Drawing.Point(150, 139);
             this.WeaponOffHand.Name = "WeaponOffHand";
             this.WeaponOffHand.Size = new System.Drawing.Size(128, 20);
             this.WeaponOffHand.TabIndex = 163;
@@ -678,7 +678,7 @@
             0,
             0,
             0});
-            this.Trinket2HP.Location = new System.Drawing.Point(196, 66);
+            this.Trinket2HP.Location = new System.Drawing.Point(238, 66);
             this.Trinket2HP.Name = "Trinket2HP";
             this.Trinket2HP.Size = new System.Drawing.Size(40, 21);
             this.Trinket2HP.TabIndex = 70;
@@ -703,7 +703,7 @@
             "Frostbrand Weapon",
             "Rockbiter Weapon",
             "Earthliving Weapon"});
-            this.WeaponMainHand.Location = new System.Drawing.Point(108, 114);
+            this.WeaponMainHand.Location = new System.Drawing.Point(150, 114);
             this.WeaponMainHand.Name = "WeaponMainHand";
             this.WeaponMainHand.Size = new System.Drawing.Size(128, 20);
             this.WeaponMainHand.TabIndex = 162;
@@ -716,7 +716,7 @@
             0,
             0,
             0});
-            this.BurstHP.Location = new System.Drawing.Point(196, 18);
+            this.BurstHP.Location = new System.Drawing.Point(238, 18);
             this.BurstHP.Name = "BurstHP";
             this.BurstHP.Size = new System.Drawing.Size(40, 21);
             this.BurstHP.TabIndex = 97;
@@ -745,7 +745,7 @@
             "On Enemy Health Below",
             "On My Mana Below",
             "On Using Cooldown"});
-            this.ProfBuff.Location = new System.Drawing.Point(59, 90);
+            this.ProfBuff.Location = new System.Drawing.Point(101, 90);
             this.ProfBuff.Name = "ProfBuff";
             this.ProfBuff.Size = new System.Drawing.Size(131, 20);
             this.ProfBuff.TabIndex = 77;
@@ -758,7 +758,7 @@
             0,
             0,
             0});
-            this.ProfBuffHP.Location = new System.Drawing.Point(196, 90);
+            this.ProfBuffHP.Location = new System.Drawing.Point(238, 90);
             this.ProfBuffHP.Name = "ProfBuffHP";
             this.ProfBuffHP.Size = new System.Drawing.Size(40, 21);
             this.ProfBuffHP.TabIndex = 76;
@@ -771,7 +771,7 @@
             0,
             0,
             0});
-            this.Trinket1HP.Location = new System.Drawing.Point(196, 42);
+            this.Trinket1HP.Location = new System.Drawing.Point(238, 42);
             this.Trinket1HP.Name = "Trinket1HP";
             this.Trinket1HP.Size = new System.Drawing.Size(40, 21);
             this.Trinket1HP.TabIndex = 69;
@@ -783,7 +783,7 @@
             this.groupBox16.Controls.Add(this.HexDPS);
             this.groupBox16.Controls.Add(this.Hex);
             this.groupBox16.Controls.Add(this.HexHealer);
-            this.groupBox16.Location = new System.Drawing.Point(251, 8);
+            this.groupBox16.Location = new System.Drawing.Point(317, 8);
             this.groupBox16.Name = "groupBox16";
             this.groupBox16.Size = new System.Drawing.Size(242, 342);
             this.groupBox16.TabIndex = 104;
@@ -868,9 +868,9 @@
             this.groupBox3.Controls.Add(this.label1);
             this.groupBox3.Controls.Add(this.TurnLeft);
             this.groupBox3.Controls.Add(this.Backward);
-            this.groupBox3.Location = new System.Drawing.Point(499, 8);
+            this.groupBox3.Location = new System.Drawing.Point(565, 7);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(244, 342);
+            this.groupBox3.Size = new System.Drawing.Size(307, 342);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Control";
@@ -878,7 +878,7 @@
             // AutoAttackOutCombat
             // 
             this.AutoAttackOutCombat.AutoSize = true;
-            this.AutoAttackOutCombat.Location = new System.Drawing.Point(134, 124);
+            this.AutoAttackOutCombat.Location = new System.Drawing.Point(176, 124);
             this.AutoAttackOutCombat.Name = "AutoAttackOutCombat";
             this.AutoAttackOutCombat.Size = new System.Drawing.Size(126, 16);
             this.AutoAttackOutCombat.TabIndex = 169;
@@ -911,7 +911,7 @@
             // AutoWriteLog
             // 
             this.AutoWriteLog.AutoSize = true;
-            this.AutoWriteLog.Location = new System.Drawing.Point(134, 81);
+            this.AutoWriteLog.Location = new System.Drawing.Point(176, 80);
             this.AutoWriteLog.Name = "AutoWriteLog";
             this.AutoWriteLog.Size = new System.Drawing.Size(108, 16);
             this.AutoWriteLog.TabIndex = 167;
@@ -993,7 +993,7 @@
             // AutoGhostWolfCancel
             // 
             this.AutoGhostWolfCancel.AutoSize = true;
-            this.AutoGhostWolfCancel.Location = new System.Drawing.Point(134, 102);
+            this.AutoGhostWolfCancel.Location = new System.Drawing.Point(176, 102);
             this.AutoGhostWolfCancel.Name = "AutoGhostWolfCancel";
             this.AutoGhostWolfCancel.Size = new System.Drawing.Size(120, 16);
             this.AutoGhostWolfCancel.TabIndex = 165;
@@ -1066,7 +1066,7 @@
             // AutoFace
             // 
             this.AutoFace.AutoSize = true;
-            this.AutoFace.Location = new System.Drawing.Point(134, 18);
+            this.AutoFace.Location = new System.Drawing.Point(176, 16);
             this.AutoFace.Name = "AutoFace";
             this.AutoFace.Size = new System.Drawing.Size(78, 16);
             this.AutoFace.TabIndex = 74;
@@ -1077,7 +1077,7 @@
             // AutoRacial
             // 
             this.AutoRacial.AutoSize = true;
-            this.AutoRacial.Location = new System.Drawing.Point(135, 39);
+            this.AutoRacial.Location = new System.Drawing.Point(176, 38);
             this.AutoRacial.Name = "AutoRacial";
             this.AutoRacial.Size = new System.Drawing.Size(90, 16);
             this.AutoRacial.TabIndex = 68;
@@ -1123,7 +1123,7 @@
             // AutoTarget
             // 
             this.AutoTarget.AutoSize = true;
-            this.AutoTarget.Location = new System.Drawing.Point(135, 60);
+            this.AutoTarget.Location = new System.Drawing.Point(176, 60);
             this.AutoTarget.Name = "AutoTarget";
             this.AutoTarget.Size = new System.Drawing.Size(90, 16);
             this.AutoTarget.TabIndex = 51;
@@ -1510,7 +1510,7 @@
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Location = new System.Drawing.Point(3, 8);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(242, 118);
+            this.groupBox1.Size = new System.Drawing.Size(308, 118);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Interrupt And Other";
@@ -1547,7 +1547,7 @@
             // InterruptFocus
             // 
             this.InterruptFocus.AutoSize = true;
-            this.InterruptFocus.Location = new System.Drawing.Point(164, 18);
+            this.InterruptFocus.Location = new System.Drawing.Point(196, 18);
             this.InterruptFocus.Name = "InterruptFocus";
             this.InterruptFocus.Size = new System.Drawing.Size(54, 16);
             this.InterruptFocus.TabIndex = 175;
@@ -1558,7 +1558,7 @@
             // InterruptTarget
             // 
             this.InterruptTarget.AutoSize = true;
-            this.InterruptTarget.Location = new System.Drawing.Point(101, 18);
+            this.InterruptTarget.Location = new System.Drawing.Point(133, 18);
             this.InterruptTarget.Name = "InterruptTarget";
             this.InterruptTarget.Size = new System.Drawing.Size(60, 16);
             this.InterruptTarget.TabIndex = 174;
@@ -1569,7 +1569,7 @@
             // InterruptAll
             // 
             this.InterruptAll.AutoSize = true;
-            this.InterruptAll.Location = new System.Drawing.Point(58, 18);
+            this.InterruptAll.Location = new System.Drawing.Point(90, 18);
             this.InterruptAll.Name = "InterruptAll";
             this.InterruptAll.Size = new System.Drawing.Size(42, 16);
             this.InterruptAll.TabIndex = 173;
@@ -1594,7 +1594,7 @@
             this.tabPage7.Controls.Add(this.groupBox5);
             this.tabPage7.Location = new System.Drawing.Point(4, 22);
             this.tabPage7.Name = "tabPage7";
-            this.tabPage7.Size = new System.Drawing.Size(752, 352);
+            this.tabPage7.Size = new System.Drawing.Size(878, 352);
             this.tabPage7.TabIndex = 6;
             this.tabPage7.Text = "Cooldown && Hotkeys";
             this.tabPage7.UseVisualStyleBackColor = true;
@@ -1618,7 +1618,7 @@
             this.groupBox20.Controls.Add(this.TremorDPS);
             this.groupBox20.Controls.Add(this.TremorHealer);
             this.groupBox20.Controls.Add(this.TremorMe);
-            this.groupBox20.Location = new System.Drawing.Point(499, 8);
+            this.groupBox20.Location = new System.Drawing.Point(619, 8);
             this.groupBox20.Name = "groupBox20";
             this.groupBox20.Size = new System.Drawing.Size(250, 199);
             this.groupBox20.TabIndex = 107;
@@ -1852,7 +1852,7 @@
             this.groupBox17.Controls.Add(this.Hotkey1Key);
             this.groupBox17.Controls.Add(this.Hotkey1Target);
             this.groupBox17.Controls.Add(this.Hotkey1Mod);
-            this.groupBox17.Location = new System.Drawing.Point(499, 208);
+            this.groupBox17.Location = new System.Drawing.Point(619, 208);
             this.groupBox17.Name = "groupBox17";
             this.groupBox17.Size = new System.Drawing.Size(250, 143);
             this.groupBox17.TabIndex = 106;
@@ -2363,9 +2363,9 @@
             this.groupBox18.Controls.Add(this.HealingStreamTotemHP);
             this.groupBox18.Controls.Add(this.ManaTideTotemMN);
             this.groupBox18.Controls.Add(this.ManaTideTotem);
-            this.groupBox18.Location = new System.Drawing.Point(251, 8);
+            this.groupBox18.Location = new System.Drawing.Point(312, 8);
             this.groupBox18.Name = "groupBox18";
-            this.groupBox18.Size = new System.Drawing.Size(242, 342);
+            this.groupBox18.Size = new System.Drawing.Size(304, 342);
             this.groupBox18.TabIndex = 105;
             this.groupBox18.TabStop = false;
             this.groupBox18.Text = "Totems";
@@ -2373,7 +2373,7 @@
             // FireElementalBurst
             // 
             this.FireElementalBurst.AutoSize = true;
-            this.FireElementalBurst.Location = new System.Drawing.Point(169, 159);
+            this.FireElementalBurst.Location = new System.Drawing.Point(231, 159);
             this.FireElementalBurst.Name = "FireElementalBurst";
             this.FireElementalBurst.Size = new System.Drawing.Size(72, 16);
             this.FireElementalBurst.TabIndex = 237;
@@ -2410,7 +2410,7 @@
             0,
             0,
             0});
-            this.CapacitorProjectionMs.Location = new System.Drawing.Point(186, 90);
+            this.CapacitorProjectionMs.Location = new System.Drawing.Point(248, 90);
             this.CapacitorProjectionMs.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -2435,7 +2435,7 @@
             // EarthElementalBurst
             // 
             this.EarthElementalBurst.AutoSize = true;
-            this.EarthElementalBurst.Location = new System.Drawing.Point(169, 138);
+            this.EarthElementalBurst.Location = new System.Drawing.Point(231, 138);
             this.EarthElementalBurst.Name = "EarthElementalBurst";
             this.EarthElementalBurst.Size = new System.Drawing.Size(72, 16);
             this.EarthElementalBurst.TabIndex = 235;
@@ -2445,7 +2445,7 @@
             // 
             // CapacitorEnemyPackNumber
             // 
-            this.CapacitorEnemyPackNumber.Location = new System.Drawing.Point(196, 66);
+            this.CapacitorEnemyPackNumber.Location = new System.Drawing.Point(258, 66);
             this.CapacitorEnemyPackNumber.Name = "CapacitorEnemyPackNumber";
             this.CapacitorEnemyPackNumber.Size = new System.Drawing.Size(40, 21);
             this.CapacitorEnemyPackNumber.TabIndex = 221;
@@ -2513,7 +2513,7 @@
             0,
             0,
             0});
-            this.CapacitorEnemyLowHP.Location = new System.Drawing.Point(196, 42);
+            this.CapacitorEnemyLowHP.Location = new System.Drawing.Point(258, 42);
             this.CapacitorEnemyLowHP.Name = "CapacitorEnemyLowHP";
             this.CapacitorEnemyLowHP.Size = new System.Drawing.Size(40, 21);
             this.CapacitorEnemyLowHP.TabIndex = 219;
@@ -2526,7 +2526,7 @@
             0,
             0,
             0});
-            this.GroundingCastMs.Location = new System.Drawing.Point(187, 203);
+            this.GroundingCastMs.Location = new System.Drawing.Point(249, 203);
             this.GroundingCastMs.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -2544,7 +2544,7 @@
             0,
             0,
             0});
-            this.HealingTideTotemHP.Location = new System.Drawing.Point(196, 270);
+            this.HealingTideTotemHP.Location = new System.Drawing.Point(258, 270);
             this.HealingTideTotemHP.Name = "HealingTideTotemHP";
             this.HealingTideTotemHP.Size = new System.Drawing.Size(40, 21);
             this.HealingTideTotemHP.TabIndex = 198;
@@ -2552,7 +2552,7 @@
             // 
             // HealingTideTotemUnit
             // 
-            this.HealingTideTotemUnit.Location = new System.Drawing.Point(150, 271);
+            this.HealingTideTotemUnit.Location = new System.Drawing.Point(212, 271);
             this.HealingTideTotemUnit.Maximum = new decimal(new int[] {
             5,
             0,
@@ -2580,7 +2580,7 @@
             0,
             0,
             0});
-            this.SearingTotemDistance.Location = new System.Drawing.Point(197, 318);
+            this.SearingTotemDistance.Location = new System.Drawing.Point(259, 318);
             this.SearingTotemDistance.Name = "SearingTotemDistance";
             this.SearingTotemDistance.Size = new System.Drawing.Size(40, 21);
             this.SearingTotemDistance.TabIndex = 213;
@@ -2588,7 +2588,7 @@
             // 
             // EarthbindUnit
             // 
-            this.EarthbindUnit.Location = new System.Drawing.Point(150, 114);
+            this.EarthbindUnit.Location = new System.Drawing.Point(212, 114);
             this.EarthbindUnit.Maximum = new decimal(new int[] {
             5,
             0,
@@ -2638,7 +2638,7 @@
             0,
             0,
             0});
-            this.EarthbindDistance.Location = new System.Drawing.Point(196, 114);
+            this.EarthbindDistance.Location = new System.Drawing.Point(258, 114);
             this.EarthbindDistance.Name = "EarthbindDistance";
             this.EarthbindDistance.Size = new System.Drawing.Size(40, 21);
             this.EarthbindDistance.TabIndex = 214;
@@ -2646,7 +2646,7 @@
             // 
             // HealingStreamTotemUnit
             // 
-            this.HealingStreamTotemUnit.Location = new System.Drawing.Point(151, 248);
+            this.HealingStreamTotemUnit.Location = new System.Drawing.Point(213, 248);
             this.HealingStreamTotemUnit.Maximum = new decimal(new int[] {
             5,
             0,
@@ -2674,7 +2674,7 @@
             0,
             0,
             0});
-            this.CapacitorFriendLowHP.Location = new System.Drawing.Point(196, 18);
+            this.CapacitorFriendLowHP.Location = new System.Drawing.Point(258, 18);
             this.CapacitorFriendLowHP.Name = "CapacitorFriendLowHP";
             this.CapacitorFriendLowHP.Size = new System.Drawing.Size(40, 21);
             this.CapacitorFriendLowHP.TabIndex = 217;
@@ -2687,7 +2687,7 @@
             0,
             0,
             0});
-            this.GroundingLowHP.Location = new System.Drawing.Point(197, 179);
+            this.GroundingLowHP.Location = new System.Drawing.Point(259, 179);
             this.GroundingLowHP.Name = "GroundingLowHP";
             this.GroundingLowHP.Size = new System.Drawing.Size(40, 21);
             this.GroundingLowHP.TabIndex = 204;
@@ -2733,7 +2733,7 @@
             0,
             0,
             0});
-            this.HealingStreamTotemHP.Location = new System.Drawing.Point(197, 248);
+            this.HealingStreamTotemHP.Location = new System.Drawing.Point(259, 248);
             this.HealingStreamTotemHP.Name = "HealingStreamTotemHP";
             this.HealingStreamTotemHP.Size = new System.Drawing.Size(40, 21);
             this.HealingStreamTotemHP.TabIndex = 201;
@@ -2746,7 +2746,7 @@
             0,
             0,
             0});
-            this.ManaTideTotemMN.Location = new System.Drawing.Point(197, 294);
+            this.ManaTideTotemMN.Location = new System.Drawing.Point(259, 294);
             this.ManaTideTotemMN.Name = "ManaTideTotemMN";
             this.ManaTideTotemMN.Size = new System.Drawing.Size(40, 21);
             this.ManaTideTotemMN.TabIndex = 198;
@@ -2794,7 +2794,7 @@
             this.groupBox5.Controls.Add(this.HealthStoneHP);
             this.groupBox5.Location = new System.Drawing.Point(3, 8);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(242, 342);
+            this.groupBox5.Size = new System.Drawing.Size(303, 342);
             this.groupBox5.TabIndex = 2;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Share Cooldown";
@@ -2806,7 +2806,7 @@
             0,
             0,
             0});
-            this.ShamanisticCCDuration.Location = new System.Drawing.Point(186, 296);
+            this.ShamanisticCCDuration.Location = new System.Drawing.Point(239, 296);
             this.ShamanisticCCDuration.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -2831,7 +2831,7 @@
             // AncestralGuidanceBurst
             // 
             this.AncestralGuidanceBurst.AutoSize = true;
-            this.AncestralGuidanceBurst.Location = new System.Drawing.Point(168, 18);
+            this.AncestralGuidanceBurst.Location = new System.Drawing.Point(221, 18);
             this.AncestralGuidanceBurst.Name = "AncestralGuidanceBurst";
             this.AncestralGuidanceBurst.Size = new System.Drawing.Size(72, 16);
             this.AncestralGuidanceBurst.TabIndex = 233;
@@ -2875,7 +2875,7 @@
             // ElementalMasteryBurst
             // 
             this.ElementalMasteryBurst.AutoSize = true;
-            this.ElementalMasteryBurst.Location = new System.Drawing.Point(168, 87);
+            this.ElementalMasteryBurst.Location = new System.Drawing.Point(221, 87);
             this.ElementalMasteryBurst.Name = "ElementalMasteryBurst";
             this.ElementalMasteryBurst.Size = new System.Drawing.Size(72, 16);
             this.ElementalMasteryBurst.TabIndex = 231;
@@ -2923,7 +2923,7 @@
             0,
             0,
             0});
-            this.PurgeNormalMana.Location = new System.Drawing.Point(195, 224);
+            this.PurgeNormalMana.Location = new System.Drawing.Point(248, 224);
             this.PurgeNormalMana.Name = "PurgeNormalMana";
             this.PurgeNormalMana.Size = new System.Drawing.Size(40, 21);
             this.PurgeNormalMana.TabIndex = 211;
@@ -2958,7 +2958,7 @@
             0,
             0,
             0});
-            this.PurgeASAPMana.Location = new System.Drawing.Point(196, 200);
+            this.PurgeASAPMana.Location = new System.Drawing.Point(249, 200);
             this.PurgeASAPMana.Name = "PurgeASAPMana";
             this.PurgeASAPMana.Size = new System.Drawing.Size(40, 21);
             this.PurgeASAPMana.TabIndex = 209;
@@ -2982,7 +2982,7 @@
             0,
             0,
             0});
-            this.ShamanisticRageMNMN.Location = new System.Drawing.Point(196, 272);
+            this.ShamanisticRageMNMN.Location = new System.Drawing.Point(249, 272);
             this.ShamanisticRageMNMN.Name = "ShamanisticRageMNMN";
             this.ShamanisticRageMNMN.Size = new System.Drawing.Size(40, 21);
             this.ShamanisticRageMNMN.TabIndex = 196;
@@ -3006,7 +3006,7 @@
             0,
             0,
             0});
-            this.ShamanisticRageHPHP.Location = new System.Drawing.Point(196, 248);
+            this.ShamanisticRageHPHP.Location = new System.Drawing.Point(249, 248);
             this.ShamanisticRageHPHP.Name = "ShamanisticRageHPHP";
             this.ShamanisticRageHPHP.Size = new System.Drawing.Size(40, 21);
             this.ShamanisticRageHPHP.TabIndex = 194;
@@ -3019,7 +3019,7 @@
             0,
             0,
             0});
-            this.FrostShockNearbyMana.Location = new System.Drawing.Point(150, 131);
+            this.FrostShockNearbyMana.Location = new System.Drawing.Point(203, 131);
             this.FrostShockNearbyMana.Name = "FrostShockNearbyMana";
             this.FrostShockNearbyMana.Size = new System.Drawing.Size(40, 21);
             this.FrostShockNearbyMana.TabIndex = 211;
@@ -3043,7 +3043,7 @@
             0,
             0,
             0});
-            this.FrostShockNearbyDist.Location = new System.Drawing.Point(196, 131);
+            this.FrostShockNearbyDist.Location = new System.Drawing.Point(249, 131);
             this.FrostShockNearbyDist.Name = "FrostShockNearbyDist";
             this.FrostShockNearbyDist.Size = new System.Drawing.Size(40, 21);
             this.FrostShockNearbyDist.TabIndex = 209;
@@ -3067,7 +3067,7 @@
             0,
             0,
             0});
-            this.AstralShiftHP.Location = new System.Drawing.Point(196, 39);
+            this.AstralShiftHP.Location = new System.Drawing.Point(249, 39);
             this.AstralShiftHP.Name = "AstralShiftHP";
             this.AstralShiftHP.Size = new System.Drawing.Size(40, 21);
             this.AstralShiftHP.TabIndex = 202;
@@ -3101,7 +3101,7 @@
             0,
             0,
             0});
-            this.BattleStandardHP.Location = new System.Drawing.Point(196, 63);
+            this.BattleStandardHP.Location = new System.Drawing.Point(249, 63);
             this.BattleStandardHP.Name = "BattleStandardHP";
             this.BattleStandardHP.Size = new System.Drawing.Size(40, 21);
             this.BattleStandardHP.TabIndex = 110;
@@ -3114,7 +3114,7 @@
             0,
             0,
             0});
-            this.HealthStoneHP.Location = new System.Drawing.Point(196, 176);
+            this.HealthStoneHP.Location = new System.Drawing.Point(249, 176);
             this.HealthStoneHP.Name = "HealthStoneHP";
             this.HealthStoneHP.Size = new System.Drawing.Size(40, 21);
             this.HealthStoneHP.TabIndex = 192;
@@ -3126,16 +3126,16 @@
             this.tabPage4.Controls.Add(this.groupBox10);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Size = new System.Drawing.Size(752, 352);
+            this.tabPage4.Size = new System.Drawing.Size(878, 352);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Elemental";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
             // groupBox12
             // 
-            this.groupBox12.Location = new System.Drawing.Point(499, 8);
+            this.groupBox12.Location = new System.Drawing.Point(629, 8);
             this.groupBox12.Name = "groupBox12";
-            this.groupBox12.Size = new System.Drawing.Size(250, 342);
+            this.groupBox12.Size = new System.Drawing.Size(211, 342);
             this.groupBox12.TabIndex = 104;
             this.groupBox12.TabStop = false;
             // 
@@ -3149,15 +3149,15 @@
             this.groupBox11.Controls.Add(this.ThunderstormCast);
             this.groupBox11.Controls.Add(this.ThunderstormManaMN);
             this.groupBox11.Controls.Add(this.ThunderstormMana);
-            this.groupBox11.Location = new System.Drawing.Point(251, 8);
+            this.groupBox11.Location = new System.Drawing.Point(342, 8);
             this.groupBox11.Name = "groupBox11";
-            this.groupBox11.Size = new System.Drawing.Size(242, 342);
+            this.groupBox11.Size = new System.Drawing.Size(281, 342);
             this.groupBox11.TabIndex = 103;
             this.groupBox11.TabStop = false;
             // 
             // ThunderstormMeleeUnit
             // 
-            this.ThunderstormMeleeUnit.Location = new System.Drawing.Point(196, 65);
+            this.ThunderstormMeleeUnit.Location = new System.Drawing.Point(233, 65);
             this.ThunderstormMeleeUnit.Name = "ThunderstormMeleeUnit";
             this.ThunderstormMeleeUnit.Size = new System.Drawing.Size(40, 21);
             this.ThunderstormMeleeUnit.TabIndex = 190;
@@ -3176,7 +3176,7 @@
             // 
             // ThunderstormUnit
             // 
-            this.ThunderstormUnit.Location = new System.Drawing.Point(196, 89);
+            this.ThunderstormUnit.Location = new System.Drawing.Point(233, 89);
             this.ThunderstormUnit.Name = "ThunderstormUnit";
             this.ThunderstormUnit.Size = new System.Drawing.Size(40, 21);
             this.ThunderstormUnit.TabIndex = 137;
@@ -3200,7 +3200,7 @@
             0,
             0,
             0});
-            this.ThunderstormCastMs.Location = new System.Drawing.Point(186, 17);
+            this.ThunderstormCastMs.Location = new System.Drawing.Point(223, 17);
             this.ThunderstormCastMs.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -3229,7 +3229,7 @@
             0,
             0,
             0});
-            this.ThunderstormManaMN.Location = new System.Drawing.Point(196, 41);
+            this.ThunderstormManaMN.Location = new System.Drawing.Point(233, 41);
             this.ThunderstormManaMN.Name = "ThunderstormManaMN";
             this.ThunderstormManaMN.Size = new System.Drawing.Size(40, 21);
             this.ThunderstormManaMN.TabIndex = 188;
@@ -3272,7 +3272,7 @@
             this.groupBox10.Controls.Add(this.EarthquakeUnit);
             this.groupBox10.Location = new System.Drawing.Point(3, 8);
             this.groupBox10.Name = "groupBox10";
-            this.groupBox10.Size = new System.Drawing.Size(242, 342);
+            this.groupBox10.Size = new System.Drawing.Size(333, 342);
             this.groupBox10.TabIndex = 102;
             this.groupBox10.TabStop = false;
             this.groupBox10.Text = "Spells";
@@ -3289,7 +3289,7 @@
             // 
             // MagmaTotemEleUnit
             // 
-            this.MagmaTotemEleUnit.Location = new System.Drawing.Point(196, 227);
+            this.MagmaTotemEleUnit.Location = new System.Drawing.Point(233, 227);
             this.MagmaTotemEleUnit.Name = "MagmaTotemEleUnit";
             this.MagmaTotemEleUnit.Size = new System.Drawing.Size(40, 21);
             this.MagmaTotemEleUnit.TabIndex = 139;
@@ -3298,7 +3298,7 @@
             // HealingSurgeInCombatEleFriendCC
             // 
             this.HealingSurgeInCombatEleFriendCC.AutoSize = true;
-            this.HealingSurgeInCombatEleFriendCC.Location = new System.Drawing.Point(138, 180);
+            this.HealingSurgeInCombatEleFriendCC.Location = new System.Drawing.Point(175, 180);
             this.HealingSurgeInCombatEleFriendCC.Name = "HealingSurgeInCombatEleFriendCC";
             this.HealingSurgeInCombatEleFriendCC.Size = new System.Drawing.Size(54, 16);
             this.HealingSurgeInCombatEleFriendCC.TabIndex = 201;
@@ -3309,7 +3309,7 @@
             // HealingSurgeInCombatEleCC
             // 
             this.HealingSurgeInCombatEleCC.AutoSize = true;
-            this.HealingSurgeInCombatEleCC.Location = new System.Drawing.Point(138, 156);
+            this.HealingSurgeInCombatEleCC.Location = new System.Drawing.Point(175, 156);
             this.HealingSurgeInCombatEleCC.Name = "HealingSurgeInCombatEleCC";
             this.HealingSurgeInCombatEleCC.Size = new System.Drawing.Size(54, 16);
             this.HealingSurgeInCombatEleCC.TabIndex = 200;
@@ -3346,7 +3346,7 @@
             0,
             0,
             0});
-            this.HealingSurgeInCombatEleFriendHP.Location = new System.Drawing.Point(196, 179);
+            this.HealingSurgeInCombatEleFriendHP.Location = new System.Drawing.Point(233, 179);
             this.HealingSurgeInCombatEleFriendHP.Name = "HealingSurgeInCombatEleFriendHP";
             this.HealingSurgeInCombatEleFriendHP.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeInCombatEleFriendHP.TabIndex = 198;
@@ -3370,7 +3370,7 @@
             0,
             0,
             0});
-            this.HealingSurgeInCombatEleHP.Location = new System.Drawing.Point(196, 155);
+            this.HealingSurgeInCombatEleHP.Location = new System.Drawing.Point(233, 155);
             this.HealingSurgeInCombatEleHP.Name = "HealingSurgeInCombatEleHP";
             this.HealingSurgeInCombatEleHP.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeInCombatEleHP.TabIndex = 195;
@@ -3394,7 +3394,7 @@
             0,
             0,
             0});
-            this.HealingSurgeOutCombatEleHP.Location = new System.Drawing.Point(196, 131);
+            this.HealingSurgeOutCombatEleHP.Location = new System.Drawing.Point(233, 131);
             this.HealingSurgeOutCombatEleHP.Name = "HealingSurgeOutCombatEleHP";
             this.HealingSurgeOutCombatEleHP.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeOutCombatEleHP.TabIndex = 193;
@@ -3414,7 +3414,7 @@
             // AscendanceEleBurst
             // 
             this.AscendanceEleBurst.AutoSize = true;
-            this.AscendanceEleBurst.Location = new System.Drawing.Point(150, 18);
+            this.AscendanceEleBurst.Location = new System.Drawing.Point(187, 18);
             this.AscendanceEleBurst.Name = "AscendanceEleBurst";
             this.AscendanceEleBurst.Size = new System.Drawing.Size(72, 16);
             this.AscendanceEleBurst.TabIndex = 191;
@@ -3455,7 +3455,7 @@
             // 
             // ChainLightningEleUnit
             // 
-            this.ChainLightningEleUnit.Location = new System.Drawing.Point(196, 59);
+            this.ChainLightningEleUnit.Location = new System.Drawing.Point(233, 59);
             this.ChainLightningEleUnit.Name = "ChainLightningEleUnit";
             this.ChainLightningEleUnit.Size = new System.Drawing.Size(40, 21);
             this.ChainLightningEleUnit.TabIndex = 185;
@@ -3468,7 +3468,7 @@
             0,
             0,
             0});
-            this.FlameShockAoEEleMana.Location = new System.Drawing.Point(196, 203);
+            this.FlameShockAoEEleMana.Location = new System.Drawing.Point(233, 203);
             this.FlameShockAoEEleMana.Name = "FlameShockAoEEleMana";
             this.FlameShockAoEEleMana.Size = new System.Drawing.Size(40, 21);
             this.FlameShockAoEEleMana.TabIndex = 184;
@@ -3476,7 +3476,7 @@
             // 
             // EarthShockElementalCharge
             // 
-            this.EarthShockElementalCharge.Location = new System.Drawing.Point(196, 107);
+            this.EarthShockElementalCharge.Location = new System.Drawing.Point(233, 107);
             this.EarthShockElementalCharge.Maximum = new decimal(new int[] {
             7,
             0,
@@ -3511,7 +3511,7 @@
             // 
             // EarthquakeUnit
             // 
-            this.EarthquakeUnit.Location = new System.Drawing.Point(196, 83);
+            this.EarthquakeUnit.Location = new System.Drawing.Point(233, 83);
             this.EarthquakeUnit.Name = "EarthquakeUnit";
             this.EarthquakeUnit.Size = new System.Drawing.Size(40, 21);
             this.EarthquakeUnit.TabIndex = 135;
@@ -3524,14 +3524,14 @@
             this.tabPage5.Controls.Add(this.groupBox2);
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(752, 352);
+            this.tabPage5.Size = new System.Drawing.Size(878, 352);
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "Enhancement";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
             // groupBox7
             // 
-            this.groupBox7.Location = new System.Drawing.Point(499, 8);
+            this.groupBox7.Location = new System.Drawing.Point(600, 8);
             this.groupBox7.Name = "groupBox7";
             this.groupBox7.Size = new System.Drawing.Size(250, 342);
             this.groupBox7.TabIndex = 4;
@@ -3539,7 +3539,7 @@
             // 
             // groupBox6
             // 
-            this.groupBox6.Location = new System.Drawing.Point(251, 8);
+            this.groupBox6.Location = new System.Drawing.Point(352, 8);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(242, 342);
             this.groupBox6.TabIndex = 3;
@@ -3573,7 +3573,7 @@
             this.groupBox2.Controls.Add(this.HealingSurgeOutCombatEnhHP);
             this.groupBox2.Location = new System.Drawing.Point(3, 8);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(242, 342);
+            this.groupBox2.Size = new System.Drawing.Size(343, 342);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Spells";
@@ -3596,7 +3596,7 @@
             0,
             0,
             0});
-            this.FeralSpiritLowHP.Location = new System.Drawing.Point(196, 103);
+            this.FeralSpiritLowHP.Location = new System.Drawing.Point(233, 103);
             this.FeralSpiritLowHP.Name = "FeralSpiritLowHP";
             this.FeralSpiritLowHP.Size = new System.Drawing.Size(40, 21);
             this.FeralSpiritLowHP.TabIndex = 208;
@@ -3604,7 +3604,7 @@
             // 
             // LightningBoltEnhMaelstromStack
             // 
-            this.LightningBoltEnhMaelstromStack.Location = new System.Drawing.Point(196, 223);
+            this.LightningBoltEnhMaelstromStack.Location = new System.Drawing.Point(233, 223);
             this.LightningBoltEnhMaelstromStack.Maximum = new decimal(new int[] {
             5,
             0,
@@ -3639,7 +3639,7 @@
             // 
             // FrostShockEnhMinDistance
             // 
-            this.FrostShockEnhMinDistance.Location = new System.Drawing.Point(196, 127);
+            this.FrostShockEnhMinDistance.Location = new System.Drawing.Point(233, 127);
             this.FrostShockEnhMinDistance.Name = "FrostShockEnhMinDistance";
             this.FrostShockEnhMinDistance.Size = new System.Drawing.Size(40, 21);
             this.FrostShockEnhMinDistance.TabIndex = 204;
@@ -3667,7 +3667,7 @@
             // 
             // HealingSurgeInCombatEnhStackFriend
             // 
-            this.HealingSurgeInCombatEnhStackFriend.Location = new System.Drawing.Point(150, 199);
+            this.HealingSurgeInCombatEnhStackFriend.Location = new System.Drawing.Point(187, 199);
             this.HealingSurgeInCombatEnhStackFriend.Name = "HealingSurgeInCombatEnhStackFriend";
             this.HealingSurgeInCombatEnhStackFriend.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeInCombatEnhStackFriend.TabIndex = 146;
@@ -3691,7 +3691,7 @@
             0,
             0,
             0});
-            this.HealingSurgeInCombatEnhHPFriend.Location = new System.Drawing.Point(196, 199);
+            this.HealingSurgeInCombatEnhHPFriend.Location = new System.Drawing.Point(233, 199);
             this.HealingSurgeInCombatEnhHPFriend.Name = "HealingSurgeInCombatEnhHPFriend";
             this.HealingSurgeInCombatEnhHPFriend.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeInCombatEnhHPFriend.TabIndex = 144;
@@ -3699,7 +3699,7 @@
             // 
             // LightningBoltFillerMaelstromStack
             // 
-            this.LightningBoltFillerMaelstromStack.Location = new System.Drawing.Point(196, 247);
+            this.LightningBoltFillerMaelstromStack.Location = new System.Drawing.Point(233, 247);
             this.LightningBoltFillerMaelstromStack.Maximum = new decimal(new int[] {
             5,
             0,
@@ -3734,7 +3734,7 @@
             // 
             // ElementalBlastEnhStack
             // 
-            this.ElementalBlastEnhStack.Location = new System.Drawing.Point(198, 59);
+            this.ElementalBlastEnhStack.Location = new System.Drawing.Point(235, 59);
             this.ElementalBlastEnhStack.Maximum = new decimal(new int[] {
             5,
             0,
@@ -3748,7 +3748,7 @@
             // AscendanceEnhBurst
             // 
             this.AscendanceEnhBurst.AutoSize = true;
-            this.AscendanceEnhBurst.Location = new System.Drawing.Point(150, 18);
+            this.AscendanceEnhBurst.Location = new System.Drawing.Point(187, 18);
             this.AscendanceEnhBurst.Name = "AscendanceEnhBurst";
             this.AscendanceEnhBurst.Size = new System.Drawing.Size(72, 16);
             this.AscendanceEnhBurst.TabIndex = 141;
@@ -3759,7 +3759,7 @@
             // FeralSpiritBurst
             // 
             this.FeralSpiritBurst.AutoSize = true;
-            this.FeralSpiritBurst.Location = new System.Drawing.Point(150, 83);
+            this.FeralSpiritBurst.Location = new System.Drawing.Point(187, 83);
             this.FeralSpiritBurst.Name = "FeralSpiritBurst";
             this.FeralSpiritBurst.Size = new System.Drawing.Size(72, 16);
             this.FeralSpiritBurst.TabIndex = 140;
@@ -3791,7 +3791,7 @@
             // 
             // HealingSurgeInCombatEnhStack
             // 
-            this.HealingSurgeInCombatEnhStack.Location = new System.Drawing.Point(150, 175);
+            this.HealingSurgeInCombatEnhStack.Location = new System.Drawing.Point(187, 175);
             this.HealingSurgeInCombatEnhStack.Name = "HealingSurgeInCombatEnhStack";
             this.HealingSurgeInCombatEnhStack.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeInCombatEnhStack.TabIndex = 137;
@@ -3815,7 +3815,7 @@
             0,
             0,
             0});
-            this.HealingSurgeInCombatEnhHP.Location = new System.Drawing.Point(196, 175);
+            this.HealingSurgeInCombatEnhHP.Location = new System.Drawing.Point(233, 175);
             this.HealingSurgeInCombatEnhHP.Name = "HealingSurgeInCombatEnhHP";
             this.HealingSurgeInCombatEnhHP.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeInCombatEnhHP.TabIndex = 135;
@@ -3839,7 +3839,7 @@
             0,
             0,
             0});
-            this.HealingSurgeOutCombatEnhHP.Location = new System.Drawing.Point(196, 151);
+            this.HealingSurgeOutCombatEnhHP.Location = new System.Drawing.Point(233, 151);
             this.HealingSurgeOutCombatEnhHP.Name = "HealingSurgeOutCombatEnhHP";
             this.HealingSurgeOutCombatEnhHP.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeOutCombatEnhHP.TabIndex = 133;
@@ -3855,7 +3855,7 @@
             this.tabPage3.Controls.Add(this.groupBox4);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(752, 352);
+            this.tabPage3.Size = new System.Drawing.Size(878, 352);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Restoration";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -3874,7 +3874,7 @@
             this.groupBox15.Controls.Add(this.HealBalancing);
             this.groupBox15.Location = new System.Drawing.Point(3, 8);
             this.groupBox15.Name = "groupBox15";
-            this.groupBox15.Size = new System.Drawing.Size(242, 273);
+            this.groupBox15.Size = new System.Drawing.Size(283, 273);
             this.groupBox15.TabIndex = 9;
             this.groupBox15.TabStop = false;
             this.groupBox15.Text = "Heal Balancing";
@@ -3939,7 +3939,7 @@
             this.label66.AutoSize = true;
             this.label66.BackColor = System.Drawing.Color.Transparent;
             this.label66.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.label66.Location = new System.Drawing.Point(112, 58);
+            this.label66.Location = new System.Drawing.Point(132, 58);
             this.label66.Name = "label66";
             this.label66.Size = new System.Drawing.Size(18, 20);
             this.label66.TabIndex = 3;
@@ -3981,9 +3981,9 @@
             this.groupBox14.Controls.Add(this.OnlyHealFocus);
             this.groupBox14.Controls.Add(this.OnlyHealTarget);
             this.groupBox14.Controls.Add(this.OnlyHealMe);
-            this.groupBox14.Location = new System.Drawing.Point(251, 244);
+            this.groupBox14.Location = new System.Drawing.Point(292, 244);
             this.groupBox14.Name = "groupBox14";
-            this.groupBox14.Size = new System.Drawing.Size(241, 38);
+            this.groupBox14.Size = new System.Drawing.Size(274, 38);
             this.groupBox14.TabIndex = 8;
             this.groupBox14.TabStop = false;
             this.groupBox14.Text = "Only Heal";
@@ -4031,9 +4031,9 @@
             this.groupBox13.Controls.Add(this.Group3);
             this.groupBox13.Controls.Add(this.Group2);
             this.groupBox13.Controls.Add(this.Group1);
-            this.groupBox13.Location = new System.Drawing.Point(251, 287);
+            this.groupBox13.Location = new System.Drawing.Point(292, 287);
             this.groupBox13.Name = "groupBox13";
-            this.groupBox13.Size = new System.Drawing.Size(242, 63);
+            this.groupBox13.Size = new System.Drawing.Size(275, 63);
             this.groupBox13.TabIndex = 7;
             this.groupBox13.TabStop = false;
             this.groupBox13.Text = "Group Healing";
@@ -4161,9 +4161,9 @@
             this.groupBox8.Controls.Add(this.EarthShield);
             this.groupBox8.Controls.Add(this.GreaterHealingWave);
             this.groupBox8.Controls.Add(this.GreaterHealingWaveHP);
-            this.groupBox8.Location = new System.Drawing.Point(499, 8);
+            this.groupBox8.Location = new System.Drawing.Point(573, 8);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(250, 342);
+            this.groupBox8.Size = new System.Drawing.Size(297, 342);
             this.groupBox8.TabIndex = 6;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Heal";
@@ -4239,7 +4239,7 @@
             0,
             0,
             0});
-            this.EarthShieldAlwaysHP.Location = new System.Drawing.Point(204, 107);
+            this.EarthShieldAlwaysHP.Location = new System.Drawing.Point(253, 107);
             this.EarthShieldAlwaysHP.Name = "EarthShieldAlwaysHP";
             this.EarthShieldAlwaysHP.Size = new System.Drawing.Size(40, 21);
             this.EarthShieldAlwaysHP.TabIndex = 219;
@@ -4247,7 +4247,7 @@
             // 
             // AscendanceRestoUnit
             // 
-            this.AscendanceRestoUnit.Location = new System.Drawing.Point(158, 42);
+            this.AscendanceRestoUnit.Location = new System.Drawing.Point(207, 42);
             this.AscendanceRestoUnit.Minimum = new decimal(new int[] {
             100,
             0,
@@ -4270,7 +4270,7 @@
             0,
             0,
             0});
-            this.SpiritwalkersGraceHP.Location = new System.Drawing.Point(204, 251);
+            this.SpiritwalkersGraceHP.Location = new System.Drawing.Point(253, 251);
             this.SpiritwalkersGraceHP.Name = "SpiritwalkersGraceHP";
             this.SpiritwalkersGraceHP.Size = new System.Drawing.Size(40, 21);
             this.SpiritwalkersGraceHP.TabIndex = 214;
@@ -4329,7 +4329,7 @@
             0,
             0,
             0});
-            this.AscendanceRestoHP.Location = new System.Drawing.Point(204, 42);
+            this.AscendanceRestoHP.Location = new System.Drawing.Point(253, 42);
             this.AscendanceRestoHP.Name = "AscendanceRestoHP";
             this.AscendanceRestoHP.Size = new System.Drawing.Size(40, 21);
             this.AscendanceRestoHP.TabIndex = 216;
@@ -4337,7 +4337,7 @@
             // 
             // HealingRainUnit
             // 
-            this.HealingRainUnit.Location = new System.Drawing.Point(158, 156);
+            this.HealingRainUnit.Location = new System.Drawing.Point(207, 156);
             this.HealingRainUnit.Minimum = new decimal(new int[] {
             1,
             0,
@@ -4371,7 +4371,7 @@
             0,
             0,
             0});
-            this.HealingRainHP.Location = new System.Drawing.Point(204, 155);
+            this.HealingRainHP.Location = new System.Drawing.Point(253, 155);
             this.HealingRainHP.Name = "HealingRainHP";
             this.HealingRainHP.Size = new System.Drawing.Size(40, 21);
             this.HealingRainHP.TabIndex = 206;
@@ -4395,7 +4395,7 @@
             0,
             0,
             0});
-            this.RiptideHP.Location = new System.Drawing.Point(204, 227);
+            this.RiptideHP.Location = new System.Drawing.Point(253, 227);
             this.RiptideHP.Name = "RiptideHP";
             this.RiptideHP.Size = new System.Drawing.Size(40, 21);
             this.RiptideHP.TabIndex = 204;
@@ -4403,7 +4403,7 @@
             // 
             // ChainHealUnit
             // 
-            this.ChainHealUnit.Location = new System.Drawing.Point(158, 66);
+            this.ChainHealUnit.Location = new System.Drawing.Point(207, 66);
             this.ChainHealUnit.Maximum = new decimal(new int[] {
             5,
             0,
@@ -4442,7 +4442,7 @@
             0,
             0,
             0});
-            this.AncestralSwiftnessResHP.Location = new System.Drawing.Point(204, 18);
+            this.AncestralSwiftnessResHP.Location = new System.Drawing.Point(253, 18);
             this.AncestralSwiftnessResHP.Name = "AncestralSwiftnessResHP";
             this.AncestralSwiftnessResHP.Size = new System.Drawing.Size(40, 21);
             this.AncestralSwiftnessResHP.TabIndex = 144;
@@ -4455,7 +4455,7 @@
             0,
             0,
             0});
-            this.ChainHealHP.Location = new System.Drawing.Point(204, 65);
+            this.ChainHealHP.Location = new System.Drawing.Point(253, 65);
             this.ChainHealHP.Name = "ChainHealHP";
             this.ChainHealHP.Size = new System.Drawing.Size(40, 21);
             this.ChainHealHP.TabIndex = 201;
@@ -4490,7 +4490,7 @@
             0,
             0,
             0});
-            this.UnleashElementsResHP.Location = new System.Drawing.Point(204, 275);
+            this.UnleashElementsResHP.Location = new System.Drawing.Point(253, 275);
             this.UnleashElementsResHP.Name = "UnleashElementsResHP";
             this.UnleashElementsResHP.Size = new System.Drawing.Size(40, 21);
             this.UnleashElementsResHP.TabIndex = 142;
@@ -4514,7 +4514,7 @@
             0,
             0,
             0});
-            this.HealingWaveHP.Location = new System.Drawing.Point(204, 203);
+            this.HealingWaveHP.Location = new System.Drawing.Point(253, 203);
             this.HealingWaveHP.Name = "HealingWaveHP";
             this.HealingWaveHP.Size = new System.Drawing.Size(40, 21);
             this.HealingWaveHP.TabIndex = 140;
@@ -4538,7 +4538,7 @@
             0,
             0,
             0});
-            this.HealingSurgeResHP.Location = new System.Drawing.Point(204, 179);
+            this.HealingSurgeResHP.Location = new System.Drawing.Point(253, 179);
             this.HealingSurgeResHP.Name = "HealingSurgeResHP";
             this.HealingSurgeResHP.Size = new System.Drawing.Size(40, 21);
             this.HealingSurgeResHP.TabIndex = 138;
@@ -4573,7 +4573,7 @@
             0,
             0,
             0});
-            this.GreaterHealingWaveHP.Location = new System.Drawing.Point(204, 131);
+            this.GreaterHealingWaveHP.Location = new System.Drawing.Point(253, 131);
             this.GreaterHealingWaveHP.Name = "GreaterHealingWaveHP";
             this.GreaterHealingWaveHP.Size = new System.Drawing.Size(40, 21);
             this.GreaterHealingWaveHP.TabIndex = 135;
@@ -4591,9 +4591,9 @@
             this.groupBox9.Controls.Add(this.AttackRestoAny);
             this.groupBox9.Controls.Add(this.AttackResto);
             this.groupBox9.Controls.Add(this.AttackRestoMana);
-            this.groupBox9.Location = new System.Drawing.Point(251, 8);
+            this.groupBox9.Location = new System.Drawing.Point(292, 8);
             this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Size = new System.Drawing.Size(242, 230);
+            this.groupBox9.Size = new System.Drawing.Size(275, 230);
             this.groupBox9.TabIndex = 5;
             this.groupBox9.TabStop = false;
             this.groupBox9.Text = "Attack";
@@ -4623,7 +4623,7 @@
             // AttackRestoLavaBurst
             // 
             this.AttackRestoLavaBurst.AutoSize = true;
-            this.AttackRestoLavaBurst.Location = new System.Drawing.Point(122, 87);
+            this.AttackRestoLavaBurst.Location = new System.Drawing.Point(173, 87);
             this.AttackRestoLavaBurst.Name = "AttackRestoLavaBurst";
             this.AttackRestoLavaBurst.Size = new System.Drawing.Size(84, 16);
             this.AttackRestoLavaBurst.TabIndex = 218;
@@ -4645,7 +4645,7 @@
             // AttackRestoFlameShock
             // 
             this.AttackRestoFlameShock.AutoSize = true;
-            this.AttackRestoFlameShock.Location = new System.Drawing.Point(122, 66);
+            this.AttackRestoFlameShock.Location = new System.Drawing.Point(173, 66);
             this.AttackRestoFlameShock.Name = "AttackRestoFlameShock";
             this.AttackRestoFlameShock.Size = new System.Drawing.Size(90, 16);
             this.AttackRestoFlameShock.TabIndex = 12;
@@ -4660,7 +4660,7 @@
             0,
             0,
             0});
-            this.AttackRestoAnyHP.Location = new System.Drawing.Point(196, 42);
+            this.AttackRestoAnyHP.Location = new System.Drawing.Point(222, 42);
             this.AttackRestoAnyHP.Name = "AttackRestoAnyHP";
             this.AttackRestoAnyHP.Size = new System.Drawing.Size(40, 21);
             this.AttackRestoAnyHP.TabIndex = 217;
@@ -4706,7 +4706,7 @@
             0,
             0,
             0});
-            this.AttackRestoMana.Location = new System.Drawing.Point(196, 18);
+            this.AttackRestoMana.Location = new System.Drawing.Point(222, 18);
             this.AttackRestoMana.Name = "AttackRestoMana";
             this.AttackRestoMana.Size = new System.Drawing.Size(40, 21);
             this.AttackRestoMana.TabIndex = 214;
@@ -4719,7 +4719,7 @@
             this.groupBox4.Controls.Add(this.PurifySpiritDebuffNumber);
             this.groupBox4.Location = new System.Drawing.Point(3, 283);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(242, 66);
+            this.groupBox4.Size = new System.Drawing.Size(283, 66);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Cleanse";
@@ -4748,7 +4748,7 @@
             // 
             // PurifySpiritDebuffNumber
             // 
-            this.PurifySpiritDebuffNumber.Location = new System.Drawing.Point(196, 39);
+            this.PurifySpiritDebuffNumber.Location = new System.Drawing.Point(239, 39);
             this.PurifySpiritDebuffNumber.Minimum = new decimal(new int[] {
             1,
             0,
@@ -4877,7 +4877,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 426);
+            this.ClientSize = new System.Drawing.Size(910, 426);
             this.Controls.Add(this.SaveSettings);
             this.Controls.Add(this.LoadSettings);
             this.Controls.Add(this.bSave);
