@@ -5062,6 +5062,7 @@ namespace TuanHA_Combat_Routine
                 //!Me.Mounted &&
                 Me.Combat &&
                 HealWeightMe <= THSettings.Instance.StoneBulwarkTotemHP &&
+                !HasHealerWithMe() &&
                 !MyTotemCheck("Earthgrab Totem", Me, 40) &&
                 !MyTotemCheck("Earth Elemental Totem", Me, 40) &&
                 CanCastCheck("Stone Bulwark Totem") &&

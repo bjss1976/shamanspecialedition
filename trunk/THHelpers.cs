@@ -2357,6 +2357,21 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
+        #region HasHealerWithMe
+        private static bool HasHealerWithMe()
+        {
+            if (InArena)
+            {
+                return FarFriendlyPlayers.Any<WoWUnit>(unit => BasicCheck(unit) && TalentSort(unit) == 4 && !DebuffCC(unit) && !DebuffSilence(unit) && (!DebuffRoot(unit) || InLineOfSpellSightCheck(unit)) && unit.Location.Distance(Me.Location) <= 50);
+            }
+            else if (InBattleground)
+            {
+                return FarFriendlyPlayers.Any<WoWUnit>(unit => BasicCheck(unit) && TalentSort(unit) == 4 && unit.CurrentTarget == Me && !DebuffCC(unit) && !DebuffSilence(unit) && (!DebuffRoot(unit) || InLineOfSpellSightCheck(unit)) && unit.Location.Distance(Me.Location) <= 40);
+            }
+            return FarFriendlyPlayers.Any<WoWUnit>(unit => BasicCheck(unit) && TalentSort(unit) == 4 && !DebuffCC(unit) && !DebuffSilence(unit) && (!DebuffRoot(unit) || InLineOfSpellSightCheck(unit)) && unit.Location.Distance(Me.Location) <= 50);
+        }
+        #endregion
+
         #region IndexToKeys
 
         public Keys KeyTwo;
