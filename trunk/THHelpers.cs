@@ -2745,24 +2745,12 @@ namespace TuanHA_Combat_Routine
 
         #region NeedHealUnit
 
-        private static readonly HashSet<uint> NeedHealUnit = new HashSet<uint>
-            {
-                62442, //Tsulong
-                71404, //Wrathion <The Black Prince> 
-                71166, //Wrathion <The Black Prince> 
-                71165, //Wrathion <The Black Prince>
-                71357, //Wrathion <The Black Prince>
+        private static readonly HashSet<uint> NeedHealUnitHS = new HashSet<uint> { 0xf3ea, 0x116ec, 0x115fe, 0x115fd, 0x116bd, 0x11a1a, 0x11a1b, 0x11a1d, 0x11a1c, 0x11894, 0x117b4, 0x117b4, 0x1193b, 0x1193c, 0x11738 };
+        private static bool NeedHealUnit(WoWUnit target)
+        {
+            return (NeedHealUnitHS.Contains(target.Entry) && target.IsFriendly);
+        }
 
-                //Wrathion before Healing Challenge started:
-                //Me.CurrentTarget.Name: Wrathion
-                //Me.CurrentTarget.Entry: 71166
-                //Me.CurrentTarget.IsFriendly: True
-
-                //Wrathion during healing Challenge:
-                //Me.CurrentTarget.Name: Wrathion
-                //Me.CurrentTarget.Entry: 71357
-                //Me.CurrentTarget.IsFriendly: True
-            };
 
         #endregion
 

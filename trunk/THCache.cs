@@ -41,15 +41,24 @@ namespace TuanHA_Combat_Routine
                 {
                     foreach (WoWAura aura in target.GetAllAuras())
                     {
-                        //Logging.Write("Add {0} from {1} ({2}) to AuraCacheUnit", aura.Name, target.Guid, target.SafeName);
-                        AuraCacheList.Add(new AuraCacheClass
-                            {
-                                AuraCacheExpireTime = expireTime,
-                                AuraCacheUnit = target.Guid,
-                                AuraCacheAura = aura,
-                                AuraCacheName = aura.Name,
-                                AuraCacheId = aura.SpellId,
-                            });
+                        ////Logging.Write("Add {0} from {1} ({2}) to AuraCacheUnit", aura.Name, target.Guid, target.SafeName);
+                        //AuraCacheList.Add(new AuraCacheClass
+                        //    {
+                        //        AuraCacheExpireTime = expireTime,
+                        //        AuraCacheUnit = target.Guid,
+                        //        AuraCacheAura = aura,
+                        //        AuraCacheName = aura.Name,
+                        //        AuraCacheId = aura.SpellId,
+                        //    });
+                        AuraCacheClass item = new AuraCacheClass
+                        {
+                            AuraCacheExpireTime = expireTime,
+                            AuraCacheUnit = target.Guid,
+                            AuraCacheAura = aura,
+                            AuraCacheName = aura.Name,
+                            AuraCacheId = aura.SpellId
+                        };
+                        AuraCacheList.Add(item);
                     }
                 }
                 catch (Exception)
@@ -69,14 +78,23 @@ namespace TuanHA_Combat_Routine
                     foreach (var aura in target.GetAllAuras())
                     {
                         //Logging.Write("Add {0} from {1} ({2}) to AuraCacheUnit", aura.Name, target.Guid, target.SafeName);
-                        AuraCacheList.Add(new AuraCacheClass
-                            {
-                                AuraCacheExpireTime = expireTime,
-                                AuraCacheUnit = target.Guid,
-                                AuraCacheAura = aura,
-                                AuraCacheName = aura.Name,
-                                AuraCacheId = aura.SpellId,
-                            });
+                        //AuraCacheList.Add(new AuraCacheClass
+                        //    {
+                        //        AuraCacheExpireTime = expireTime,
+                        //        AuraCacheUnit = target.Guid,
+                        //        AuraCacheAura = aura,
+                        //        AuraCacheName = aura.Name,
+                        //        AuraCacheId = aura.SpellId,
+                        //    });
+                        AuraCacheClass class3 = new AuraCacheClass
+                        {
+                            AuraCacheExpireTime = expireTime,
+                            AuraCacheUnit = target.Guid,
+                            AuraCacheAura = aura,
+                            AuraCacheName = aura.Name,
+                            AuraCacheId = aura.SpellId
+                        };
+                        AuraCacheList.Add(class3);
                     }
                 }
                 catch (Exception)
@@ -105,14 +123,23 @@ namespace TuanHA_Combat_Routine
                 foreach (WoWAura aura in target.GetAllAuras())
                 {
                     //Logging.Write("Add {0} from {1} ({2}) to AuraCacheUnit", aura.Name, target.Guid, target.SafeName);
-                    AuraCacheList.Add(new AuraCacheClass
-                        {
-                            AuraCacheExpireTime = expireTime,
-                            AuraCacheUnit = target.Guid,
-                            AuraCacheAura = aura,
-                            AuraCacheName = aura.Name,
-                            AuraCacheId = aura.SpellId,
-                        });
+                    //AuraCacheList.Add(new AuraCacheClass
+                    //    {
+                    //        AuraCacheExpireTime = expireTime,
+                    //        AuraCacheUnit = target.Guid,
+                    //        AuraCacheAura = aura,
+                    //        AuraCacheName = aura.Name,
+                    //        AuraCacheId = aura.SpellId,
+                    //    });
+                    AuraCacheClass class4 = new AuraCacheClass
+                    {
+                        AuraCacheExpireTime = expireTime,
+                        AuraCacheUnit = target.Guid,
+                        AuraCacheAura = aura,
+                        AuraCacheName = aura.Name,
+                        AuraCacheId = aura.SpellId
+                    };
+                    AuraCacheList.Add(class4);
                 }
 
                 //Logging.Write("Total AuraCacheList for {0}", target.SafeName);
