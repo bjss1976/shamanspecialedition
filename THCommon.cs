@@ -883,7 +883,7 @@ namespace TuanHA_Combat_Routine
 
         #region Capacitor
         //////done
-        private static WoWPlayer UnitCapacitorFriendLow;
+        private static WoWUnit UnitCapacitorFriendLow;
 
         private static bool GetUnitCapacitorFriendLow()
         {
@@ -923,7 +923,7 @@ namespace TuanHA_Combat_Routine
             return BasicCheck(UnitCapacitorFriendLow);
         }
 
-        private static WoWPlayer UnitCapacitorEnemyLow;
+        private static WoWUnit UnitCapacitorEnemyLow;
 
         private static bool GetUnitCapacitorEnemyLow()
         {
@@ -1004,7 +1004,7 @@ namespace TuanHA_Combat_Routine
                 !DebuffCC(unit));
         }
 
-        private static WoWPlayer UnitCapacitorEnemyPack;
+        private static WoWUnit UnitCapacitorEnemyPack;
 
         private static bool GetUnitCapacitorEnemyPack()
         {
@@ -1802,7 +1802,7 @@ namespace TuanHA_Combat_Routine
 
         #region EarthShield
 
-        private static WoWPlayer UnitTankEarthShield;
+        private static WoWUnit UnitTankEarthShield;
 
         private static bool GetUnitTankEarthShield()
         {
@@ -2369,44 +2369,51 @@ namespace TuanHA_Combat_Routine
 
         private static WoWUnit UnitFrostShockNearby;
 
+        //private static bool GetUnitFrostShockNearby()
+        //{
+        //    UnitFrostShockNearby = null;
+
+        //    UnitFrostShockNearby = NearbyUnFriendlyPlayers.
+        //        OrderBy(TalentSort).
+        //        ThenBy(unit => unit.Distance).
+        //        FirstOrDefault(
+        //            unit =>
+        //            BasicCheck(unit) &&
+        //            (THSettings.Instance.FrostShockNearbyMelee &&
+        //             TalentSort(unit) < 2 ||
+        //             THSettings.Instance.FrostShockNearbyRange &&
+        //             TalentSort(unit) < 4 &&
+        //             TalentSort(unit) > 1 ||
+        //             THSettings.Instance.FrostShockNearbyHealer &&
+        //             TalentSort(unit) > 3) &&
+        //            //unit.CurrentTarget != null &&
+        //            //unit.CurrentTarget == Me &&
+        //            ( //SSpellManager.HasSpell("Frozen Power") &&
+        //                !DebuffRoot(unit) ||
+        //                !DebuffRootorSnare(unit)) &&
+        //            !InvulnerableSpell(unit) &&
+        //            !InvulnerableRootandSnare(unit) &&
+        //            Attackable(unit, (int) SpellManager.Spells["Frost Shock"].MaxRange));
+
+        //    //if (UnitFrostShockNearby == null)
+        //    //{
+        //    //    UnitFrostShockNearby = NearbyUnFriendlyPlayers
+        //    //        .OrderBy(unit => TalentSort(unit))
+        //    //        .FirstOrDefault(
+        //    //            unit =>
+        //    //            BasicCheck(unit) &&
+        //    //            !DebuffRootorSnare(unit) &&
+        //    //            !InvulnerableSpell(unit) &&
+        //    //            Attackable(unit, (int) SpellManager.Spells["Frost Shock"].MaxRange));
+        //    //}
+
+        //    return BasicCheck(UnitFrostShockNearby);
+        //}
+
         private static bool GetUnitFrostShockNearby()
         {
             UnitFrostShockNearby = null;
-
-            UnitFrostShockNearby = NearbyUnFriendlyPlayers.
-                OrderBy(TalentSort).
-                ThenBy(unit => unit.Distance).
-                FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    (THSettings.Instance.FrostShockNearbyMelee &&
-                     TalentSort(unit) < 2 ||
-                     THSettings.Instance.FrostShockNearbyRange &&
-                     TalentSort(unit) < 4 &&
-                     TalentSort(unit) > 1 ||
-                     THSettings.Instance.FrostShockNearbyHealer &&
-                     TalentSort(unit) > 3) &&
-                    //unit.CurrentTarget != null &&
-                    //unit.CurrentTarget == Me &&
-                    ( //SSpellManager.HasSpell("Frozen Power") &&
-                        !DebuffRoot(unit) ||
-                        !DebuffRootorSnare(unit)) &&
-                    !InvulnerableSpell(unit) &&
-                    !InvulnerableRootandSnare(unit) &&
-                    Attackable(unit, (int) SpellManager.Spells["Frost Shock"].MaxRange));
-
-            //if (UnitFrostShockNearby == null)
-            //{
-            //    UnitFrostShockNearby = NearbyUnFriendlyPlayers
-            //        .OrderBy(unit => TalentSort(unit))
-            //        .FirstOrDefault(
-            //            unit =>
-            //            BasicCheck(unit) &&
-            //            !DebuffRootorSnare(unit) &&
-            //            !InvulnerableSpell(unit) &&
-            //            Attackable(unit, (int) SpellManager.Spells["Frost Shock"].MaxRange));
-            //}
-
+            UnitFrostShockNearby = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).OrderBy<WoWUnit, byte>(new Func<WoWUnit, byte>(Classname.TalentSort)).ThenBy<WoWUnit, double>(unit => unit.Distance).FirstOrDefault<WoWUnit>(unit => ((((THSettings.Instance.FrostShockNearbyMelee && (TalentSort(unit) < 2)) || ((THSettings.Instance.FrostShockNearbyRange && (TalentSort(unit) < 4)) && (TalentSort(unit) > 1))) || (THSettings.Instance.FrostShockNearbyHealer && (TalentSort(unit) > 3))) && ((!DebuffRoot(unit) || !DebuffRootorSnare(unit)) && (!InvulnerableSpell(unit) && !InvulnerableRootandSnare(unit)))) && Attackable(unit, (int)SpellManager.Spells["Frost Shock"].MaxRange));
             return BasicCheck(UnitFrostShockNearby);
         }
 
@@ -2777,7 +2784,7 @@ namespace TuanHA_Combat_Routine
                 player.Class == WoWClass.Hunter);
         }
 
-        private static WoWPlayer GroundingTrapPlayer;
+        private static WoWUnit GroundingTrapPlayer;
         private static DateTime LastTrapEvent;
 
         private static bool NeedGroudingTrap()
@@ -4723,7 +4730,7 @@ namespace TuanHA_Combat_Routine
                  MyTotemCheck("Searing Totem", Me.CurrentTarget, THSettings.Instance.SearingTotemDistance) &&
                  GetDistance(Me.Totems[0].Unit, Me.CurrentTarget) > 10 &&
                  !Styx.WoWInternals.World.GameWorld.TraceLine(Me.Totems[0].Unit.Location, Me.CurrentTarget.Location,
-                                                              GameWorld.CGWorldFrameHitFlags.HitTestLOS)),
+                                                              GameWorld.CGWorldFrameHitFlags.HitTestWMO)),
                 new Action(
                     ret =>
                         {

@@ -138,149 +138,288 @@ namespace TuanHA_Combat_Routine
                                 .ToList();
         }
 
-        private static readonly List<WoWPlayer> FarFriendlyPlayers = new List<WoWPlayer>();
+        private static readonly List<WoWUnit> FarFriendlyPlayers = new List<WoWUnit>();
         private static readonly List<WoWUnit> FarFriendlyUnits = new List<WoWUnit>();
-        private static readonly List<WoWPlayer> NearbyFriendlyPlayers = new List<WoWPlayer>();
+        private static readonly List<WoWUnit> NearbyFriendlyPlayers = new List<WoWUnit>();
         private static readonly List<WoWUnit> NearbyFriendlyUnits = new List<WoWUnit>();
-        private static readonly List<WoWPlayer> NearbyUnFriendlyPlayers = new List<WoWPlayer>();
+        private static readonly List<WoWUnit> NearbyUnFriendlyPlayers = new List<WoWUnit>();
         private static readonly List<WoWUnit> NearbyUnFriendlyUnits = new List<WoWUnit>();
-        private static readonly List<WoWPlayer> FarUnFriendlyPlayers = new List<WoWPlayer>(); //Don't use in this CC
+        private static readonly List<WoWUnit> FarUnFriendlyPlayers = new List<WoWUnit>(); //Don't use in this CC
         private static readonly List<WoWUnit> FarUnFriendlyUnits = new List<WoWUnit>();
+
+        //private static Composite GetUnits()
+        //{
+        //    return new Action(delegate
+        //        {
+        //            //if (LastGetUnits + TimeSpan.FromMilliseconds(THSettings.Instance.SearchInterval) > DateTime.Now)
+        //            //{
+        //            //    return RunStatus.Failure;
+        //            //}
+        //            //LastGetUnits = DateTime.Now;
+
+        //            NearbyFriendlyPlayers.Clear();
+        //            NearbyUnFriendlyPlayers.Clear();
+        //            NearbyFriendlyUnits.Clear();
+        //            NearbyUnFriendlyUnits.Clear();
+        //            FarFriendlyPlayers.Clear();
+        //            FarFriendlyUnits.Clear();
+        //            FarUnFriendlyPlayers.Clear();
+        //            FarUnFriendlyUnits.Clear();
+
+        //            EnemyListCacheClear();
+        //            FriendListCacheClear();
+
+        //            //NearbyFriendlyUnits.Add(Me);
+        //            //NearbyFriendlyPlayers.Add(Me);
+        //            //FarFriendlyUnits.Add(Me);
+        //            //FarFriendlyPlayers.Add(Me);
+
+        //            //foreach (WoWUnit unit in GetAllUnits().Where(unit => BasicCheck(unit) && unit.Distance <= 60))
+        //            foreach (WoWUnit unit in GetAllUnits())
+        //            {
+        //                if (FriendListCache.ContainsKey(unit.Guid))
+        //                {
+        //                    FarFriendlyUnits.Add(unit);
+        //                    var player = unit as WoWPlayer;
+        //                    if (player != null)
+        //                    {
+        //                        FarFriendlyPlayers.Add((WoWPlayer) unit);
+        //                    }
+        //                    if (unit.Distance <= 40)
+        //                    {
+        //                        NearbyFriendlyUnits.Add(unit);
+        //                        if (player != null)
+        //                        {
+        //                            NearbyFriendlyPlayers.Add(player);
+        //                        }
+        //                    }
+        //                }
+        //                else if (EnemyListCache.ContainsKey(unit.Guid))
+        //                {
+        //                    FarUnFriendlyUnits.Add(unit);
+        //                    var player = unit as WoWPlayer;
+        //                    if (player != null)
+        //                    {
+        //                        FarUnFriendlyPlayers.Add((WoWPlayer) unit);
+        //                    }
+        //                    if (unit.Distance <= 40)
+        //                    {
+        //                        NearbyUnFriendlyUnits.Add(unit);
+        //                        if (player != null)
+        //                        {
+        //                            NearbyUnFriendlyPlayers.Add(player);
+        //                        }
+        //                    }
+        //                }
+        //                else if (!InArena && !InBattleground &&
+        //                         ((!unit.IsFriendly && unit.Attackable && !unit.IsQuestGiver) ||
+        //                          //////unit.Combat && !unit.IsFriendly ||
+        //                          Me.Combat && IsDummy(unit) && Me.IsFacing(unit)))
+        //                {
+        //                    EnemyListCacheAdd(unit,10);
+        //                    FarUnFriendlyUnits.Add(unit);
+
+        //                    if (GetDistance(unit) < 40)
+        //                    {
+        //                        NearbyUnFriendlyUnits.Add(unit);
+        //                    }
+
+        //                    //Do not attack world player
+        //                    var player = unit as WoWPlayer;
+
+        //                    if (player != null && player.CurrentTarget != null && player.CurrentTarget == Me)
+        //                        //Do not attack world player
+        //                    {
+        //                        NearbyUnFriendlyPlayers.Add(player);
+        //                    }
+        //                }
+        //                else if (IsMyPartyRaidMember(unit))
+        //                {
+        //                    FriendListCacheAdd(unit, 60);
+        //                    FarFriendlyUnits.Add(unit);
+
+        //                    var player = unit as WoWPlayer;
+
+        //                    if (player != null)
+        //                    {
+        //                        FarFriendlyPlayers.Add((WoWPlayer) unit);
+        //                    }
+
+        //                    if (GetDistance(unit) < 40)
+        //                    {
+        //                        NearbyFriendlyUnits.Add(unit);
+
+        //                        if (player != null)
+        //                        {
+        //                            NearbyFriendlyPlayers.Add(player);
+        //                        }
+        //                    }
+        //                }
+        //                else if (InArena || InBattleground)
+        //                {
+        //                    EnemyListCacheAdd(unit,10);
+        //                    FarUnFriendlyUnits.Add(unit);
+
+        //                    var player = unit as WoWPlayer;
+
+        //                    if (player != null)
+        //                    {
+        //                        FarUnFriendlyPlayers.Add((WoWPlayer) unit);
+        //                    }
+
+        //                    if (GetDistance(unit) < 40)
+        //                    {
+        //                        NearbyUnFriendlyUnits.Add(unit);
+
+        //                        if (player != null)
+        //                        {
+        //                            NearbyUnFriendlyPlayers.Add(player);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            return RunStatus.Failure;
+        //        });
+        //}
 
         private static Composite GetUnits()
         {
-            return new Action(delegate
+            return new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                NearbyFriendlyPlayers.Clear();
+                NearbyFriendlyUnits.Clear();
+                FarFriendlyPlayers.Clear();
+                FarFriendlyUnits.Clear();
+                NearbyUnFriendlyPlayers.Clear();
+                NearbyUnFriendlyUnits.Clear();
+                FarUnFriendlyPlayers.Clear();
+                FarUnFriendlyUnits.Clear();
+                EnemyListCacheClear();
+                FriendListCacheClear();
+                foreach (WoWUnit unit in GetAllUnits())
                 {
-                    //if (LastGetUnits + TimeSpan.FromMilliseconds(THSettings.Instance.SearchInterval) > DateTime.Now)
-                    //{
-                    //    return RunStatus.Failure;
-                    //}
-                    //LastGetUnits = DateTime.Now;
-
-                    NearbyFriendlyPlayers.Clear();
-                    NearbyUnFriendlyPlayers.Clear();
-                    NearbyFriendlyUnits.Clear();
-                    NearbyUnFriendlyUnits.Clear();
-                    FarFriendlyPlayers.Clear();
-                    FarFriendlyUnits.Clear();
-                    FarUnFriendlyPlayers.Clear();
-                    FarUnFriendlyUnits.Clear();
-
-                    EnemyListCacheClear();
-                    FriendListCacheClear();
-
-                    //NearbyFriendlyUnits.Add(Me);
-                    //NearbyFriendlyPlayers.Add(Me);
-                    //FarFriendlyUnits.Add(Me);
-                    //FarFriendlyPlayers.Add(Me);
-
-                    //foreach (WoWUnit unit in GetAllUnits().Where(unit => BasicCheck(unit) && unit.Distance <= 60))
-                    foreach (WoWUnit unit in GetAllUnits())
+                    if (((!Blacklist.Contains(unit.Guid, BlacklistFlags.All) && unit.IsAlive) && (unit.CanSelect && !unit.IsPet)) && (unit.Distance <= 60.0))
                     {
                         if (FriendListCache.ContainsKey(unit.Guid))
                         {
-                            FarFriendlyUnits.Add(unit);
-                            var player = unit as WoWPlayer;
+                            WoWPlayer player = unit as WoWPlayer;
+                            //if ((player != null) || NeedHealUnit(unit))
                             if (player != null)
                             {
-                                FarFriendlyPlayers.Add((WoWPlayer) unit);
-                            }
-                            if (unit.Distance <= 40)
-                            {
-                                NearbyFriendlyUnits.Add(unit);
-                                if (player != null)
+                                FarFriendlyUnits.Add(unit);
+                                FarFriendlyPlayers.Add(unit);
+                                if (unit.Distance <= 40.0)
                                 {
-                                    NearbyFriendlyPlayers.Add(player);
+                                    NearbyFriendlyUnits.Add(unit);
+                                    NearbyFriendlyPlayers.Add(unit);
+                                }
+                            }
+                            else
+                            {
+                                FarFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyFriendlyUnits.Add(unit);
                                 }
                             }
                         }
                         else if (EnemyListCache.ContainsKey(unit.Guid))
                         {
-                            FarUnFriendlyUnits.Add(unit);
-                            var player = unit as WoWPlayer;
-                            if (player != null)
+                            WoWPlayer player2 = unit as WoWPlayer;
+                            if (player2 != null)
                             {
-                                FarUnFriendlyPlayers.Add((WoWPlayer) unit);
-                            }
-                            if (unit.Distance <= 40)
-                            {
-                                NearbyUnFriendlyUnits.Add(unit);
-                                if (player != null)
+                                FarUnFriendlyPlayers.Add(unit);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
                                 {
-                                    NearbyUnFriendlyPlayers.Add(player);
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                    NearbyUnFriendlyPlayers.Add(unit);
                                 }
                             }
-                        }
-                        else if (!InArena && !InBattleground &&
-                                 ((!unit.IsFriendly && unit.Attackable && !unit.IsQuestGiver) ||
-                                  //////unit.Combat && !unit.IsFriendly ||
-                                  Me.Combat && IsDummy(unit) && Me.IsFacing(unit)))
-                        {
-                            EnemyListCacheAdd(unit,10);
-                            FarUnFriendlyUnits.Add(unit);
-
-                            if (GetDistance(unit) < 40)
+                            else
                             {
-                                NearbyUnFriendlyUnits.Add(unit);
-                            }
-
-                            //Do not attack world player
-                            var player = unit as WoWPlayer;
-
-                            if (player != null && player.CurrentTarget != null && player.CurrentTarget == Me)
-                                //Do not attack world player
-                            {
-                                NearbyUnFriendlyPlayers.Add(player);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                }
                             }
                         }
                         else if (IsMyPartyRaidMember(unit))
                         {
                             FriendListCacheAdd(unit, 60);
-                            FarFriendlyUnits.Add(unit);
-
-                            var player = unit as WoWPlayer;
-
-                            if (player != null)
+                            WoWPlayer player3 = unit as WoWPlayer;
+                            if ((player3 != null) || NeedHealUnit(unit))
                             {
-                                FarFriendlyPlayers.Add((WoWPlayer) unit);
-                            }
-
-                            if (GetDistance(unit) < 40)
-                            {
-                                NearbyFriendlyUnits.Add(unit);
-
-                                if (player != null)
+                                FarFriendlyPlayers.Add(unit);
+                                FarFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
                                 {
-                                    NearbyFriendlyPlayers.Add(player);
+                                    NearbyFriendlyUnits.Add(unit);
+                                    NearbyFriendlyPlayers.Add(unit);
+                                }
+                            }
+                            else
+                            {
+                                FarFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyFriendlyUnits.Add(unit);
                                 }
                             }
                         }
                         else if (InArena || InBattleground)
                         {
-                            EnemyListCacheAdd(unit,10);
-                            FarUnFriendlyUnits.Add(unit);
-
-                            var player = unit as WoWPlayer;
-
-                            if (player != null)
+                            EnemyListCacheAdd(unit, 10);
+                            WoWPlayer player4 = unit as WoWPlayer;
+                            if (player4 != null)
                             {
-                                FarUnFriendlyPlayers.Add((WoWPlayer) unit);
-                            }
-
-                            if (GetDistance(unit) < 40)
-                            {
-                                NearbyUnFriendlyUnits.Add(unit);
-
-                                if (player != null)
+                                FarUnFriendlyPlayers.Add(unit);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
                                 {
-                                    NearbyUnFriendlyPlayers.Add(player);
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                    NearbyUnFriendlyPlayers.Add(unit);
+                                }
+                            }
+                            else
+                            {
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                }
+                            }
+                        }
+                        else if (((!unit.IsFriendly && unit.Attackable) && !unit.IsQuestGiver) || ((Me.Combat && IsDummy(unit)) && Me.IsFacing(unit)))
+                        {
+                            EnemyListCacheAdd(unit, 10);
+                            WoWPlayer player5 = unit as WoWPlayer;
+                            if (((!IsUsingAFKBot && (player5 != null)) && (player5.Combat && (player5.CurrentTarget != null))) && (player5.CurrentTarget == Me))
+                            {
+                                FarUnFriendlyPlayers.Add(unit);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                    NearbyUnFriendlyPlayers.Add(unit);
+                                }
+                            }
+                            else
+                            {
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
                                 }
                             }
                         }
                     }
-                    return RunStatus.Failure;
-                });
+                }
+                return RunStatus.Failure;
+            });
         }
+
 
         #endregion
 
@@ -291,95 +430,146 @@ namespace TuanHA_Combat_Routine
         private static double HealWeightMe;
         private static bool UnitHealIsValid;
 
+        //private static Composite GetUnitHeal()
+        //{
+        //    return new Action(delegate
+        //        {
+        //            UnitHeal = null;
+        //            UnitHealIsValid = false;
+        //            HealWeightUnitHeal = 10000;
+
+        //            if (UnitHeal == null &&
+        //                BasicCheck(Me.CurrentTarget) &&
+        //                //////Me.CurrentTarget != null &&
+        //                //////Me.CurrentTarget.IsValid &&
+        //                //////Me.CurrentTarget.IsAlive &&
+        //                GetDistance(Me.CurrentTarget) < 40 &&
+        //                (Me.CurrentTarget.IsPlayer || Me.CurrentTarget.IsPet ||
+        //                 NeedHealUnit.Contains(Me.CurrentTarget.Entry)) &&
+        //                Me.CurrentTarget.GetPredictedHealthPercent() <= THSettings.Instance.DoNotHealAbove &&
+        //                !IsEnemy(Me.CurrentTarget) &&
+        //                !DebuffDoNotHeal(Me.CurrentTarget) &&
+        //                InLineOfSpellSightCheck(Me.CurrentTarget))
+        //            {
+        //                UnitHeal = Me.CurrentTarget;
+        //            }
+
+        //            if (UnitHeal == null &&
+        //                BasicCheck(Me.FocusedUnit) &&
+        //                //Me.FocusedUnit != null &&
+        //                //Me.FocusedUnit.IsValid &&
+        //                //Me.FocusedUnit.IsAlive &&
+        //                GetDistance(Me.FocusedUnit) < 40 &&
+        //                (Me.FocusedUnit.IsPlayer || Me.FocusedUnit.IsPet || NeedHealUnit.Contains(Me.FocusedUnit.Entry)) &&
+        //                Me.FocusedUnit.GetPredictedHealthPercent() <= THSettings.Instance.PriorityHeal &&
+        //                !IsEnemy(Me.FocusedUnit) &&
+        //                !DebuffDoNotHeal(Me.FocusedUnit) &&
+        //                InLineOfSpellSightCheck(Me.FocusedUnit))
+        //            {
+        //                UnitHeal = Me.FocusedUnit;
+        //            }
+
+        //            if (!InArena && UnitHeal == null && Me.GetPredictedHealthPercent() < THSettings.Instance.PriorityHeal)
+        //            {
+        //                UnitHeal = Me;
+        //            }
+
+        //            if (InArena && UnitHeal == null)
+        //            {
+        //                UnitHeal = (from unit in NearbyFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+        //                    orderby unit.GetPredictedHealthPercent()
+        //                    select unit).FirstOrDefault(
+        //                        unit =>
+        //                        //////BasicCheck(unit) &&
+        //                        (unit.IsPlayer ||
+        //                         unit.IsBeast ||
+        //                         unit.IsDemon ||
+        //                         unit.IsUndead) &&
+        //                        unit.MaxHealth > MeMaxHealth/2 &&
+        //                        GetDistance(unit) <= 40 &&
+        //                        !DebuffDoNotHeal(unit) &&
+        //                        InLineOfSpellSightCheck(unit));
+        //            }
+
+        //            if (UnitHeal == null)
+        //            {
+        //                UnitHeal = (from unit in NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+        //                    orderby unit.GetPredictedHealthPercent()
+        //                    select unit).FirstOrDefault(
+        //                        unit =>
+        //                        //////BasicCheck(unit) &&
+        //                        GetDistance(unit) <= 40 &&
+        //                        !DebuffDoNotHeal(unit) &&
+        //                        InLineOfSpellSightCheck(unit));
+        //            }
+
+        //            if (UnitHeal == null)
+        //            {
+        //                UnitHealIsValid = false;
+        //            }
+        //            else
+        //            {
+        //                UnitHealIsValid = true;
+        //                HealWeightUnitHeal = HealWeight(UnitHeal);
+        //            }
+
+        //            //HealWeightMe = UnitHeal == Me ? HealWeightUnitHeal : HealWeight(Me);
+
+        //            HealWeightMe = HealWeight(Me);
+
+        //            return RunStatus.Failure;
+        //        });
+        //}
+
         private static Composite GetUnitHeal()
         {
-            return new Action(delegate
+            return new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                UnitHeal = null;
+                UnitHealIsValid = false;
+                HealWeightUnitHeal = 10000.0;
+                if (((((UnitHeal == null) && (Me.CurrentTarget != null)) && (Me.CurrentTarget.IsValid && Me.CurrentTarget.IsAlive)) && ((GetDistance(Me.CurrentTarget) < 40f) && ((Me.CurrentTarget.IsPlayer || Me.CurrentTarget.IsPet) || NeedHealUnit(Me.CurrentTarget)))) && (((Me.CurrentTarget.HealthPercent <= THSettings.Instance.DoNotHealAbove) && !IsEnemy(Me.CurrentTarget)) && (!DebuffDoNotHeal(Me.CurrentTarget) && InLineOfSpellSightCheck(Me.CurrentTarget))))
                 {
-                    UnitHeal = null;
+                    UnitHeal = Me.CurrentTarget;
+                }
+                if (((((UnitHeal == null) && (Me.FocusedUnit != null)) && (Me.FocusedUnit.IsValid && Me.FocusedUnit.IsAlive)) && ((GetDistance(Me.FocusedUnit) < 40f) && ((Me.FocusedUnit.IsPlayer || Me.FocusedUnit.IsPet) || NeedHealUnit(Me.FocusedUnit)))) && (((Me.FocusedUnit.HealthPercent <= THSettings.Instance.PriorityHeal) && !IsEnemy(Me.FocusedUnit)) && (!DebuffDoNotHeal(Me.FocusedUnit) && InLineOfSpellSightCheck(Me.FocusedUnit))))
+                {
+                    UnitHeal = Me.FocusedUnit;
+                }
+                if ((!InArena && (UnitHeal == null)) && (Me.HealthPercent < THSettings.Instance.PriorityHeal))
+                {
+                    UnitHeal = Me;
+                }
+                if (InArena && (UnitHeal == null))
+                {
+                    UnitHeal = (from unit in NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                orderby unit.HealthPercent
+                                select unit).FirstOrDefault<WoWUnit>(unit => (((GetDistance(unit) <= 40f) && !DebuffDoNotHeal(unit)) && (unit.HealthPercent < THSettings.Instance.PriorityHeal)) && InLineOfSpellSightCheck(unit));
+                }
+                if (InArena && (UnitHeal == null))
+                {
+                    UnitHeal = (from unit in NearbyFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                orderby unit.HealthPercent
+                                select unit).FirstOrDefault<WoWUnit>(unit => (((unit.IsPlayer || unit.IsBeast) || (unit.IsDemon || unit.IsUndead)) && (((unit.MaxHealth > (MeMaxHealth / 3.0)) && (GetDistance(unit) <= 40f)) && !DebuffDoNotHeal(unit))) && InLineOfSpellSightCheck(unit));
+                }
+                if (UnitHeal == null)
+                {
+                    UnitHeal = (from unit in NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                orderby unit.HealthPercent
+                                select unit).FirstOrDefault<WoWUnit>(unit => ((GetDistance(unit) <= 40f) && !DebuffDoNotHeal(unit)) && InLineOfSpellSightCheck(unit));
+                }
+                if (UnitHeal == null)
+                {
                     UnitHealIsValid = false;
-                    HealWeightUnitHeal = 10000;
-
-                    if (UnitHeal == null &&
-                        BasicCheck(Me.CurrentTarget) &&
-                        //////Me.CurrentTarget != null &&
-                        //////Me.CurrentTarget.IsValid &&
-                        //////Me.CurrentTarget.IsAlive &&
-                        GetDistance(Me.CurrentTarget) < 40 &&
-                        (Me.CurrentTarget.IsPlayer || Me.CurrentTarget.IsPet ||
-                         NeedHealUnit.Contains(Me.CurrentTarget.Entry)) &&
-                        Me.CurrentTarget.GetPredictedHealthPercent() <= THSettings.Instance.DoNotHealAbove &&
-                        !IsEnemy(Me.CurrentTarget) &&
-                        !DebuffDoNotHeal(Me.CurrentTarget) &&
-                        InLineOfSpellSightCheck(Me.CurrentTarget))
-                    {
-                        UnitHeal = Me.CurrentTarget;
-                    }
-
-                    if (UnitHeal == null &&
-                        BasicCheck(Me.FocusedUnit) &&
-                        //Me.FocusedUnit != null &&
-                        //Me.FocusedUnit.IsValid &&
-                        //Me.FocusedUnit.IsAlive &&
-                        GetDistance(Me.FocusedUnit) < 40 &&
-                        (Me.FocusedUnit.IsPlayer || Me.FocusedUnit.IsPet || NeedHealUnit.Contains(Me.FocusedUnit.Entry)) &&
-                        Me.FocusedUnit.GetPredictedHealthPercent() <= THSettings.Instance.PriorityHeal &&
-                        !IsEnemy(Me.FocusedUnit) &&
-                        !DebuffDoNotHeal(Me.FocusedUnit) &&
-                        InLineOfSpellSightCheck(Me.FocusedUnit))
-                    {
-                        UnitHeal = Me.FocusedUnit;
-                    }
-
-                    if (!InArena && UnitHeal == null && Me.GetPredictedHealthPercent() < THSettings.Instance.PriorityHeal)
-                    {
-                        UnitHeal = Me;
-                    }
-
-                    if (InArena && UnitHeal == null)
-                    {
-                        UnitHeal = (from unit in NearbyFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
-                            orderby unit.GetPredictedHealthPercent()
-                            select unit).FirstOrDefault(
-                                unit =>
-                                //////BasicCheck(unit) &&
-                                (unit.IsPlayer ||
-                                 unit.IsBeast ||
-                                 unit.IsDemon ||
-                                 unit.IsUndead) &&
-                                unit.MaxHealth > MeMaxHealth/2 &&
-                                GetDistance(unit) <= 40 &&
-                                !DebuffDoNotHeal(unit) &&
-                                InLineOfSpellSightCheck(unit));
-                    }
-
-                    if (UnitHeal == null)
-                    {
-                        UnitHeal = (from unit in NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
-                            orderby unit.GetPredictedHealthPercent()
-                            select unit).FirstOrDefault(
-                                unit =>
-                                //////BasicCheck(unit) &&
-                                GetDistance(unit) <= 40 &&
-                                !DebuffDoNotHeal(unit) &&
-                                InLineOfSpellSightCheck(unit));
-                    }
-
-                    if (UnitHeal == null)
-                    {
-                        UnitHealIsValid = false;
-                    }
-                    else
-                    {
-                        UnitHealIsValid = true;
-                        HealWeightUnitHeal = HealWeight(UnitHeal);
-                    }
-
-                    //HealWeightMe = UnitHeal == Me ? HealWeightUnitHeal : HealWeight(Me);
-
-                    HealWeightMe = HealWeight(Me);
-
-                    return RunStatus.Failure;
-                });
+                }
+                else
+                {
+                    UnitHealIsValid = true;
+                    HealWeightUnitHeal = HealWeight(UnitHeal);
+                }
+                HealWeightMe = HealWeight(Me);
+                return RunStatus.Failure;
+            });
         }
 
         #endregion

@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GreyMagic">
+      <HintPath>..\..\..\HB 2.5.8179.697 2\GreyMagic.dll</HintPath>
+    </Reference>
     <Reference Include="Honorbuddy">
       <HintPath>..\..\..\HB 2.5.8113.696_2\Honorbuddy.exe</HintPath>
     </Reference>
