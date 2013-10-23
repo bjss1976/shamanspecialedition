@@ -371,54 +371,32 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region  BattleStandard
+        #region  BattleStandard@
 
         private static Composite UseBattleStandard()
         {
-            return
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.BattleStandard &&
-                    Me.Combat &&
-                    HealWeightMe <= THSettings.Instance.BattleStandardHP &&
-                    Me.CurrentTarget != null &&
-                    Me.CurrentTarget.HealthPercent > HealWeightMe &&
-                    InBattleground,
-                    new Action(delegate
-                        {
-                            if (Me.IsAlliance)
-                            {
-                                WoWItem bs = Me.BagItems.FirstOrDefault(o => o.Entry == 18606);
-                                //18606 Alliance Battle Standard
-
-                                if (!MeHasAura("Alliance Battle Standard") && bs != null &&
-                                    bs.CooldownTimeLeft.TotalMilliseconds <= MyLatency)
-                                {
-                                    bs.Use();
-                                    //Lua.DoString("RunMacroText(\"/5 Used HealthStoneHP\")");
-                                    //Lua.DoString("RunMacroText(\"/s Used Battle Standard\")");
-                                    Logging.Write("Use Battle Standard at " + HealWeightMe + "%");
-                                }
-                            }
-
-                            if (Me.IsHorde)
-                            {
-                                WoWItem bs = Me.BagItems.FirstOrDefault(o => o.Entry == 18607);
-                                //18606 Horde Battle Standard
-
-                                if (!MeHasAura("Horde Battle Standard") && bs != null &&
-                                    bs.CooldownTimeLeft.TotalMilliseconds <= MyLatency)
-                                {
-                                    bs.Use();
-                                    //Lua.DoString("RunMacroText(\"/5 Used HealthStoneHP\")");
-                                    //Lua.DoString("RunMacroText(\"/s Used Battle Standard\")");
-                                    Logging.Write("Use Battle Standard at " + HealWeightMe + "%");
-                                }
-                            }
-
-                            return RunStatus.Failure;
-                        })
-                    );
+            return new Decorator(ret => (((THSettings.Instance.BattleStandard && Me.Combat) && ((HealWeight(Me) <= THSettings.Instance.BattleStandardHP) && (Me.CurrentTarget != null))) && (Me.CurrentTarget.HealthPercent > HealWeight(Me))) && InBattleground, new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                if (Me.IsAlliance)
+                {
+                    WoWItem item = Me.BagItems.FirstOrDefault<WoWItem>(o => o.Entry == 0x48ae);
+                    if ((!MeHasAura("Alliance Battle Standard") && (item != null)) && (item.CooldownTimeLeft.TotalMilliseconds <= MyLatency))
+                    {
+                        item.Use();
+                        Styx.Common.Logging.Write("Use Battle Standard at " + HealWeight(Me) + "%");
+                    }
+                }
+                if (Me.IsHorde)
+                {
+                    WoWItem item2 = Me.BagItems.FirstOrDefault<WoWItem>(o => o.Entry == 0x48af);
+                    if ((!MeHasAura("Horde Battle Standard") && (item2 != null)) && (item2.CooldownTimeLeft.TotalMilliseconds <= MyLatency))
+                    {
+                        item2.Use();
+                        Styx.Common.Logging.Write("Use Battle Standard at " + HealWeight(Me) + "%");
+                    }
+                }
+                return RunStatus.Failure;
+            }));
         }
 
         #endregion
@@ -2193,7 +2171,7 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region GlobalCheck
+        #region GlobalCheck@
 
         private static bool HasAuraPreparation;
         private static bool HasAuraArenaPreparation;
@@ -2208,55 +2186,30 @@ namespace TuanHA_Combat_Routine
 
         private static void GlobalCheck()
         {
-            //////AuraCacheUpdate(Me);
-
-            //////HasAuraArenaPreparation = MeHasAura("Arena Preparation");
-            //////HasAuraPreparation = MeHasAura("Preparation");
-
             if (GlobalCheckTime < DateTime.Now)
             {
-                GlobalCheckTime = DateTime.Now + TimeSpan.FromSeconds(30);
-
-                HasAuraArenaPreparation = MeHasAura("Arena Preparation");
-                HasAuraPreparation = MeHasAura("Preparation");
-
+                GlobalCheckTime = DateTime.Now + TimeSpan.FromSeconds(30.0);
                 InArena = Me.CurrentMap.IsArena;
-
                 InBattleground = Me.CurrentMap.IsBattleground;
-
                 InProvingGrounds = Me.CurrentMap.Name == "Proving Grounds";
-
-                //InInstance = Me.CurrentMap.IsInstance;
-
                 InDungeon = Me.CurrentMap.IsDungeon;
-
                 InRaid = Me.CurrentMap.IsRaid;
-                //////done
                 UpdateMyLatency();
-                //////done
                 UpdateEventHandler();
-
-                ////////Just clear when you get out of an Instance
-                //////if (!Me.Combat)
-                //////{
-                //////    UnitHealIsValid = false;
-                //////}
-                //////done
                 if (InRaid)
                 {
-                    AuraCacheExpire = TimeSpan.FromMilliseconds(500);
-                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(500);
-
+                    AuraCacheExpire = TimeSpan.FromMilliseconds(500.0);
+                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(500.0);
                 }
                 else if (InArena || InBattleground)
                 {
-                    AuraCacheExpire = TimeSpan.FromMilliseconds(0);
-                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(0);
+                    AuraCacheExpire = TimeSpan.FromMilliseconds(0.0);
+                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(0.0);
                 }
                 else
                 {
-                    AuraCacheExpire = TimeSpan.FromMilliseconds(100);
-                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(100);
+                    AuraCacheExpire = TimeSpan.FromMilliseconds(100.0);
+                    CurrentTargetCheckTimeOut = TimeSpan.FromMilliseconds(100.0);
                 }
             }
         }
@@ -2892,6 +2845,16 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
+        #region RiptideTidalWaves
+        private static void RiptideTidalWaves(WoWUnit target, string reason)
+        {
+            if ((THSettings.Instance.Riptide && !MeHasAura(0xd08e)) && CanCastCheck("Riptide", false))
+            {
+                CastSpell("Riptide", target, reason);
+            }
+        }
+        #endregion
+
         #region SafelyFacingTarget
 
         private static DateTime LastJump;
@@ -3226,83 +3189,37 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region UpdateEventHandler
+        #region UpdateEventHandler@
         //////done, 需要优化，如何PK时也attachcombatlogpvp？
         private static void UpdateEventHandler()
         {
-            //Logging.Write(LogLevel.Diagnostic, "UpdateEventHandler");
-
             if ((InArena || InBattleground) && !CombatLogAttachedPvP)
             {
                 AttachCombatLogEventPvP();
             }
-
-            if (!InArena && !InBattleground && CombatLogAttachedPvP)
+            if ((!InArena && !InBattleground) && CombatLogAttachedPvP)
             {
                 DetachCombatLogEventPvP();
             }
-
-            //////if (!IsUsingAFKBot &&
-            //////    !CombatLogAttachedPvP)
-            //////{
-            //////    AttachCombatLogEventPvP();
-            //////    //Logging.Write(LogLevel.Diagnostic, "AttachCombatLogEventPvP");
-            //////}
-
-            //////if (IsUsingAFKBot &&
-            //////    CombatLogAttachedPvP)
-            //////{
-            //////    DetachCombatLogEventPvP();
-            //////    //Logging.Write(LogLevel.Diagnostic, "DetachCombatLogEventPvP");
-            //////}
-
-            if (IsUsingAFKBot &&
-                !InArena &&
-                !InBattleground &&
-                !InDungeon &&
-                !InRaid &&
-                !EventHandlers.CombatLogAttached)
+            if (((IsUsingAFKBot && !InArena) && (!InBattleground && !InDungeon)) && (!InRaid && !EventHandlers.CombatLogAttached))
             {
                 EventHandlers.AttachCombatLogEvent();
-                //Logging.Write(LogLevel.Diagnostic, "AttachCombatLogEvent");
             }
-
-            if ((!IsUsingAFKBot ||
-                 InArena ||
-                 InBattleground ||
-                 InDungeon ||
-                 InRaid) &&
-                EventHandlers.CombatLogAttached)
+            if (((!IsUsingAFKBot || InArena) || ((InBattleground || InDungeon) || InRaid)) && EventHandlers.CombatLogAttached)
             {
                 EventHandlers.DetachCombatLogEvent();
-                //Logging.Write(LogLevel.Diagnostic, "AttachCombatLogEvent");
             }
-
-            //if ((TreeRoot.Current.Name == "Tyrael" ||
-            //     TreeRoot.Current.Name == "LazyRaider" ||
-            //     TreeRoot.Current.Name == "Raid Bot" ||
-            //     TreeRoot.Current.Name == "Combat Bot"))
-            //{
-            //    EventHandlers.DetachCombatLogEvent();
-            //    Logging.Write(LogLevel.Diagnostic, "DetachCombatLogEvent");
-            //}
-
-            //else
-            //{
-            //    EventHandlers.AttachCombatLogEvent();
-            //    Logging.Write(LogLevel.Diagnostic, "AttachCombatLogEvent");
-            //}
         }
 
         #endregion
 
-        #region UpdateGroupHealingMembers
+        #region UpdateGroupHealingMembers@
 
         private static void UpdateGroupChangeEvent(object sender, LuaEventArgs args)
         {
             if (IGroupHealingOn())
             {
-                Logging.Write("Update Selective Group Healing on Group Member Change");
+                Styx.Common.Logging.Write("Update Selective Group Healing on Group Member Change");
                 UpdateGroupHealingMembers();
             }
         }
@@ -3311,68 +3228,41 @@ namespace TuanHA_Combat_Routine
 
         private static void UpdateGroupHealingMembers()
         {
-            //using (StyxWoW.Memory.AcquireFrame())
+            GroupHealingMembers.Clear();
+            if (IGroupHealingOn())
             {
-                GroupHealingMembers.Clear();
-                //Logging.Write("Debug " + GroupHealingMembers.Count() + " Members");
-
-                if (IGroupHealingOn())
+                foreach (WoWPartyMember member in GroupMembers)
                 {
-                    foreach (var woWPartyMember in GroupMembers)
+                    if ((member.ToPlayer() == null) || ((((!THSettings.Instance.Group1 || (member.GroupNumber != 0)) && (!THSettings.Instance.Group2 || (member.GroupNumber != 1))) && ((!THSettings.Instance.Group3 || (member.GroupNumber != 2)) && (!THSettings.Instance.Group4 || (member.GroupNumber != 3)))) && (((!THSettings.Instance.Group5 || (member.GroupNumber != 4)) && (!THSettings.Instance.Group6 || (member.GroupNumber != 5))) && ((!THSettings.Instance.Group7 || (member.GroupNumber != 6)) && (!THSettings.Instance.Group8 || (member.GroupNumber != 7))))))
                     {
-                        if (woWPartyMember.ToPlayer() != null)
-                        {
-                            if (THSettings.Instance.Group1 && woWPartyMember.GroupNumber == 0 ||
-                                THSettings.Instance.Group2 && woWPartyMember.GroupNumber == 1 ||
-                                THSettings.Instance.Group3 && woWPartyMember.GroupNumber == 2 ||
-                                THSettings.Instance.Group4 && woWPartyMember.GroupNumber == 3 ||
-                                THSettings.Instance.Group5 && woWPartyMember.GroupNumber == 4 ||
-                                THSettings.Instance.Group6 && woWPartyMember.GroupNumber == 5 ||
-                                THSettings.Instance.Group7 && woWPartyMember.GroupNumber == 6 ||
-                                THSettings.Instance.Group8 && woWPartyMember.GroupNumber == 7)
-                            {
-                                Logging.Write("Add " + woWPartyMember.ToPlayer().Class + " in Group: " +
-                                              (Convert.ToByte(woWPartyMember.GroupNumber) + 1) +
-                                              " to Selective Group Healing");
-                                GroupHealingMembers.Add(woWPartyMember.ToPlayer());
-                            }
-                        }
+                        continue;
                     }
-
-                    if (GroupHealingMembers.Any())
-                    {
-                        Logging.Write("----------------------------------");
-                        Logging.Write("You are assigned to Heal " + GroupHealingMembers.Count() + " Members");
-                        Logging.Write("You will also heal your Target, your Focus and Yourself!");
-                        Logging.Write("----------------------------------");
-                    }
+                    Styx.Common.Logging.Write(string.Concat(new object[] { "Add ", member.ToPlayer().Class, " in Group: ", Convert.ToByte(member.GroupNumber) + 1, " to Selective Group Healing" }));
+                    GroupHealingMembers.Add(member.ToPlayer());
+                }
+                if (GroupHealingMembers.Any<WoWPlayer>())
+                {
+                    Styx.Common.Logging.Write("----------------------------------");
+                    Styx.Common.Logging.Write("You are assigned to Heal " + GroupHealingMembers.Count<WoWPlayer>() + " Members");
+                    Styx.Common.Logging.Write("You will also heal your Target, your Focus and Yourself!");
+                    Styx.Common.Logging.Write("----------------------------------");
                 }
             }
         }
 
         #endregion
 
-        #region UpdateMyLatency
+        #region UpdateMyLatency@
 
         //private static DateTime MyLatencyLastupdate;
         private static double MyLatency;
-        //////done
+
         private static void UpdateMyLatency()
         {
-            //MyLatency = 400;
-            //return;
-
-            MyLatency = (StyxWoW.WoWClient.Latency);
-
-            //Use here because Lag Tolerance cap at 400
-            //Logging.Write("----------------------------------");
-            //Logging.Write("MyLatency: " + MyLatency);
-            //Logging.Write("----------------------------------");
-
-            if (MyLatency > 400)
+            MyLatency = StyxWoW.WoWClient.Latency;
+            if (MyLatency > 400.0)
             {
-                //Lag Tolerance cap at 400
-                MyLatency = 400;
+                MyLatency = 400.0;
             }
         }
 
@@ -3470,34 +3360,20 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region UseHealthStoneHP
+        #region UseHealthStoneHP@
 
         private static Composite UseHealthStoneHP()
         {
-            //using (StyxWoW.Memory.AcquireFrame())
+            return new Decorator(ret => ((THSettings.Instance.HealthStone && Me.Combat) && ((HealWeight(Me) < THSettings.Instance.HealthStoneHP) && (Me.CurrentTarget != null))) && (Me.CurrentTarget.HealthPercent > HealWeight(Me)), new Styx.TreeSharp.Action(delegate(object param0)
             {
-                return
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.HealthStone &&
-                        Me.Combat &&
-                        HealWeightMe < THSettings.Instance.HealthStoneHP &&
-                        Me.CurrentTarget != null &&
-                        Me.CurrentTarget.HealthPercent > HealWeightMe,
-                        new Action(delegate
-                            {
-                                WoWItem hs = Me.BagItems.FirstOrDefault(o => o.Entry == 5512);
-                                //5512 HealthStoneHP
-                                if (hs != null && hs.CooldownTimeLeft.TotalMilliseconds <= MyLatency)
-                                {
-                                    hs.Use();
-                                    //Lua.DoString("RunMacroText(\"/s Used HealthStoneHP\")");
-                                    Logging.Write("Use HealthStoneHP at " + HealWeightMe + "%");
-                                }
-                                return RunStatus.Failure;
-                            })
-                        );
-            }
+                WoWItem item = Me.BagItems.FirstOrDefault<WoWItem>(o => o.Entry == 0x1588);
+                if ((item != null) && (item.CooldownTimeLeft.TotalMilliseconds <= MyLatency))
+                {
+                    item.Use();
+                    Styx.Common.Logging.Write("Use HealthStoneHP at " + HealWeight(Me) + "%");
+                }
+                return RunStatus.Failure;
+            }));
         }
 
         #endregion
@@ -3610,7 +3486,7 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region UpdateMyGlyph
+        #region UpdateMyGlyph@
 
         private static void UpdateMyGlyphEvent(object sender, LuaEventArgs args)
         {
@@ -3625,125 +3501,70 @@ namespace TuanHA_Combat_Routine
         {
             HasGlyph = "";
             HasGlyphName = "";
-            //using (StyxWoW.Memory.AcquireFrame())
+            int returnVal = Lua.GetReturnVal<int>("return GetNumGlyphSockets()", 0);
+            if (returnVal != 0)
             {
-                var glyphCount = Lua.GetReturnVal<int>("return GetNumGlyphSockets()", 0);
-
-                if (glyphCount != 0)
+                for (int i = 1; i <= returnVal; i++)
                 {
-                    for (int i = 1; i <= glyphCount; i++)
+                    int id = Lua.GetReturnVal<int>(string.Format("local enabled, glyphType, glyphTooltipIndex, glyphSpellID, icon = GetGlyphSocketInfo({0});if (enabled) then return glyphSpellID else return 0 end", i), 0);
+                    try
                     {
-                        string lua =
-                            String.Format(
-                                "local enabled, glyphType, glyphTooltipIndex, glyphSpellID, icon = GetGlyphSocketInfo({0});if (enabled) then return glyphSpellID else return 0 end",
-                                i);
-
-                        var glyphSpellId = Lua.GetReturnVal<int>(lua, 0);
-
-                        try
+                        if (id > 0)
                         {
-                            if (glyphSpellId > 0)
-                            {
-                                HasGlyphName = HasGlyphName + "[" + (WoWSpell.FromId(glyphSpellId)) + " - " +
-                                               glyphSpellId +
-                                               "] ";
-                                HasGlyph = HasGlyph + "[" + glyphSpellId + "] ";
-                            }
-                            else
-                            {
-                                Logging.Write("Glyphdetection - No Glyph in slot " + i);
-                                //TreeRoot.Stop();
-                            }
+                            HasGlyphName = string.Concat(new object[] { HasGlyphName, "[", WoWSpell.FromId(id), " - ", id, "] " });
+                            HasGlyph = string.Concat(new object[] { HasGlyph, "[", id, "] " });
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Logging.Write("We couldn't detect your Glyphs");
-                            Logging.Write("Report this message to us: " + ex);
-                            //TreeRoot.Stop();
+                            Styx.Common.Logging.Write("Glyphdetection - No Glyph in slot " + i);
                         }
                     }
+                    catch (Exception exception)
+                    {
+                        Styx.Common.Logging.Write("We couldn't detect your Glyphs");
+                        Styx.Common.Logging.Write("Report this message to us: " + exception);
+                    }
                 }
-
-                Logging.Write("----------------------------------");
-                Logging.Write("Glyph:");
-                Logging.Write(HasGlyphName);
-                Logging.Write("----------------------------------");
             }
+            Styx.Common.Logging.Write("----------------------------------");
+            Styx.Common.Logging.Write("Glyph:");
+            Styx.Common.Logging.Write(HasGlyphName);
+            Styx.Common.Logging.Write("----------------------------------");
         }
 
         #endregion
 
-        #region UpdateStatus
+        #region UpdateStatus@
 
         internal static int UseSpecialization;
         private static bool IsUsingAFKBot;
         private static bool UseLightningShieldGCDCheck;
         private static ulong MeGuid;
         private static double MeMaxHealth;
-        //////done
+
         private void UpdateStatus()
         {
             if (THSettings.Instance.UpdateStatus)
             {
-                Logging.Write("----------------------------------");
-                Logging.Write("Building Rotation base on current Talents and Glyphs......");
-                Logging.Write("----------------------------------");
-                Logging.Write("");
-
-                if (!FriendListCache.ContainsKey(Me.Guid))
-                {
-                    FriendListCacheAdd(Me, 86400);
-                }
-
-                //////UpdateEventHandler();
-
+                Styx.Common.Logging.Write("----------------------------------");
+                Styx.Common.Logging.Write("Building Rotation base on current Talents and Glyphs......");
+                Styx.Common.Logging.Write("----------------------------------");
+                Styx.Common.Logging.Write("");
                 UpdateMyGlyph();
-
                 UpdateMyLatency();
-
                 UpdateGroupHealingMembers();
-
-                Logging.Write("----------------------------------");
-                Logging.Write("Building Rotation Completed");
-                Logging.Write("----------------------------------");
-                Logging.Write("");
-
-                Logging.Write("----------------------------------");
-                Logging.Write("Hold 1 second Control + " + IndexToKeys(THSettings.Instance.PauseKey) +
-                              " To Toggle Pause Mode.");
-                Logging.Write("----------------------------------");
-                Logging.Write("");
-
+                Styx.Common.Logging.Write("----------------------------------");
+                Styx.Common.Logging.Write("Hold 1 second Control + " + IndexToKeys(THSettings.Instance.PauseKey) + " To Toggle Pause Mode.");
+                Styx.Common.Logging.Write("----------------------------------");
+                Styx.Common.Logging.Write("");
                 if (THSettings.Instance.BurstKey > 9)
                 {
-                    Logging.Write("----------------------------------");
-                    Logging.Write("Hold 1 second Control + " +
-                                  IndexToKeys(THSettings.Instance.BurstKey - 9) +
-                                  " To Toggle Burst Mode");
-                    Logging.Write("----------------------------------");
-                    Logging.Write("");
+                    Styx.Common.Logging.Write("----------------------------------");
+                    Styx.Common.Logging.Write("Hold 1 second Control + " + IndexToKeys(THSettings.Instance.BurstKey - 9) + " To Toggle Burst Mode");
+                    Styx.Common.Logging.Write("----------------------------------");
+                    Styx.Common.Logging.Write("");
                 }
-
-                //////if (SpellManager.HasSpell("Lightning Shield"))
-                //////{
-                //////    Logging.Write("Use Lightning Shield as GCD Check");
-                //////    UseLightningShieldGCDCheck = true;
-                //////}
-                //////else
-                //////{
-                //////    Logging.Write("Use GCD Standard Check");
-                //////    UseLightningShieldGCDCheck = false;
-                //////}
-
-                if (TreeRoot.Current.Name == "Questing" ||
-                    TreeRoot.Current.Name == "[BETA] Grindbuddy" ||
-                    TreeRoot.Current.Name == "ArcheologyBuddy" ||
-                    TreeRoot.Current.Name == "Auto Angler" ||
-                    TreeRoot.Current.Name == "Gatherbuddy2" ||
-                    TreeRoot.Current.Name == "Grind Bot" ||
-                    TreeRoot.Current.Name == "BGBuddy" ||
-                    TreeRoot.Current.Name == "DungeonBuddy" ||
-                    TreeRoot.Current.Name == "Mixed Mode")
+                if ((((TreeRoot.Current.Name == "Questing") || (TreeRoot.Current.Name == "[BETA] Grindbuddy")) || ((TreeRoot.Current.Name == "ArcheologyBuddy") || (TreeRoot.Current.Name == "Auto Angler"))) || (((TreeRoot.Current.Name == "Gatherbuddy2") || (TreeRoot.Current.Name == "Grind Bot")) || (((TreeRoot.Current.Name == "BGBuddy") || (TreeRoot.Current.Name == "DungeonBuddy")) || (TreeRoot.Current.Name == "Mixed Mode"))))
                 {
                     IsUsingAFKBot = true;
                 }
@@ -3751,7 +3572,6 @@ namespace TuanHA_Combat_Routine
                 {
                     IsUsingAFKBot = false;
                 }
-
                 if (Me.Specialization == WoWSpec.ShamanElemental)
                 {
                     UseSpecialization = 1;
@@ -3764,10 +3584,12 @@ namespace TuanHA_Combat_Routine
                 {
                     UseSpecialization = 2;
                 }
-
                 MeGuid = Me.Guid;
                 MeMaxHealth = Me.MaxHealth;
-
+                Styx.Common.Logging.Write("----------------------------------");
+                Styx.Common.Logging.Write("Building Rotation Completed");
+                Styx.Common.Logging.Write("----------------------------------");
+                Styx.Common.Logging.Write("");
                 THSettings.Instance.UpdateStatus = false;
             }
         }
@@ -3824,7 +3646,7 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region Return Flag
+        #region Return Flag@
 
         /// <summary>
         /// This code made by Maddogs. He's no longer playing WoW, we should thank him for the awesome idea
@@ -3834,69 +3656,42 @@ namespace TuanHA_Combat_Routine
 
         private static void ChatFilter(Chat.ChatSimpleMessageEventArgs e)
         {
-            if (!THSettings.Instance.FlagReturnorPickup ||
-                Battlegrounds.Current != BattlegroundType.WSG &&
-                Battlegrounds.Current != BattlegroundType.TP &&
-                Battlegrounds.Current != BattlegroundType.EotS)
+            if (THSettings.Instance.FlagReturnorPickup && (((Battlegrounds.Current == BattlegroundType.WSG) || (Battlegrounds.Current == BattlegroundType.TP)) || (Battlegrounds.Current == BattlegroundType.EotS)))
             {
-                return;
-            }
-
-            if (e.Message.Contains("Flag was dropped by"))
-            {
-                //Logging.Write("Flag was dropped! Start Searching");
-                SearchFlagTime = DateTime.Now + TimeSpan.FromSeconds(10);
-                return;
-            }
-
-            if (SearchFlagTime > DateTime.Now &&
-                e.Message.Contains("Flag was returned to its base by"))
-            {
-                //Logging.Write("Flag was returned to its base! Stop Searching");
-                SearchFlagTime = DateTime.Now - TimeSpan.FromSeconds(10);
-                return;
+                if (e.Message.Contains("Flag was dropped by"))
+                {
+                    SearchFlagTime = DateTime.Now + TimeSpan.FromSeconds(10.0);
+                }
+                else if ((SearchFlagTime > DateTime.Now) && e.Message.Contains("Flag was returned to its base by"))
+                {
+                    SearchFlagTime = DateTime.Now - TimeSpan.FromSeconds(10.0);
+                }
             }
         }
 
         private static void ReturningFlag()
         {
-            if (SearchFlagTime < DateTime.Now)
+            if (SearchFlagTime >= DateTime.Now)
             {
-                return;
+                WoWGameObject obj2 = ObjectManager.GetObjectsOfType<WoWGameObject>().FirstOrDefault<WoWGameObject>(delegate(WoWGameObject obj)
+                {
+                    if (!(obj.Name == "Alliance Flag") && !(obj.Name == "Horde Flag"))
+                    {
+                        return false;
+                    }
+                    return obj.Distance <= 15.0;
+                });
+                if (obj2 != null)
+                {
+                    if (!IsOverrideModeOn)
+                    {
+                        Navigator.MoveTo(obj2.Location);
+                    }
+                    Me.SetFacing(obj2.Location);
+                    obj2.Interact();
+                    Styx.Common.Logging.Write("Trying to Return/Pick Up Dropped flag!");
+                }
             }
-
-            //Logging.Write("Start Searching for Flag!");
-
-            //Alliance Flag = 179830
-            //Horde Flag = 179831
-            //Horde Flag - Entry: 179786 
-            //var FlagTest = ObjectManager.WoWDynamicObject<WoWGameObject>().FirstOrDefault(
-            //    obj =>
-            //    obj.Name.Contains("Flag"));
-
-            //if (FlagTest != null)
-            //{
-            //    Logging.Write("Name: {0} - Entry: {1} - Interact Range: {2} - Distance: {3}", FlagTest.Name,
-            //                  FlagTest.Entry, FlagTest.InteractRange, FlagTest.Distance);
-            //}
-
-            // Find our Flag
-            var Flag = ObjectManager.GetObjectsOfType<WoWGameObject>().FirstOrDefault(
-                obj =>
-                (obj.Name == "Alliance Flag" ||
-                 obj.Name == "Horde Flag") &&
-                obj.Distance <= 15);
-
-
-            if (Flag == null) return;
-            //Logging.Write("Flag Found, Trying to Interact!");
-            if (!IsOverrideModeOn)
-            {
-                Navigator.MoveTo(Flag.Location);
-            }
-            Me.SetFacing(Flag.Location);
-            Flag.Interact();
-            Logging.Write("Trying to Return/Pick Up Dropped flag!");
         }
 
         #endregion

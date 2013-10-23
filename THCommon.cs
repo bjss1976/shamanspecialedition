@@ -12,12 +12,13 @@ using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
 using Styx.WoWInternals.World;
 using Action = Styx.TreeSharp.Action;
+using CommonBehaviors.Actions;
 
 namespace TuanHA_Combat_Routine
 {
     public partial class Classname
     {
-        #region AncestralGuidance
+        #region AncestralGuidance@
 
         private static Composite AncestralGuidance()
         {
@@ -44,64 +45,21 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region Ascendance
+        #region Ascendance@
 
         private static int CountUnitAscendanceResto(WoWUnit unitCenter)
         {
-            //var i = 0;
-
-            //foreach (var unit in NearbyFriendlyPlayers)
-            //{
-            //    if (BasicCheck(unit) &&
-            //        HealWeight(unit) < 80 &&
-            //        HealWeight(unit) < THSettings.Instance.AscendanceRestoHP + 20 &&
-            //        unitCenter.Location.Distance(unit.Location) <= 20)
-            //    {
-            //        i = i + 1;
-            //    }
-            //    if (i >= THSettings.Instance.AscendanceRestoUnit)
-            //    {
-            //        break;
-            //    }
-            //}
-            //return i;
-
-            return NearbyFriendlyPlayers.Count(
-                unit =>
-                BasicCheck(unit) &&
-                HealWeight(unit) < 80 &&
-                HealWeight(unit) < THSettings.Instance.AscendanceRestoHP + 20 &&
-                unitCenter.Location.Distance(unit.Location) <= 20);
+            return NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(unit => (((HealWeight(unit) < 80.0) && (HealWeight(unit) < (THSettings.Instance.AscendanceRestoHP + 20))) && (unitCenter.Location.Distance(unit.Location) <= 20f)));
         }
 
         private static Composite AscendanceResto()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.AscendanceResto &&
-                HealWeightUnitHeal <= THSettings.Instance.AscendanceRestoHP &&
-                UnitHealIsValid &&
-                //!Me.Mounted &&
-                UnitHeal.Combat &&
-                !UnitHeal.IsPet &&
-                !MeHasAura("Ascendance") &&
-                //SSpellManager.HasSpell("Ascendance") &&
-                !Invulnerable(UnitHeal) &&
-                HaveDPSTarget(UnitHeal) &&
-                CanCastCheck("Ascendance", true) &&
-                CountUnitAscendanceResto(UnitHeal) >=
-                THSettings.Instance.AscendanceRestoUnit,
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Ascendance", Me, "AscendanceResto");
-                            AuraCacheUpdate(Me, true);
-                            //Eval("CountUnitAscendanceResto(UnitHeal) >= THSettings.Instance.AscendanceRestoUnit",
-                            //() => CountUnitAscendanceResto(UnitHeal) >= THSettings.Instance.AscendanceRestoUnit);
-                            //Eval("CanCastCheck('Ascendance')", () => CanCastCheck("Ascendance"));
-                            return RunStatus.Failure;
-                        })
-                );
+            return new Decorator(ret => ((((THSettings.Instance.AscendanceResto && (HealWeightUnitHeal <= THSettings.Instance.AscendanceRestoHP)) && (UnitHealIsValid && UnitHeal.Combat)) && ((!UnitHeal.IsPet && !MeHasAura("Ascendance")) && (!Invulnerable(UnitHeal) && HaveDPSTarget(UnitHeal)))) && CanCastCheck("Ascendance", true)) && (CountUnitAscendanceResto(UnitHeal) >= THSettings.Instance.AscendanceRestoUnit), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Ascendance", Me, "AscendanceResto");
+                AuraCacheUpdate(Me, true);
+                return RunStatus.Failure;
+            }));
         }
 
         private static Composite AscendanceEnh()
@@ -120,7 +78,7 @@ namespace TuanHA_Combat_Routine
                 Me.ManaPercent > 20 &&
                 CanCastCheck("Ascendance", true) &&
                 CanCastCheck("Primal Strike") && //Suck to pop CD and no Mana to use seplls
-                (InArena && IsWorthyTarget(Me.CurrentTarget, 2, 0.2) ||
+                (InArena && IsWorthyTarget(Me.CurrentTarget, 2, 0.1) ||
                  IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
                  HaveWorthyTargetAttackingMe()),
                 new Action(
@@ -136,50 +94,24 @@ namespace TuanHA_Combat_Routine
 
         private static Composite AscendanceEle()
         {
-            return new Decorator(
-                ret =>
-                (THSettings.Instance.AscendanceEleCooldown ||
-                 THSettings.Instance.AscendanceEleBurst &&
-                 THSettings.Instance.Burst) &&
-                !MeHasAura("Ascendance") &&
-                //!Me.Mounted &&
-                Me.Combat &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                //SSpellManager.HasSpell("Ascendance") &&
-                (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                 HaveWorthyTargetAttackingMe()) &&
-                MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) > 15000 &&
-                CanCastCheck("Ascendance", true) &&
-                GetSpellCooldown("Lava Burst").TotalMilliseconds > 5000,
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Ascendance", Me, "AscendanceEle");
-                            AuraCacheUpdate(Me, true);
-                            return RunStatus.Failure;
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.AscendanceEleCooldown || (THSettings.Instance.AscendanceEleBurst && THSettings.Instance.Burst)) && (((!MeHasAura("Ascendance") && Me.Combat) && (CurrentTargetAttackable(40.0, false, false) && !CurrentTargetCheckInvulnerableMagic)) && (IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && ((MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) > 15000.0) && CanCastCheck("Ascendance", true))) && (GetSpellCooldown("Lava Burst").TotalMilliseconds > 5000.0), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Ascendance", Me, "AscendanceEle");
+                AuraCacheUpdate(Me, true);
+                return RunStatus.Failure;
+            }));
         }
 
         #endregion
 
-        #region AstralShift
+        #region AstralShift@
 
         private static Composite AstralShift()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.AstralShift &&
-                //!Me.Mounted &&
-                HealWeightMe <= THSettings.Instance.AstralShiftHP &&
-                Me.Combat &&
-                CanCastCheck("Astral Shift") &&
-                //SSpellManager.HasSpell("Astral Shift") &&
-                HaveDPSTarget(Me),
-                new Action(
-                    ret => { CastSpell("Astral Shift", Me, "AstralShift"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.AstralShift && (HealWeight(Me) <= THSettings.Instance.AstralShiftHP)) && (Me.Combat && CanCastCheck("Astral Shift", false))) && HaveDPSTarget(Me), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Astral Shift", Me, "AstralShift");
+            }));
         }
 
         #endregion
@@ -460,78 +392,38 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region AutoAttack
+        #region AutoAttack@
 
         private static WoWUnit UnitAutoAttack;
 
         private static bool GetUnitAutoAttack()
         {
             UnitAutoAttack = null;
-
-            UnitAutoAttack = NearbyUnFriendlyUnits
-                .FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    unit != Me.CurrentTarget &&
-                    Me.IsFacing(unit) &&
-                    GetDistance(unit) <= 5 &&
-                    Attackable(unit, 5));
-
+            UnitAutoAttack = FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => (((unit != Me.CurrentTarget) && Me.IsFacing(unit)) && (GetDistance(unit) <= 5f)) && Attackable(unit, 5));
             return BasicCheck(UnitAutoAttack);
         }
 
         private static Composite AutoAttackOffTarget()
         {
-            return new Decorator(
-                ret =>
-                UseSpecialization == 2 &&
-                AutoAttackLast < DateTime.Now &&
-                !CurrentTargetAttackable(10) &&
-                Me.CurrentTarget != null &&
-                //!Me.Mounted &&
-                Me.Combat &&
-                Me.Inventory.Equipped.MainHand != null &&
-                Me.ManaPercent < 70 &&
-                //SSpellManager.HasSpell("Auto Attack")&&
-                CanCastCheck("Auto Attack") &&
-                GetUnitAutoAttack(),
-                new Action(
-                    ret =>
-                        {
-                            //var currenttarget = Me.CurrentTarget;
-                            CastSpell("Auto Attack", UnitAutoAttack, "AutoAttack Enh Gain Mana");
-                            AutoAttackLast = DateTime.Now +
-                                             TimeSpan.FromMilliseconds(
-                                                 Me.Inventory.Equipped.MainHand.ItemInfo.WeaponSpeed);
-                            Me.TargetLastTarget();
-                            //while (Me.CurrentTarget != currenttarget)
-                            //{
-                            //    currenttarget.Target();
-                            //}
-                            return RunStatus.Failure;
-                        })
-                );
+            return new Decorator(ret => ((((UseSpecialization == 2) && (AutoAttackLast < DateTime.Now)) && (!CurrentTargetAttackable(10.0, false, false) && (Me.CurrentTarget != null))) && ((Me.Combat && (Me.Inventory.Equipped.MainHand != null)) && ((Me.ManaPercent < 70.0) && CanCastCheck("Auto Attack", false)))) && GetUnitAutoAttack(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Auto Attack", UnitAutoAttack, "AutoAttack Enh Gain Mana");
+                AutoAttackLast = DateTime.Now + TimeSpan.FromMilliseconds((double)Me.Inventory.Equipped.MainHand.ItemInfo.WeaponSpeed);
+                Me.TargetLastTarget();
+                return RunStatus.Failure;
+            }));
         }
 
         #endregion
 
-        #region AutoFocus
+        #region AutoFocus@
 
         private static WoWUnit UnitBestFocus;
 
         private static bool GetBestFocus()
         {
             UnitBestFocus = null;
-
-            UnitBestFocus = NearbyUnFriendlyPlayers.OrderByDescending(TalentSort).
-                                                    ThenByDescending(unit => unit.HealthPercent).
-                                                    FirstOrDefault(
-                                                        unit =>
-                                                        unit != null && unit.IsValid &&
-                                                        //Me.CurrentTarget != null &&
-                                                        unit != Me.CurrentTarget &&
-                                                        AttackableNoLoS(unit, 50));
-
+            UnitBestFocus = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).OrderByDescending<WoWUnit, byte>(new Func<WoWUnit, byte>(Classname.TalentSort)).ThenByDescending<WoWUnit, double>(unit => unit.HealthPercent).FirstOrDefault<WoWUnit>(unit => (((unit != null) && unit.IsValid) && (unit != Me.CurrentTarget)) && AttackableNoLoS(unit, 50));
             return BasicCheck(UnitBestFocus);
         }
 
@@ -539,139 +431,100 @@ namespace TuanHA_Combat_Routine
 
         private static Composite AutoSetFocus()
         {
-            return new Action(delegate
+            return new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                if (THSettings.Instance.AutoSetFocus && (LastAutoFocus <= DateTime.Now))
                 {
-                    if (!THSettings.Instance.AutoSetFocus || LastAutoFocus > DateTime.Now)
+                    if (((Me.CurrentTarget != null) && (Me.FocusedUnit == null)) && GetBestFocus())
                     {
-                        return RunStatus.Failure;
-                    }
-
-
-                    if (Me.CurrentTarget != null &&
-                        Me.FocusedUnit == null &&
-                        GetBestFocus())
-                    {
-                        //OriginalTarget = Me.CurrentTarget;
                         UnitBestFocus.Target();
-                        Thread.Sleep(10);
-                        Lua.DoString("RunMacroText('/focus');");
+                        new WaitContinue(TimeSpan.FromMilliseconds(10.0), ret => false, new ActionAlwaysSucceed());
+                        Lua.DoString("RunMacroText('/focus');", "WoW.lua");
                         Me.SetFocus(UnitBestFocus);
-                        Thread.Sleep(10);
+                        new WaitContinue(TimeSpan.FromMilliseconds(10.0), ret => false, new ActionAlwaysSucceed());
                         Me.TargetLastTarget();
-                        Logging.Write("Set Focus: " + SafeName(UnitBestFocus));
-                        LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(2000);
+                        Styx.Common.Logging.Write("Set Focus: " + UnitBestFocus.SafeName);
+                        LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(2000.0);
                         return RunStatus.Failure;
                     }
-
-                    if (UseSpecialization != 3 &&
-                        Me.CurrentTarget != null &&
-                        Me.FocusedUnit != null &&
-                        (Me.CurrentTarget == Me.FocusedUnit ||
-                         !AttackableNoCCLoS(Me.FocusedUnit, 60) ||
-                         TalentSort(Me.FocusedUnit) < 4 &&
-                         GetBestFocus() &&
-                         TalentSort(UnitBestFocus) == 4))
+                    if ((((UseSpecialization != 3) && (Me.CurrentTarget != null)) && (Me.FocusedUnit != null)) && (((Me.CurrentTarget == Me.FocusedUnit) || !AttackableNoCCLoS(Me.FocusedUnit, 60)) || (((TalentSort(Me.FocusedUnit) < 4) && GetBestFocus()) && (TalentSort(UnitBestFocus) == 4))))
                     {
-                        Logging.Write("Clear Focus");
-                        //Logging.Write("Clear Focus: Focus = Target " +
-                        //              "Target: " + SafeName(Me.CurrentTarget) +
-                        //              " - Focus: " + SafeName(Me.FocusedUnit));
-                        Lua.DoString("RunMacroText('/clearfocus');");
-                        Me.SetFocus(0);
-                        LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(1000);
-                        return RunStatus.Failure;
+                        Styx.Common.Logging.Write("Clear Focus");
+                        Lua.DoString("RunMacroText('/clearfocus');", "WoW.lua");
+                        Me.SetFocus((ulong)0L);
+                        LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
                     }
-                    return RunStatus.Failure;
-                });
+                }
+                return RunStatus.Failure;
+            });
         }
 
         #endregion
 
-        #region AutoTarget
+        #region AutoTarget@
 
         private static DateTime LastAutoTarget;
 
         private static Composite AutoTargetMelee()
         {
-            return new Action(delegate
+            return new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                if (THSettings.Instance.AutoTarget && (LastAutoTarget <= DateTime.Now))
                 {
-                    if (!THSettings.Instance.AutoTarget ||
-                        LastAutoTarget > DateTime.Now)
-                    {
-                        return RunStatus.Failure;
-                    }
-
-                    if (BasicCheck(Me.CurrentTarget) &&
-                        !CurrentTargetAttackableNoLoS(50) &&
-                        GetBestTarget() &&//.
-                        Me.CurrentTarget != UnitBestTarget)
+                    if ((BasicCheck(Me.CurrentTarget) && !CurrentTargetAttackableNoLoS(50.0)) && (GetBestTarget() && (Me.CurrentTarget != UnitBestTarget)))
                     {
                         UnitBestTarget.Target();
-                        Logging.Write(LogLevel.Diagnostic, "Switch to Best Unit");
-                        LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
+                        Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Switch to Best Unit");
+                        LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
                         return RunStatus.Failure;
                     }
-
-                    if (!BasicCheck(Me.CurrentTarget) &&
-                        GetBestTarget())
+                    if (!BasicCheck(Me.CurrentTarget) && GetBestTarget())
                     {
                         UnitBestTarget.Target();
-                        Logging.Write(LogLevel.Diagnostic, "Target  Best Unit");
-                        LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
+                        Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Target  Best Unit");
+                        LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
                         return RunStatus.Failure;
                     }
-                    LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
-                    return RunStatus.Failure;
-                });
+                    LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
+                }
+                return RunStatus.Failure;
+            });
         }
 
         private static Composite AutoTargetRange()
         {
-            return new Action(delegate
+            return new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                if (THSettings.Instance.AutoTarget && (LastAutoTarget <= DateTime.Now))
                 {
-                    if (!THSettings.Instance.AutoTarget ||
-                        LastAutoTarget > DateTime.Now)
-                    {
-                        return RunStatus.Failure;
-                    }
-
                     if (InArena || InBattleground)
                     {
-                        if (BasicCheck(Me.CurrentTarget) &&
-                            !CurrentTargetAttackableNoLoS(50) &&
-                            GetBestTarget() &&
-                            Me.CurrentTarget != UnitBestTarget)
+                        if ((BasicCheck(Me.CurrentTarget) && !CurrentTargetAttackableNoLoS(50.0)) && (GetBestTarget() && (Me.CurrentTarget != UnitBestTarget)))
                         {
                             UnitBestTarget.Target();
-                            Logging.Write(LogLevel.Diagnostic, "Switch to Best Unit");
-                            LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
+                            Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Switch to Best Unit");
+                            LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
                             return RunStatus.Failure;
                         }
-
-                        if (!BasicCheck(Me.CurrentTarget) &&
-                            GetBestTarget())
+                        if (!BasicCheck(Me.CurrentTarget) && GetBestTarget())
                         {
                             UnitBestTarget.Target();
-                            Logging.Write(LogLevel.Diagnostic, "Target  Best Unit");
-                            LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
+                            Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Target  Best Unit");
+                            LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
                             return RunStatus.Failure;
                         }
                     }
-                    else
+                    else if (GetBestTargetRange() && (Me.CurrentTarget != UnitBestTarget))
                     {
-                        if (GetBestTargetRange() &&
-                            Me.CurrentTarget != UnitBestTarget)
-                        {
-                            UnitBestTarget.Target();
-                            Logging.Write(LogLevel.Diagnostic, "Switch to Best Unit Ele");
-                            LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
-                            return RunStatus.Failure;
-                        }
+                        UnitBestTarget.Target();
+                        Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Switch to Best Unit Ele");
+                        LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
+                        return RunStatus.Failure;
                     }
-
-                    LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000);
-                    return RunStatus.Failure;
-                });
+                    LastAutoTarget = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
+                }
+                return RunStatus.Failure;
+            });
         }
 
         #endregion
@@ -881,8 +734,8 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region Capacitor
-        //////done
+        #region Capacitor@
+        //改动比较大，需要review
         private static WoWUnit UnitCapacitorFriendLow;
 
         private static bool GetUnitCapacitorFriendLow()
@@ -1043,111 +896,99 @@ namespace TuanHA_Combat_Routine
 
             return CapacitorTotem != null && CapacitorTotem.IsValid;
         }
-        //////done, 可增加使用hotkey用电能图腾时，丢的目标为当前目标或者focus
+
+        private static double CapacitorTotemCastTime()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if ((Me.Totems[i].Unit != null) && (Me.Totems[i].Unit.Name == "Capacitor Totem"))
+                {
+                    return Me.Totems[i].Unit.CurrentCastTimeLeft.TotalMilliseconds;
+                }
+            }
+            return 10000.0;
+        }
+        //done, 可增加使用hotkey用电能图腾时，丢的目标为当前目标或者focus
         private static void CapacitorProjection(int MsLeft)
         {
-            if (!THSettings.Instance.CapacitorProjection ||
-                !SpellManager.HasSpell("Totemic Projection") ||
-                !HasCapacitorTotem() ||
-                HasCapacitorTotem() && CapacitorTotem.CurrentCastTimeLeft.TotalMilliseconds > MsLeft + MyLatency ||
-                SpellManager.Spells["Totemic Projection"].CooldownTimeLeft.TotalMilliseconds > MsLeft + MyLatency)
+            if ((THSettings.Instance.CapacitorProjection && SpellManager.HasSpell("Totemic Projection")) && ((MyTotemCheck("Capacitor Totem", Me, 100) && (CapacitorTotemCastTime() <= MsLeft)) && (SpellManager.Spells["Totemic Projection"].CooldownTimeLeft.TotalMilliseconds <= MsLeft)))
             {
-                return;
-            }
+                CapacitorTarget = null;
+                CapacitorProjectionPurpose = null;
 
-            CapacitorTarget = null;
-            CapacitorProjectionPurpose = null;
-
-            if (LastHotKey1Press >= DateTime.Now)
-            {
-                CapacitorTarget = HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target);
-                CapacitorProjectionPurpose = "Capacitor on Target due to Hotkey1";
-            }
-            else if (LastHotKey2Press >= DateTime.Now)
-            {
-                CapacitorTarget = HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target);
-                CapacitorProjectionPurpose = "Capacitor on Target due to Hotkey2";
-            }
-            else if (GetUnitCapacitorFriendLow())
-            {
-                CapacitorTarget = UnitCapacitorFriendLow;
-                CapacitorProjectionPurpose = "Capacitor Help Friend Low HP";
-            }
-            else if (GetUnitCapacitorEnemyLow())
-            {
-                CapacitorTarget = UnitCapacitorEnemyLow;
-                CapacitorProjectionPurpose = "Capacitor on Enemy Low HP";
-            }
-            else if (GetUnitCapacitorEnemyPack())
-            {
-                CapacitorTarget = UnitCapacitorEnemyPack;
-                CapacitorProjectionPurpose = "Capacitor on Enemy Group";
-            }
-            else if (GetUnitCapacitorEnemyLowNoThreadhold())
-            {
-                CapacitorTarget = UnitCapacitorEnemyLow;
-                CapacitorProjectionPurpose = "Capacitor on Enemy No Threadhold";
-            }
-
-            if (!BasicCheck(CapacitorTarget))
-            {
-                Logging.Write(LogLevel.Diagnostic, "Can't Find Suitable Capacitor Target");
-                return;
-            }
-
-            if (CapacitorTotem.Location.Distance(CapacitorTarget.Location) < 5)
-            {
-                Logging.Write(LogLevel.Diagnostic, "Capacitor Totem Already Near Target. No Projection needed");
-                return;
-            }
-
-
-            Logging.Write("Trying to Capacitor Projection on {0} purpose {1}",
-                          CapacitorTarget.SafeName,
-                          CapacitorProjectionPurpose);
-
-            if (Me.IsCasting)
-            {
-                SpellManager.StopCasting();
-            }
-
-            while (CapacitorTotem.CurrentCastTimeLeft.TotalMilliseconds > MsLeft)
-            {
-                //waiting fo the right time;
-            }
-
-            SpamUntil = DateTime.Now + SpellManager.Spells["Totemic Projection"].CooldownTimeLeft +
-                        TimeSpan.FromMilliseconds(100);
-
-            while (SpamUntil > DateTime.Now)
-            {
-                //Logging.Write("Trying to cast Totemic Projection");
-                CastSpell("Totemic Projection", Me, "Totemic Projection");
-                //Logging.Write("Me.CurrentPendingCursorSpell.Id {0}", Me.CurrentPendingCursorSpell.Id);
-                //Logging.Write("ClickRemoteLocation {0}", UnitProject.Location);
-                ObjectManager.Update();
-                if (LastHotKey2Press >= DateTime.Now)
+                if (LastHotKey1Press >= DateTime.Now)
                 {
-                    var DropLocation = CalculateDropLocation(CapacitorTarget, LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y);
-                    Logging.Write("My location:" + LastHotKey2PressPosition.X + "," + LastHotKey2PressPosition.Y + "," + LastHotKey2PressPosition.Z);
-                    Logging.Write("Totem location:" + CapacitorTotem.Location.X + "," + CapacitorTotem.Location.Y + "," + CapacitorTotem.Location.Z);
-                    Logging.Write("CapacitorTarget location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y + "," + CapacitorTarget.Location.Z);
-                    Logging.Write("DropLocation location:" + DropLocation.X + "," + DropLocation.Y + "," + DropLocation.Z);
-                    SpellManager.ClickRemoteLocation(DropLocation);
-                    LastHotKey2Press = DateTime.Now;
+                    CapacitorTarget = HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target);
+                    CapacitorProjectionPurpose = "Capacitor on Target due to Hotkey1";
+                }
+                else if (LastHotKey2Press >= DateTime.Now)
+                {
+                    CapacitorTarget = HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target);
+                    CapacitorProjectionPurpose = "Capacitor on Target due to Hotkey2";
+                }
+                else if (GetUnitCapacitorFriendLow())
+                {
+                    CapacitorTarget = UnitCapacitorFriendLow;
+                    CapacitorProjectionPurpose = "Capacitor Help Friend Low HP";
+                }
+                else if (GetUnitCapacitorEnemyLow())
+                {
+                    CapacitorTarget = UnitCapacitorEnemyLow;
+                    CapacitorProjectionPurpose = "Capacitor on Enemy Low HP";
+                }
+                else if (GetUnitCapacitorEnemyPack())
+                {
+                    CapacitorTarget = UnitCapacitorEnemyPack;
+                    CapacitorProjectionPurpose = "Capacitor on Enemy Group";
+                }
+                else if (GetUnitCapacitorEnemyLowNoThreadhold())
+                {
+                    CapacitorTarget = UnitCapacitorEnemyLow;
+                    CapacitorProjectionPurpose = "Capacitor on Enemy No Threadhold";
+                }
+
+                if (!BasicCheck(CapacitorTarget))
+                {
+                    Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Can't Find Suitable Capacitor Target");
+                }
+                else if (MyTotemCheck("Capacitor Totem", CapacitorTarget, 3))
+                {
+                    Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "Capacitor Totem Already Near Target. No Projection needed");
                 }
                 else
                 {
-                    SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
-                    LastHotKey1Press = DateTime.Now;
+                    Styx.Common.Logging.Write("Trying to Capacitor Projection on {0} purpose {1}", new object[] { CapacitorTarget.SafeName, CapacitorProjectionPurpose });
+                    if (Me.IsCasting)
+                    {
+                        SpellManager.StopCasting();
+                    }
+                //SpamUntil = DateTime.Now + SpellManager.Spells["Totemic Projection"].CooldownTimeLeft +
+                //            TimeSpan.FromMilliseconds(100);
+
+                //while (SpamUntil > DateTime.Now)
+                //{
+                    //Logging.Write("Trying to cast Totemic Projection");
+                    CastSpell("Totemic Projection", Me, "Totemic Projection");
+                    //Logging.Write("Me.CurrentPendingCursorSpell.Id {0}", Me.CurrentPendingCursorSpell.Id);
+                    //Logging.Write("ClickRemoteLocation {0}", UnitProject.Location);
+                    ObjectManager.Update();
+                    if (LastHotKey2Press >= DateTime.Now)
+                    {
+                        var DropLocation = CalculateDropLocation(CapacitorTarget, LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y);
+                        Logging.Write("My location:" + LastHotKey2PressPosition.X + "," + LastHotKey2PressPosition.Y + "," + LastHotKey2PressPosition.Z);
+                        Logging.Write("Totem location:" + CapacitorTotem.Location.X + "," + CapacitorTotem.Location.Y + "," + CapacitorTotem.Location.Z);
+                        Logging.Write("CapacitorTarget location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y + "," + CapacitorTarget.Location.Z);
+                        Logging.Write("DropLocation location:" + DropLocation.X + "," + DropLocation.Y + "," + DropLocation.Z);
+                        SpellManager.ClickRemoteLocation(DropLocation);
+                        LastHotKey2Press = DateTime.Now;
+                    }
+                    else
+                    {
+                        SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
+                        LastHotKey1Press = DateTime.Now;
+                    }
+                //}
                 }
-                //var DropLocation = new WoWPoint(CapacitorTarget.Location.X + (LastHotKey2PressPosition.X-CapacitorTotem.Location.X),
-                //                                CapacitorTarget.Location.Y + (LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y),
-                //                                CapacitorTarget.Location.Z);
-                //SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
-
-
-                //SpellManager.ClickRemoteLocation(CalculateDropLocation(CapacitorTarget,LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y));
             }
         }
 
@@ -1356,120 +1197,73 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region CleanseSpirit
+        #region CleanseSpirit@
 
         private static WoWUnit PlayerFriendlyCleanseSpiritASAP;
 
         private static bool GetPlayerFriendlyCleanseSpiritASAP()
         {
             PlayerFriendlyCleanseSpiritASAP = null;
-
-            PlayerFriendlyCleanseSpiritASAP = NearbyFriendlyPlayers.Where(BasicCheck).FirstOrDefault(
-                unit => //.BasicCheck(unit) &&
-                        !DebuffDoNotCleanse(unit) &&
-                        UnitHasAura("Hex", unit) &&
-                        Healable(unit));
-
+            PlayerFriendlyCleanseSpiritASAP = NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => (!DebuffDoNotCleanse(unit) && UnitHasAura("Hex", unit)) && Healable(unit, 40));
             return BasicCheck(PlayerFriendlyCleanseSpiritASAP);
         }
 
         private static Composite CleanseSpiritFriendlyASAPEnh()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.CleanseSpiritEnh &&
-                    //SSpellManager.HasSpell("Cleanse Spirit") &&
-                    GetPlayerFriendlyCleanseSpiritASAP() &&
-                    CanCastCheck("Cleanse Spirit"),
-                    new Action(delegate
-                        {
-                            SpellManager.StopCasting();
-                            CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpiritASAP, "CleanseSpiritFriendlyASAPEnh");
-                        })));
+            return new PrioritySelector(new Composite[] { new Decorator(ret => (THSettings.Instance.CleanseSpiritEnh && GetPlayerFriendlyCleanseSpiritASAP()) && CanCastCheck("Cleanse Spirit", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                SpellManager.StopCasting();
+                CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpiritASAP, "CleanseSpiritFriendlyASAPEnh");
+            })) });
         }
 
         private static Composite CleanseSpiritFriendlyASAPEle()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.CleanseSpiritEle &&
-                    //SSpellManager.HasSpell("Cleanse Spirit") &&
-                    GetPlayerFriendlyCleanseSpiritASAP() &&
-                    CanCastCheck("Cleanse Spirit"),
-                    new Action(delegate
-                        {
-                            SpellManager.StopCasting();
-                            CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpiritASAP, "CleanseSpiritFriendlyASAPEle");
-                        })));
+            return new PrioritySelector(new Composite[] { new Decorator(ret => (THSettings.Instance.CleanseSpiritEle && GetPlayerFriendlyCleanseSpiritASAP()) && CanCastCheck("Cleanse Spirit", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                SpellManager.StopCasting();
+                CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpiritASAP, "CleanseSpiritFriendlyASAPEle");
+            })) });
         }
 
         private static WoWUnit PlayerFriendlyCleanseSpirit;
 
         private static double CountDebuffCurse(WoWUnit target)
         {
-            if (!BasicCheck(target))
+            return (double)target.Debuffs.Values.Count<WoWAura>(debuff => (debuff.Spell.DispelType == WoWDispelType.Curse));
+        }
+
+        private static double CountEnemyNear(WoWUnit unitCenter, float distance)
+        {
+            return (double)FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(delegate(WoWUnit unit)
             {
-                return 0;
-            }
-
-            int numberofDebuff =
-                target.Debuffs.Values.Count(
-                    debuff =>
-                    debuff.Spell.DispelType == WoWDispelType.Curse);
-
-            return numberofDebuff;
+                if ((!InProvingGrounds && !IsDummy(unit)) && ((!unit.Combat || (unit.MaxHealth <= (MeMaxHealth * 0.2))) || (!unit.GotTarget || !FarFriendlyUnits.Contains(unit.CurrentTarget))))
+                {
+                    return false;
+                }
+                return (GetDistance(unitCenter, unit) <= distance);
+            });
         }
         //////done
         private static bool GetPlayerFriendlyCleanseSpirit()
         {
             PlayerFriendlyCleanseSpirit = null;
-
-            PlayerFriendlyCleanseSpirit = NearbyFriendlyPlayers.
-                OrderByDescending(CountDebuffCurse).
-                FirstOrDefault(
-                    //////unit => BasicCheck(unit) &&
-                        unit =>
-                            CountDebuffCurse(unit) > 0 &&
-                            !DebuffDoNotCleanse(unit) &&
-                            Healable(unit,40));
-
+            PlayerFriendlyCleanseSpirit = NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).OrderByDescending<WoWUnit, double>(new Func<WoWUnit, double>(Classname.CountDebuffCurse)).FirstOrDefault<WoWUnit>(unit => ((CountDebuffCurse(unit) > 0.0) && !DebuffDoNotCleanse(unit)) && Healable(unit, 40));
             return BasicCheck(PlayerFriendlyCleanseSpirit);
         }
         //////done
         private static Composite CleanseSpiritFriendlyEnh()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.CleanseSpiritEnh &&
-                    Me.ManaPercent > THSettings.Instance.PriorityHeal &&
-                    CanCastCheck("Cleanse Spirit") &&
-                    //SSpellManager.HasSpell("Cleanse Spirit") &&
-                    GetPlayerFriendlyCleanseSpirit(),
-                    new Action(delegate
-                        {
-                            SpellManager.StopCasting();
-                            CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpirit, "CleanseSpiritEnh");
-                        })));
+            return new PrioritySelector(new Composite[] { new Decorator(ret => ((THSettings.Instance.CleanseSpiritEnh && (Me.ManaPercent > THSettings.Instance.PriorityHeal)) && CanCastCheck("Cleanse Spirit", false)) && GetPlayerFriendlyCleanseSpirit(), new Styx.TreeSharp.Action(delegate (object param0) {
+                SpellManager.StopCasting();
+                CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpirit, "CleanseSpiritEnh");
+            })) });
         }
 
         private static Composite CleanseSpiritFriendlyEle()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.CleanseSpiritEle &&
-                    Me.ManaPercent > THSettings.Instance.PriorityHeal &&
-                    //SSpellManager.HasSpell("Cleanse Spirit") &&
-                    GetPlayerFriendlyCleanseSpirit() &&
-                    CanCastCheck("Cleanse Spirit"),
-                    new Action(delegate
-                        {
-                            SpellManager.StopCasting();
-                            CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpirit, "CleanseSpiritEle");
-                        })));
+            return new PrioritySelector(new Composite[] { new Decorator(ret => ((THSettings.Instance.CleanseSpiritEle && (Me.ManaPercent > THSettings.Instance.PriorityHeal)) && GetPlayerFriendlyCleanseSpirit()) && CanCastCheck("Cleanse Spirit", false), new Styx.TreeSharp.Action(delegate (object param0) {
+                SpellManager.StopCasting();
+                CastSpell("Cleanse Spirit", PlayerFriendlyCleanseSpirit, "CleanseSpiritEle");
+            })) });
         }
 
         #endregion
@@ -1623,30 +1417,15 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region EarthElemental
+        #region EarthElemental@
 
         private static Composite EarthElemental()
         {
-            return new Decorator(
-                ret =>
-                (THSettings.Instance.EarthElementalCooldown ||
-                 THSettings.Instance.EarthElementalBurst &&
-                 THSettings.Instance.Burst) &&
-                //SSpellManager.HasSpell("Earth Elemental Totem") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerablePhysic &&
-                (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                 HaveWorthyTargetAttackingMe()) &&
-                !HasElementalAround() &&
-                CanCastCheck("Earth Elemental Totem"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Earth Elemental Totem", Me.CurrentTarget, "EarthElemental");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.EarthElementalCooldown || (THSettings.Instance.EarthElementalBurst && THSettings.Instance.Burst)) && ((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && ((InArena && IsWorthyTarget(Me.CurrentTarget, 2.0, 0.2)) || IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && !HasElementalAround()) && CanCastCheck("Earth Elemental Totem", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Earth Elemental Totem", Me.CurrentTarget, "EarthElemental");
+            }));
         }
 
         #endregion
@@ -2006,28 +1785,17 @@ namespace TuanHA_Combat_Routine
 
         private static Composite ElementalMastery()
         {
-            return new Decorator(
-                ret =>
-                (THSettings.Instance.ElementalMasteryCooldown ||
-                 THSettings.Instance.ElementalMasteryBurst &&
-                 THSettings.Instance.Burst) &&
-                //SSpellManager.HasSpell("Elemental Mastery") &&
-                //!Me.Mounted &&
-                Me.Combat &&
-                CanCastCheck("Elemental Mastery", true),
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Elemental Mastery", Me, "ElementalMastery");
-                            AuraCacheUpdate(Me, true);
-                            return RunStatus.Failure;
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.ElementalMasteryCooldown || (THSettings.Instance.ElementalMasteryBurst && THSettings.Instance.Burst)) && Me.Combat) && CanCastCheck("Elemental Mastery", true), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Elemental Mastery", Me, "ElementalMastery");
+                AuraCacheUpdate(Me, true);
+                return RunStatus.Failure;
+            }));
         }
 
         #endregion
 
-        #region FireElemental
+        #region FireElemental@
 
         //61029 Prime Fire Elemental
         //61056 Prime Earth Elemental
@@ -2035,38 +1803,23 @@ namespace TuanHA_Combat_Routine
         //15438 Greater Fire Elemental
         private static bool HasElementalAround()
         {
-            return FarFriendlyUnits.Any(
-                unit =>
-                BasicCheck(unit) &&
-                (unit.Entry == 61029 ||
-                 unit.Entry == 61056 ||
-                 unit.Entry == 15352 ||
-                 unit.Entry == 15438) &&
-                unit.CreatedByUnit == Me);
+            return FarFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(delegate(WoWUnit unit)
+            {
+                if (((unit.Entry != 0xee65) && (unit.Entry != 0xee80)) && ((unit.Entry != 0x3bf8) && (unit.Entry != 0x3c4e)))
+                {
+                    return false;
+                }
+                return (unit.CreatedByUnit == Me);
+            });
         }
 
         private static Composite FireElemental()
         {
-            return new Decorator(
-                ret =>
-                (THSettings.Instance.FireElementalCooldown ||
-                 THSettings.Instance.FireElementalBurst &&
-                 THSettings.Instance.Burst) &&
-                //SSpellManager.HasSpell("Fire Elemental Totem") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerablePhysic &&
-                CanCastCheck("Fire Elemental Totem") &&
-                (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                 HaveWorthyTargetAttackingMe()) &&
-                !HasElementalAround(),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Fire Elemental Totem", Me.CurrentTarget, "FireElemental");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FireElementalCooldown || (THSettings.Instance.FireElementalBurst && THSettings.Instance.Burst)) && (((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && CanCastCheck("Fire Elemental Totem", false)) && ((InArena && IsWorthyTarget(Me.CurrentTarget,2.0,0.2)) || IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && !HasElementalAround(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Fire Elemental Totem", Me.CurrentTarget, "FireElemental");
+            }));
         }
 
         #endregion
@@ -2531,74 +2284,52 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region GhostWolf
+        #region GhostWolf@
 
+        #region GhostWolfHoldComp@
         private static Composite GhostWolfHoldComp()
         {
-            return new Decorator(
-                ret =>
-                !THSettings.Instance.AutoGhostWolfCancel &&
-                MeHasAura("Ghost Wolf"),
-                new Action(
-                    ret =>
-                        {
-                            Logging.Write("Auto Cancel Ghost Wolf Disabled");
-                            return RunStatus.Success;
-                        })
-                );
+            return new Decorator(ret => !THSettings.Instance.AutoGhostWolfCancel && MeHasAura("Ghost Wolf"), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                Styx.Common.Logging.Write("Auto Cancel Ghost Wolf Disabled");
+                return RunStatus.Success;
+            }));
         }
+        #endregion
 
+        #region GhostWolfAvoidCC@
         private static WoWUnit UnitGhostWolfCC;
 
         private static bool GetUnitGhostWolfCastingCC()
         {
             UnitGhostWolfCC = null;
-
             if (InBattleground || InArena)
             {
-                UnitGhostWolfCC = NearbyUnFriendlyUnits.FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    unit.Distance <= 30 &&
-                    IsCastingCCGhostWolfImmune(unit) &&
-                    InLineOfSpellSightCheck(unit));
+                UnitGhostWolfCC = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => ((unit.Distance <= 30.0) && IsCastingCCGhostWolfImmune(unit)) && InLineOfSpellSightCheck(unit));
             }
-
             return BasicCheck(UnitGhostWolfCC);
         }
 
         private static void GhostWolfAvoidCC()
         {
-            if (THSettings.Instance.AutoGhostWolf &&
-                (InArena || InBattleground) &&
-                !MeHasAura("Ghost Wolf") &&
-                LastInterrupt < DateTime.Now &&
-                //SSpellManager.HasSpell("Ghost Wolf") &&
-                //!Me.Mounted &&
-                //////SpellTypeCheck() &&
-                !InvulnerableSpell(Me) &&
-                GetUnitGhostWolfCastingCC() &&
-                GetSpellCooldown("Ghost Wolf").TotalMilliseconds <= MyLatency)
+            if ((THSettings.Instance.AutoGhostWolf && (InArena || InBattleground)) && (((!MeHasAura("Ghost Wolf") && (LastInterrupt < DateTime.Now)) && (!InvulnerableSpell(Me) && GetUnitGhostWolfCastingCC())) && (GetSpellCooldown("Ghost Wolf").TotalMilliseconds <= MyLatency)))
             {
                 if (Me.IsCasting)
                 {
                     SpellManager.StopCasting();
                 }
-
-                while (UnitGhostWolfCC.CurrentCastTimeLeft.TotalMilliseconds > 1500)
+                while (UnitGhostWolfCC.CurrentCastTimeLeft.TotalMilliseconds > 1500.0)
                 {
-                    Logging.Write("INCOMING " + UnitGhostWolfCC.SafeName + " is Casting " +
-                                  UnitGhostWolfCC.CastingSpell.Name + " - " + UnitGhostWolfCC.CastingSpellId);
+                    Styx.Common.Logging.Write(string.Concat(new object[] { "INCOMING ", UnitGhostWolfCC.SafeName, " is Casting ", UnitGhostWolfCC.CastingSpell.Name, " - ", UnitGhostWolfCC.CastingSpellId }));
                 }
-
-                LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(2000);
+                LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(2000.0);
                 SpellManager.StopCasting();
-                CastSpell("Ghost Wolf", Me,
-                          "GhostWolfAvoidCC: " + UnitGhostWolfCC.SafeName + " is Casting " +
-                          UnitGhostWolfCC.CastingSpell.Name + " - " + UnitGhostWolfCC.CastingSpellId);
+                CastSpell("Ghost Wolf", Me, string.Concat(new object[] { "GhostWolfAvoidCC: ", UnitGhostWolfCC.SafeName, " is Casting ", UnitGhostWolfCC.CastingSpell.Name, " - ", UnitGhostWolfCC.CastingSpellId }));
             }
         }
+        #endregion
 
+        #region GhostWolfEnh@
         private static Composite GhostWolfEnh()
         {
             return new Decorator(
@@ -2621,7 +2352,24 @@ namespace TuanHA_Combat_Routine
                 new Action(
                     ret => { CastSpell("Ghost Wolf", Me, "GhostWolfEnh"); }));
         }
+        //private static Composite GhostWolfEnh()
+        //{
+        //    return new Decorator(delegate(object ret)
+        //    {
+        //        if (((!THSettings.Instance.AutoGhostWolf || MeHasAura("Ghost Wolf")) || (MeHasAura("Spiritwalker's Grace") || !Me.IsMoving)) || !CanCastCheck("Ghost Wolf", false))
+        //        {
+        //            return false;
+        //        }
+        //        return (!CurrentTargetAttackable(10.0, false, false) || ((GetDistance(Me.CurrentTarget) > 7f) && Me.CurrentTarget.IsSafelyBehind(Me))) || ((GetDistance(Me.CurrentTarget) > 5f) && DebuffSnare(Me));
+        //    }, new Styx.TreeSharp.Action(delegate(object ret)
+        //    {
+        //        CastSpell("Ghost Wolf", Me, "GhostWolfEnh");
+        //    }));
+        //}
 
+        #endregion
+
+        #region GhostWolfResto@
         private static bool HasMeleeonMe()
         {
             return
@@ -2631,35 +2379,40 @@ namespace TuanHA_Combat_Routine
 
         private static Composite GhostWolfResto()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.AutoGhostWolf &&
-                !MeHasAura("Ghost Wolf") &&
-                !MeHasAura("Spiritwalker's Grace") &&
-                Me.IsMoving &&
-                CanCastCheck("Ghost Wolf") &&
-                (DebuffSnare(Me) || HasMeleeonMe()),
-                new Action(
-                    ret => { CastSpell("Ghost Wolf", Me, "GhostWolfResto"); }));
+            return new Decorator(delegate(object ret)
+            {
+                if (((!THSettings.Instance.AutoGhostWolf || MeHasAura("Ghost Wolf")) || (MeHasAura("Spiritwalker's Grace") || !Me.IsMoving)) || !CanCastCheck("Ghost Wolf", false))
+                {
+                    return false;
+                }
+                if (!DebuffSnare(Me))
+                {
+                    return HasMeleeonMe();
+                }
+                return true;
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Ghost Wolf", Me, "GhostWolfResto");
+            }));
         }
+        #endregion
 
-
+        #region GhostWolfEle@
         private static Composite GhostWolfEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.AutoGhostWolf &&
-                !MeHasAura("Ghost Wolf") &&
-                !MeHasAura("Spiritwalker's Grace") &&
-                Me.IsMoving &&
-                CanCastCheck("Ghost Wolf") &&
-                (!CurrentTargetAttackable(40) ||
-                 GetDistance(Me.CurrentTarget) > 7 &&
-                 Me.CurrentTarget.IsSafelyBehind(Me)),
-                new Action(
-                    ret => { CastSpell("Ghost Wolf", Me, "GhostWolfEle"); }));
+            return new Decorator(delegate(object ret)
+            {
+                if (((!THSettings.Instance.AutoGhostWolf || MeHasAura("Ghost Wolf")) || (MeHasAura("Spiritwalker's Grace") || !Me.IsMoving)) || !CanCastCheck("Ghost Wolf", false))
+                {
+                    return false;
+                }
+                return !CurrentTargetAttackable(40.0, false, false) || ((GetDistance(Me.CurrentTarget) > 7f) && Me.CurrentTarget.IsSafelyBehind(Me));
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Ghost Wolf", Me, "GhostWolfEle");
+            }));
         }
-
+        #endregion
         #endregion
 
         #region GreaterHealingWave
@@ -2739,25 +2492,17 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region GroundingCast
+        #region GroundingCast@
 
         private static WoWUnit UnitGroundingCast;
 
         private static bool GetUnitGroundingCast()
         {
             UnitGroundingCast = null;
-
             if (InBattleground || InArena)
             {
-                UnitGroundingCast = NearbyUnFriendlyPlayers.FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    unit.Distance < 30 &&
-                    TalentSort(unit) < 4 &&
-                    !unit.IsCastingHealingSpell &&
-                    InterruptCheckGrounding(unit, THSettings.Instance.GroundingCastMs + MyLatency));
+                UnitGroundingCast = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => (((unit.Distance < 30.0) && (TalentSort(unit) < 4)) && !unit.IsCastingHealingSpell) && InterruptCheckGrounding(unit, THSettings.Instance.GroundingCastMs + MyLatency));
             }
-
             return BasicCheck(UnitGroundingCast);
         }
 
@@ -2766,22 +2511,13 @@ namespace TuanHA_Combat_Routine
         private static bool GetEnemyFreezingTrap()
         {
             EnemyFreezingTrap = null;
-
-            EnemyFreezingTrap = ObjectManager.GetObjectsOfType<WoWDynamicObject>()
-                                             .FirstOrDefault(
-                                                 p =>
-                                                 IsEnemy(p.Caster) &&
-                                                 p.Entry == 2561);
-
-            return EnemyFreezingTrap != null && EnemyFreezingTrap.IsValid;
+            EnemyFreezingTrap = ObjectManager.GetObjectsOfType<WoWDynamicObject>().FirstOrDefault<WoWDynamicObject>(p => (p.Entry == 0xa01) && IsEnemy(p.Caster));
+            return ((EnemyFreezingTrap != null) && EnemyFreezingTrap.IsValid);
         }
 
         private static bool IsFriendlyHunterNearby()
         {
-            return FarFriendlyPlayers.Any(
-                player =>
-                BasicCheck(player) &&
-                player.Class == WoWClass.Hunter);
+            return FarUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(player => (BasicCheck(player) && (player.Class == WoWClass.Hunter)));
         }
 
         private static WoWUnit GroundingTrapPlayer;
@@ -2789,117 +2525,61 @@ namespace TuanHA_Combat_Routine
 
         private static bool NeedGroudingTrap()
         {
-            GroundingTrapPlayer =
-                NearbyFriendlyPlayers.FirstOrDefault(
-                    player =>
-                    !BasicCheck(player) &&
-                    player.Location.Distance(EnemyFreezingTrap.Location) < 8);
-
+            GroundingTrapPlayer = NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(player => player.Location.Distance(EnemyFreezingTrap.Location) < 8f);
             return BasicCheck(GroundingTrapPlayer);
         }
 
         private static void GroundingCastInterruptVoid()
         {
-            if (THSettings.Instance.GroundingCast &&
-                //SSpellManager.HasSpell("Grounding Totem") &&
-                LastInterrupt < DateTime.Now &&
-                //!Me.Mounted &&
-                GetUnitGroundingCast() &&
-                GetSpellCooldown("Grounding Totem").TotalMilliseconds <= MyLatency)
+            if ((THSettings.Instance.GroundingCast && (LastInterrupt < DateTime.Now)) && (GetUnitGroundingCast() && (GetSpellCooldown("Grounding Totem").TotalMilliseconds <= MyLatency)))
             {
                 if (Me.IsCasting)
                 {
                     SpellManager.StopCasting();
                 }
-
                 if (UnitGroundingCast.IsCasting || UnitGroundingCast.IsChanneling)
                 {
-                    CastSpell("Grounding Totem", UnitGroundingCast,
-                              "Casting " +
-                              UnitGroundingCast.CastingSpell.Name + " - " + UnitGroundingCast.CastingSpellId);
-                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500);
+                    CastSpell("Grounding Totem", UnitGroundingCast, string.Concat(new object[] { "Casting ", UnitGroundingCast.CastingSpell.Name, " - ", UnitGroundingCast.CastingSpellId }));
+                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
                 }
             }
-
-            if (THSettings.Instance.GroundingTrap &&
-                InArena &&
-                //SSpellManager.HasSpell("Grounding Totem") &&
-                LastInterrupt < DateTime.Now &&
-                //////SpellTypeCheck() &&
-                //!Me.Mounted &&
-                !IsFriendlyHunterNearby() &&
-                GetEnemyFreezingTrap() &&
-                NeedGroudingTrap() &&
-                GetSpellCooldown("Grounding Totem").TotalMilliseconds <= MyLatency)
+            if (((THSettings.Instance.GroundingTrap && InArena) && ((LastInterrupt < DateTime.Now) && !IsFriendlyHunterNearby())) && ((GetEnemyFreezingTrap() && NeedGroudingTrap()) && (GetSpellCooldown("Grounding Totem").TotalMilliseconds <= MyLatency)))
             {
                 if (Me.IsCasting)
                 {
                     SpellManager.StopCasting();
                 }
-
-                CastSpell("Grounding Totem", GroundingTrapPlayer,
-                          "Grounding Totem Freezing Trap base on Trap Scan and Friend Distance to trap <=" +
-                          GroundingTrapPlayer.Location.Distance(EnemyFreezingTrap.Location));
-
-                LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500);
+                CastSpell("Grounding Totem", GroundingTrapPlayer, "Grounding Totem Freezing Trap base on Trap Scan and Friend Distance to trap <=" + GroundingTrapPlayer.Location.Distance(EnemyFreezingTrap.Location));
+                LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
             }
-
-            if (THSettings.Instance.GroundingTrap &&
-                InArena &&
-                //SSpellManager.HasSpell("Grounding Totem") &&
-                //////SpellTypeCheck() &&
-                //!Me.Mounted &&
-                LastTrapEvent + TimeSpan.FromMilliseconds(3000) > DateTime.Now &&
-                GetSpellCooldown("Grounding Totem").TotalMilliseconds <= MyLatency)
+            if ((THSettings.Instance.GroundingTrap && InArena) && (((LastTrapEvent + TimeSpan.FromMilliseconds(3000.0)) > DateTime.Now) && (GetSpellCooldown("Grounding Totem").TotalMilliseconds <= MyLatency)))
             {
                 if (Me.IsCasting)
                 {
                     SpellManager.StopCasting();
                 }
-
-                CastSpell("Grounding Totem", Me,
-                          "Grounding Totem Freezing Trap base on SPELL_CAST_SUCCESS event");
+                CastSpell("Grounding Totem", Me, "Grounding Totem Freezing Trap base on SPELL_CAST_SUCCESS event");
             }
         }
 
         #endregion
 
-        #region GroundingLow
-        //////done
+        #region GroundingLow@
         private static WoWUnit UnitGroundingLow;
 
         private static bool GetUnitGroundingLow(WoWUnit target)
         {
             UnitGroundingLow = null;
-
-            UnitGroundingLow = NearbyUnFriendlyPlayers.Where(BasicCheck).FirstOrDefault(
-                unit =>
-                //////BasicCheck(unit) &&
-                //////unit.CurrentTarget != null &&
-                unit.GotTarget &&
-                unit.CurrentTarget == target &&
-                unit.Distance < 30 &&
-                TalentSort(unit) < 4 &&
-                unit.Class != WoWClass.Rogue &&
-                unit.Class != WoWClass.Warrior);
-
+            UnitGroundingLow = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => (((unit.GotTarget && (unit.CurrentTarget == target)) && ((unit.Distance < 30.0) && (TalentSort(unit) < 4))) && (unit.Class != WoWClass.Rogue)) && (unit.Class != WoWClass.Warrior));
             return BasicCheck(UnitGroundingLow);
         }
-        //////done
+        
         private static Composite GroundingLow()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.GroundingLow &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal <= THSettings.Instance.GroundingLowHP &&
-                //SSpellManager.HasSpell("Grounding Totem")  &&
-                CanCastCheck("Grounding Totem") &&
-                //!Me.Mounted &&
-                GetUnitGroundingLow(UnitHeal),
-                new Action(
-                    ret => { CastSpell("Grounding Totem", Me, "GroundingLow"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.GroundingLow && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.GroundingLowHP) && CanCastCheck("Grounding Totem", false))) && GetUnitGroundingLow(UnitHeal), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Grounding Totem", Me, "GroundingLow");
+            }));
         }
 
         #endregion
@@ -2990,239 +2670,94 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region HealingSurge
+        #region HealingSurge@
 
         private static DateTime LastHealingSurge;
 
         private static Composite HealingSurgeOutCombatEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.HealingSurgeOutCombatEnh &&
-                !Me.Combat &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal <= THSettings.Instance.HealingSurgeOutCombatEnhHP &&
-                UseSpecialization == 2 &&
-                //LastHealingSurge < DateTime.Now &&
-                //SSpellManager.HasSpell("Healing Surge") &&
-                //!Me.Mounted &&
-                Me.ManaPercent > 50 &&
-                CanCastCheck("Healing Surge") &&
-                //CanCastWhileMoving() &&
-                !HaveDPSTarget(Me),
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Healing Surge", UnitHeal, "HealingSurgeOutCombatEnh");
-                            if (IsUsingAFKBot)
-                            {
-                                DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000);
-                                LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                                HoldBotAction("Healing Surge");
-                            }
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.HealingSurgeOutCombatEnh && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeOutCombatEnhHP) && (UseSpecialization == 2))) && ((Me.ManaPercent > 50.0) && CanCastCheck("Healing Surge", false))) && !HaveDPSTarget(Me), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Healing Surge", UnitHeal, "HealingSurgeOutCombatEnh");
+                if (IsUsingAFKBot)
+                {
+                    DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000.0);
+                    LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000.0);
+                    HoldBotAction("Healing Surge");
+                }
+            }));
         }
 
         private static Composite HealingSurgeOutCombatEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.HealingSurgeOutCombatEle &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal <= THSettings.Instance.HealingSurgeOutCombatEleHP &&
-                UseSpecialization == 1 &&
-                CanCastCheck("Healing Surge") &&
-                //LastHealingSurge < DateTime.Now &&
-                //SSpellManager.HasSpell("Healing Surge") &&
-                //!Me.Mounted &&
-                //CanCastWhileMoving() &&
-                !HaveDPSTarget(UnitHeal),
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Healing Surge", UnitHeal, "HealingSurgeOutCombatEle");
-                            if (IsUsingAFKBot)
-                            {
-                                DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000);
-                                LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                                HoldBotAction("Healing Surge");
-                            }
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.HealingSurgeOutCombatEle && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeOutCombatEleHP) && (UseSpecialization == 1))) && CanCastCheck("Healing Surge", false)) && !HaveDPSTarget(UnitHeal), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Healing Surge", UnitHeal, "HealingSurgeOutCombatEle");
+                if (IsUsingAFKBot)
+                {
+                    DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000.0);
+                    LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000.0);
+                    HoldBotAction("Healing Surge");
+                }
+            }));
         }
         //////done
         private static Composite HealingSurgeInCombatEnh()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.HealingSurgeInCombatEnh &&
-                    LastHealingSurge < DateTime.Now &&
-                    //SSpellManager.HasSpell("Healing Surge") &&
-                    //!Me.Mounted &&
-                    (MyAuraStackCount(53817, Me) > 4 ||
-                     !CurrentTargetAttackable(20) ||
-                     !CurrentTargetAttackable(5) &&
-                     DebuffRoot(Me) ||
-                     CurrentTargetAttackable(20) &&
-                     Me.CurrentTarget.GetPredictedHealthPercent() > THSettings.Instance.UrgentHeal &&
-                     Me.ManaPercent > 40 ||
-                     CurrentTargetAttackable(20) &&
-                     Me.CurrentTarget.GetPredictedHealthPercent() > Me.GetPredictedHealthPercent() &&
-                     Me.ManaPercent > 40) &&
-                    HealWeightMe <= THSettings.Instance.HealingSurgeInCombatEnhHP &&
-                    //CanCastWhileMoving() &&
-                    MyAuraStackCount(53817, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStack &&
-                    CanCastCheck("Healing Surge"),
-                    new Action(
-                        ret =>
-                            {
-                                CastSpell("Healing Surge", Me, "HealingSurgeInCombatEnh");
-                                if (IsUsingAFKBot)
-                                {
-                                    //DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000);
-                                    //LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                                    HoldBotAction("Healing Surge");
-                                }
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.HealingSurgeInCombatEnhFriend &&
-                    UnitHealIsValid &&
-                    HealWeightUnitHeal <= THSettings.Instance.HealingSurgeInCombatEnhHPFriend &&
-                    LastHealingSurge < DateTime.Now &&
-                    //SSpellManager.HasSpell("Healing Surge") &&
-                    //!Me.Mounted &&
-                    (MyAuraStackCount(53817, Me) > 4 ||
-                     !CurrentTargetAttackable(20) &&
-                     Me.ManaPercent > 40 ||
-                     CurrentTargetAttackable(20) &&
-                     Me.CurrentTarget.GetPredictedHealthPercent() >= THSettings.Instance.UrgentHeal &&
-                     Me.ManaPercent > 40) &&
-                    //CanCastWhileMoving() &&
-                    MyAuraStackCount(53817, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStackFriend &&
-                    CanCastCheck("Healing Surge"),
-                    new Action(
-                        ret =>
-                            {
-                                CastSpell("Healing Surge", UnitHeal, "HealingSurgeInCombatEnhFriend");
-                                if (IsUsingAFKBot)
-                                {
-                                    //DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000);
-                                    //LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                                    HoldBotAction("Healing Surge");
-                                }
-                            }))
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(ret => (((THSettings.Instance.HealingSurgeInCombatEnh && (LastHealingSurge < DateTime.Now)) && (((((MyAuraStackCount(0xd239, Me) > 4.0) || !CurrentTargetAttackable(20.0, false, false)) || (!CurrentTargetAttackable(5.0, false, false) && DebuffRoot(Me))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal)) && (Me.ManaPercent > 40.0))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent > HealWeight(Me))) && (Me.ManaPercent > 40.0)))) && ((HealWeight(Me) <= THSettings.Instance.HealingSurgeInCombatEnhHP) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStack))) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Healing Surge", Me, "HealingSurgeInCombatEnh");
+                if (IsUsingAFKBot)
+                {
+                    HoldBotAction("Healing Surge");
+                }
+            })), new Decorator(ret => ((((THSettings.Instance.HealingSurgeInCombatEnhFriend && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeInCombatEnhHPFriend) && (LastHealingSurge < DateTime.Now))) && (((MyAuraStackCount(0xd239, Me) > 4.0) || (!CurrentTargetAttackable(20.0, false, false) && (Me.ManaPercent > 40.0))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent >= THSettings.Instance.UrgentHeal)) && (Me.ManaPercent > 40.0)))) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStackFriend)) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Healing Surge", UnitHeal, "HealingSurgeInCombatEnhFriend");
+                if (IsUsingAFKBot)
+                {
+                    HoldBotAction("Healing Surge");
+                }
+            })) });
         }
 
         private static Composite HealingSurgeInCombatEle()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.HealingSurgeInCombatEle &&
-                    LastHealingSurge < DateTime.Now &&
-                    //SSpellManager.HasSpell("Healing Surge") &&
-                    //!Me.Mounted &&
-                    (!CurrentTargetAttackable(40) ||
-                     CurrentTargetAttackable(40) &&
-                     Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal ||
-                     CurrentTargetAttackable(40) &&
-                     Me.CurrentTarget.HealthPercent > Me.HealthPercent) &&
-                    HealWeightMe <= THSettings.Instance.HealingSurgeInCombatEleHP &&
-                    (!THSettings.Instance.HealingSurgeInCombatEleCC ||
-                     MeHasAura(16246)) && //Clearcasting 
-                    //CanCastWhileMoving() &&
-                    CanCastCheck("Healing Surge"),
-                    new Action(
-                        ret =>
-                            {
-                                CastSpell("Healing Surge", Me, "HealingSurgeInCombatEle");
-                                if (IsUsingAFKBot)
-                                {
-                                    DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000);
-                                    LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                                    HoldBotAction("Healing Surge");
-                                }
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.HealingSurgeInCombatEleFriend &&
-                    UnitHealIsValid &&
-                    HealWeightUnitHeal <= THSettings.Instance.HealingSurgeInCombatEleFriendHP &&
-                    LastHealingSurge < DateTime.Now &&
-                    //SSpellManager.HasSpell("Healing Surge") &&
-                    //!Me.Mounted &&
-                    (!CurrentTargetAttackable(40) ||
-                     CurrentTargetAttackable(40) &&
-                     Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal) &&
-                    (!THSettings.Instance.HealingSurgeInCombatEleFriendCC ||
-                     MeHasAura(16246)) && //Clearcasting 
-                    //CanCastWhileMoving() &&
-                    CanCastCheck("Healing Surge"),
-                    new Action(
-                        ret =>
-                            {
-                                CastSpell("Healing Surge", UnitHeal, "HealingSurgeInCombatEleFriend");
-                                if (IsUsingAFKBot)
-                                {
-                                    DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000);
-                                    LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                                    HoldBotAction("Healing Surge");
-                                }
-                            }))
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(ret => (((THSettings.Instance.HealingSurgeInCombatEle && (LastHealingSurge < DateTime.Now)) && ((!CurrentTargetAttackable(40.0, false, false) || (CurrentTargetAttackable(40.0, false, false) && (Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal))) || (CurrentTargetAttackable(40.0, false, false) && (Me.CurrentTarget.HealthPercent > HealWeight(Me))))) && ((HealWeight(Me) <= THSettings.Instance.HealingSurgeInCombatEleHP) && (!THSettings.Instance.HealingSurgeInCombatEleCC || MeHasAura(0x3f76)))) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Healing Surge", Me, "HealingSurgeInCombatEle");
+                if (IsUsingAFKBot)
+                {
+                    DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000.0);
+                    LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000.0);
+                    HoldBotAction("Healing Surge");
+                }
+            })), new Decorator(ret => ((((THSettings.Instance.HealingSurgeInCombatEleFriend && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeInCombatEleFriendHP) && (LastHealingSurge < DateTime.Now))) && (!CurrentTargetAttackable(40.0, false, false) || (CurrentTargetAttackable(40.0, false, false) && (Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal)))) && (!THSettings.Instance.HealingSurgeInCombatEleFriendCC || MeHasAura(0x3f76))) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Healing Surge", UnitHeal, "HealingSurgeInCombatEleFriend");
+                if (IsUsingAFKBot)
+                {
+                    DoNotMove = DateTime.Now + TimeSpan.FromMilliseconds(3000.0);
+                    LastHealingSurge = DateTime.Now + TimeSpan.FromMilliseconds(5000.0);
+                    HoldBotAction("Healing Surge");
+                }
+            })) });
         }
 
         private static Composite HealingSurgeRes()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.HealingSurgeRes &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal <= THSettings.Instance.HealingSurgeResHP &&
-                //SSpellManager.HasSpell("Healing Surge") &&
-                //!Me.Mounted &&
-                //CanCastWhileMoving() &&
-                //MyAura("Tidal Waves", Me) &&
-                UnitHeal.Combat &&
-                //CanCastWhileMoving() &&
-                CanCastCheck("Healing Surge"),
-                new Action(
-                    ret =>
-                        {
-                            UnleaseElementEarthLiving(THSettings.Instance.UnleashElementsHS, UnitHeal);
-                            CastSpell("Healing Surge", UnitHeal, "HealingSurgeRes");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.HealingSurgeRes && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeResHP) && UnitHeal.Combat)) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                UnleaseElementEarthLiving(THSettings.Instance.UnleashElementsHS, UnitHeal);
+                RiptideTidalWaves(UnitHeal, "RiptideTidalWaves HealingSurgeRes");
+                CastSpell("Healing Surge", UnitHeal, "HealingSurgeRes");
+            }));
         }
 
         private static Composite HealingSurgeResIsSafetoCast()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.HealingSurgeRes &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal < 100 &&
-                HealWeightUnitHeal <= THSettings.Instance.HealingSurgeResHP + 10 &&
-                (InBattleground ||
-                 InArena) &&
-                //SSpellManager.HasSpell("Healing Surge") &&
-                //!Me.Mounted &&
-                //CanCastWhileMoving() &&
-                IsSafetoCast() &&
-                UnitHeal.Combat &&
-                //CanCastWhileMoving() &&
-                CanCastCheck("Healing Surge"),
-                new Action(
-                    ret =>
-                        {
-                            UnleaseElementEarthLiving(THSettings.Instance.UnleashElementsHS, UnitHeal);
-                            CastSpell("Healing Surge", UnitHeal, "HealingSurgeResIsSafetoCast");
-                        })
-                );
+            return new Decorator(ret => ((((THSettings.Instance.HealingSurgeRes && UnitHealIsValid) && ((HealWeightUnitHeal < 100.0) && (HealWeightUnitHeal <= (THSettings.Instance.HealingSurgeResHP + 10)))) && (InBattleground || InArena)) && ((MeHasAura("Tidal Waves") && IsSafetoCast()) && UnitHeal.Combat)) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                UnleaseElementEarthLiving(THSettings.Instance.UnleashElementsHS, UnitHeal);
+                RiptideTidalWaves(UnitHeal, "RiptideTidalWaves HealingSurgeResIsSafetoCast");
+                CastSpell("Healing Surge", UnitHeal, "HealingSurgeResIsSafetoCast");
+            }));
         }
 
         #endregion
@@ -3299,190 +2834,68 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region HealingStreamTotem
+        #region HealingStreamTotem@
 
         private static double CountUnitHealingStreamTotem()
         {
-            //var i = 0;
-
-            //foreach (var unit in NearbyFriendlyPlayers)
-            //{
-            //    if (BasicCheck(unit) &&
-            //        unit.Combat &&
-            //        unit.Distance <= 35 &&
-            //        HealWeight(unit) < THSettings.Instance.HealingStreamTotemHP)
-            //    {
-            //        i = i + 1;
-            //    }
-            //    if (i >= THSettings.Instance.HealingStreamTotemUnit)
-            //    {
-            //        break;
-            //    }
-            //}
-
-            //return i;
-
-            return NearbyFriendlyPlayers.Count(
-                unit => BasicCheck(unit) &&
-                        unit.Combat &&
-                        unit.Distance <= 35 &&
-                        HealWeight(unit) < THSettings.Instance.HealingStreamTotemHP);
+            return (double)NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(unit => ((unit.Combat && (unit.Distance <= 35.0)) && (HealWeight(unit) < THSettings.Instance.HealingStreamTotemHP)));
         }
 
         private static Composite HealingStreamTotem()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.HealingStreamTotem &&
-                UnitHealIsValid &&
-                //.HealWeightUnitHeal > THSettings.Instance.UrgentHeal &&
-                HealWeightUnitHeal < THSettings.Instance.HealingStreamTotemHP &&
-                UnitHeal.Distance < 35 &&
-                //SSpellManager.HasSpell("Healing Stream Totem") &&
-                //!Me.Mounted &&
-                Me.Combat &&
-                !MyTotemWaterCheck(Me, 40) &&
-                CanCastCheck("Healing Stream Totem") &&
-                CountUnitHealingStreamTotem() >= THSettings.Instance.HealingStreamTotemUnit,
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Healing Stream Totem", Me, "HealingStreamTotem");
-                            //Eval("CanCastCheck Healing Stream Totem", () => CanCastCheck("Healing Stream Totem"));
-                            //Eval("CountUnitHealingStreamTotem",
-                            //() => CountUnitHealingStreamTotem() >= THSettings.Instance.HealingTideTotemUnit);
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.HealingStreamTotem && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingStreamTotemHP) && (UnitHeal.Distance < 35.0))) && ((Me.Combat && !MyTotemWaterCheck(Me, 40)) && CanCastCheck("Healing Stream Totem", true))) && (CountUnitHealingStreamTotem() >= THSettings.Instance.HealingStreamTotemUnit), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Healing Stream Totem", Me, "HealingStreamTotem");
+            }));
         }
 
         #endregion
 
-        #region HealthTideTotem
+        #region HealthTideTotem@
 
         private static double CountUnitHealingTideTotem()
         {
-            //var i = 0;
-
-            //foreach (var unit in NearbyFriendlyPlayers)
-            //{
-            //    if (BasicCheck(unit) &&
-            //        unit.Combat &&
-            //        unit.Distance <= 35 &&
-            //        HealWeight(unit) < THSettings.Instance.HealingTideTotemHP &&
-            //        !Invulnerable(unit))
-            //    {
-            //        i = i + 1;
-            //    }
-            //    if (i >= THSettings.Instance.HealingTideTotemUnit)
-            //    {
-            //        break;
-            //    }
-            //}
-
-            //return i;
-
-            return NearbyFriendlyPlayers.Count(
-                unit => BasicCheck(unit) &&
-                        unit.Combat &&
-                        unit.Distance <= 35 &&
-                        HealWeight(unit) < THSettings.Instance.HealingTideTotemHP &&
-                        !Invulnerable(unit));
+            return (double)NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(unit => (((unit.Combat && (unit.Distance <= 35.0)) && (HealWeight(unit) < THSettings.Instance.HealingTideTotemHP)) && !Invulnerable(unit)));
         }
 
         private static Composite HealingTideTotem()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.HealingTideTotem &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal <= THSettings.Instance.HealingTideTotemHP &&
-                UnitHeal.Distance < 30 &&
-                //SSpellManager.HasSpell("Healing Tide Totem") &&
-                //!Me.Mounted &&
-                !MyTotemCheck("Spirit Link Totem", Me, 40) &&
-                !MyTotemCheck("Mana Tide Totem", Me, 40) &&
-                CanCastCheck("Healing Tide Totem") &&
-                CountUnitHealingTideTotem() >= THSettings.Instance.HealingTideTotemUnit,
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Healing Tide Totem", Me, "HealingTideTotem");
-                            //Eval("CanCastCheck Healing Tide Totem", () => CanCastCheck("Healing Tide Totem"));
-                            //Eval("CountUnitHealingTideTotem",
-                            //() => CountUnitHealingTideTotem() >= THSettings.Instance.HealingTideTotemUnit);
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.HealingTideTotem && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingTideTotemHP) && (UnitHeal.Distance < 35.0))) && ((!MyTotemCheck("Spirit Link Totem", Me, 40) && !MyTotemCheck("Mana Tide Totem", Me, 40)) && CanCastCheck("Healing Tide Totem", true))) && (CountUnitHealingTideTotem() >= THSettings.Instance.HealingTideTotemUnit), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Healing Tide Totem", Me, "HealingTideTotem");
+            }));
         }
 
         #endregion
 
-        #region Hex
+        #region Hex@
 
-        private static readonly HashSet<int> HexImmuneAura = new HashSet<int>
-            {
-                768,
-                5487,
-                783,
-                1066,
-                33943,
-                40120,
-                24858,
-                102560,
-                102543,
-                102558,
-                5420,
-                81097,
-                81098,
-                2645,
-                46924,
-            };
+        //private static readonly HashSet<int> HexImmuneAura = new HashSet<int>
+        //    {
+        //        768,
+        //        5487,
+        //        783,
+        //        1066,
+        //        33943,
+        //        40120,
+        //        24858,
+        //        102560,
+        //        102543,
+        //        102558,
+        //        5420,
+        //        81097,
+        //        81098,
+        //        2645,
+        //        46924,
+        //    };
+        private static readonly HashSet<int> HexImmuneAura = new HashSet<int> { 0x300, 0x156f, 0x30f, 0x42a, 0x8497, 0x9cb8, 0x611a, 0x190a0, 0x1908f, 0x1909e, 0x152c, 0x13cc9, 0x13cca, 0xa55, 0xb74c };
 
         private static bool CanHex(WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return false;
-            }
-
-            AuraCacheUpdate(target);
-
-            return
-                AuraCacheList.Where(aura => aura.AuraCacheUnit == target.Guid)
-                             .All(aura => !HexImmuneAura.Contains(aura.AuraCacheId));
-
-            //foreach (var aura in AuraCacheList)
-            //{
-            //    if (aura.AuraCacheUnit != target.Guid)
-            //    {
-            //        continue;
-            //    }
-
-            //    if (HexImmuneAura.Contains(aura.AuraCacheId))
-            //    {
-            //        return false;
-            //    }
-            //}
-
-            //return true;
-
-            //return AuraCacheList.Where(aura => aura.AuraCacheUnit == target.Guid)
-            //                    .All(
-            //                        aura =>
-            //                        aura.AuraCacheId != 768 &&
-            //                        aura.AuraCacheId != 5487 &&
-            //                        aura.AuraCacheId != 783 &&
-            //                        aura.AuraCacheId != 1066 &&
-            //                        aura.AuraCacheId != 33943 &&
-            //                        aura.AuraCacheId != 40120 &&
-            //                        aura.AuraCacheId != 24858 &&
-            //                        aura.AuraCacheId != 102560 &&
-            //                        aura.AuraCacheId != 102543 &&
-            //                        aura.AuraCacheId != 102558 &&
-            //                        aura.AuraCacheId != 5420 &&
-            //                        aura.AuraCacheId != 81097 &&
-            //                        aura.AuraCacheId != 81098 &&
-            //                        aura.AuraCacheId != 2645 &&
-            //                        aura.AuraCacheId != 46924);
+            AuraCacheUpdate(target, false);
+            return (from aura in AuraCacheList
+                    where aura.AuraCacheUnit == target.Guid
+                    select aura).All<AuraCacheClass>(aura => !HexImmuneAura.Contains(aura.AuraCacheId));
         }
 
         private static WoWUnit UnitHex;
@@ -3490,59 +2903,25 @@ namespace TuanHA_Combat_Routine
         private static bool GetUnitUnitHex()
         {
             UnitHex = null;
-
             if (InArena || InBattleground)
             {
-                UnitHex = NearbyUnFriendlyPlayers.Where(BasicCheck)
-                                                 .OrderByDescending(TalentSortSimple)
-                                                 .ThenBy(CountFriendDPSTarget)
-                                                 .ThenByDescending(unit => unit.HealthPercent)
-                                                 .FirstOrDefault(
-                                                     unit =>
-                                                     //////BasicCheck(unit) &&
-                                                     (THSettings.Instance.HexHealer && TalentSort(unit) > 3 ||
-                                                      THSettings.Instance.HexDPS && TalentSort(unit) < 4) &&
-                                                     (UseSpecialization == 3 ||
-                                                      UseSpecialization != 3 && unit != Me.CurrentTarget) &&
-                                                     CanHex(unit) &&
-                                                     !DebuffCCDuration(unit, 2000) &&
-                                                     !InvulnerableSpell(unit) &&
-                                                     Attackable(unit, 30));
+                UnitHex = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).OrderByDescending<WoWUnit, byte>(new Func<WoWUnit, byte>(Classname.TalentSortSimple)).ThenBy<WoWUnit, int>(new Func<WoWUnit, int>(Classname.CountFriendDPSTarget)).ThenByDescending<WoWUnit, double>(unit => unit.HealthPercent).FirstOrDefault<WoWUnit>(unit => (((THSettings.Instance.HexHealer && (TalentSort(unit) > 3)) || (THSettings.Instance.HexDPS && (TalentSort(unit) < 4))) && (((UseSpecialization == 3) || ((UseSpecialization != 3) && (unit != Me.CurrentTarget))) && ((CanHex(unit) && !DebuffCCDuration(unit, 2000.0, false)) && !InvulnerableSpell(unit)))) && Attackable(unit, 30));
             }
             else
             {
-                UnitHex = FarUnFriendlyUnits.Where(BasicCheck)
-                                               .OrderByDescending(unit => unit.CurrentHealth)
-                                               .ThenBy(CountFriendDPSTarget)
-                                               .FirstOrDefault(
-                                                   unit =>
-                                                   //.BasicCheck(unit) &&
-                                                   unit.Combat &&
-                                                   !unit.IsBoss &&
-                                                   (unit.IsHumanoid || unit.IsBeast) &&
-                                                   InProvingGrounds ||
-                                                   unit.GotTarget &&
-                                                   FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                                                   unit != Me.CurrentTarget &&
-                                                   Attackable(unit, 30));
+                UnitHex = (from unit in FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                           orderby unit.CurrentHealth descending
+                           select unit).ThenBy<WoWUnit, int>(new Func<WoWUnit, int>(Classname.CountFriendDPSTarget)).FirstOrDefault<WoWUnit>(unit => ((((unit.Combat && !unit.IsBoss) && (unit.IsHumanoid || unit.IsBeast)) && (InProvingGrounds || (unit.GotTarget && FarFriendlyPlayers.Contains(unit.CurrentTarget)))) && (unit != Me.CurrentTarget)) && Attackable(unit, 30));
             }
             return BasicCheck(UnitHex);
         }
 
         private static Composite Hex()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.Hex &&
-                HealWeightUnitHeal >= THSettings.Instance.PriorityHeal &&
-                //SSpellManager.HasSpell("Hex") &&
-                //!Me.Mounted &&
-                //CanCastWhileMoving() &&
-                CanCastCheck("Hex") &&
-                GetUnitUnitHex(),
-                new Action(
-                    ret => { CastSpell("Hex", UnitHex, "Hex"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.Hex && (HealWeightUnitHeal >= THSettings.Instance.PriorityHeal)) && CanCastCheck("Hex", false)) && GetUnitUnitHex(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Hex", UnitHex, "Hex");
+            }));
         }
 
         #endregion
@@ -4234,6 +3613,15 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
+        #region ManualCastPause
+        //private static Composite ManualCastPause()
+        //{
+        //    return new Sequence(new Composite[] { new Decorator(ret => THSettings.Instance.AutoDetectManualCast && AnyKeyPressed(), new ActionAlwaysSucceed()), new Styx.TreeSharp.Action(delegate (object param0) {
+        //        Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, Colors.Gray, "{0} Manual Cast Detected, Pause for {1} ms", new object[] { DateTime.Now.ToString("ss:fff"), THSettings.Instance.AutoDetectManualCastMS });
+        //    }), new WaitContinue(TimeSpan.FromMilliseconds((double) THSettings.Instance.AutoDetectManualCastMS), ret => false, new ActionAlwaysSucceed()) });
+        //}
+        #endregion
+
         #region Purge
 
         private static readonly HashSet<string> NeedPurgeASAPRestoHS = new HashSet<string>
@@ -4793,149 +4181,108 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region ShamanisticRageGlyph
+        #region ShamanisticRageGlyph@
 
-        private static readonly HashSet<int> Debuff63280DurationHS = new HashSet<int>
-            {
-                710, //Banish
-                76780, //Bind Elemental
-                117526, //Binding Shot
-                105421, //Blinding Light
-                115752, //Blinding Light (Glyph of Blinding Light)
-                123393, //Breath of Fire (Glyph of Breath of Fire)
-                118271, //Combustion Impact
-                44572, //Deep Freeze
-                99, //Disorienting Roar
-                605, //Dominate Mind
-                31661, //Dragon's Breath
-                5782, //Fear
-                118699, //Fear
-                130616, //Fear (Glyph of Fear)
-                105593, //Fist of Justice
-                117418, //Fists of Fury
-                3355, //Freezing Trap
-                853, //Hammer of Justice
-                110698, //Hammer of Justice (Paladin)
-                2637, //Hibernate
-                88625, //Holy Word: Chastise
-                119072, //Holy Wrath
-                5484, //Howl of Terror
-                126246, //Lullaby (Crane)
-                115268, //Mesmerize (Shivarra)
-                6789, //Mortal Coil
-                118, //Polymorph
-                61305, //Polymorph: Black Cat
-                28272, //Polymorph: Pig
-                61721, //Polymorph: Rabbit
-                61780, //Polymorph: Turkey
-                28271, //Polymorph: Turtle
-                64044, //Psychic Horror
-                8122, //Psychic Scream
-                113792, //Psychic Terror (Psyfiend)
-                107079, //Quaking Palm
-                115001, //Remorseless Winter
-                20066, //Repentance
-                82691, //Ring of Frost
-                1513, //Scare Beast
-                19503, //Scatter Shot
-                132412, //Seduction (Grimoire of Sacrifice)
-                6358, //Seduction (Succubus)
-                9484, //Shackle Undead
-                30283, //Shadowfury
-                87204, //Sin and Punishment
-                104045, //Sleep (Metamorphosis)
-                50519, //Sonic Blast (Bat)
-                118905, //Static Charge (Capacitor Totem)
-                10326, //Turn Evil
-                108194, //Asphyxiate
-            };
+        //private static readonly HashSet<int> Debuff63280DurationHS = new HashSet<int>
+        //    {
+        //        710, //Banish
+        //        76780, //Bind Elemental
+        //        117526, //Binding Shot
+        //        105421, //Blinding Light
+        //        115752, //Blinding Light (Glyph of Blinding Light)
+        //        123393, //Breath of Fire (Glyph of Breath of Fire)
+        //        118271, //Combustion Impact
+        //        44572, //Deep Freeze
+        //        99, //Disorienting Roar
+        //        605, //Dominate Mind
+        //        31661, //Dragon's Breath
+        //        5782, //Fear
+        //        118699, //Fear
+        //        130616, //Fear (Glyph of Fear)
+        //        105593, //Fist of Justice
+        //        117418, //Fists of Fury
+        //        3355, //Freezing Trap
+        //        853, //Hammer of Justice
+        //        110698, //Hammer of Justice (Paladin)
+        //        2637, //Hibernate
+        //        88625, //Holy Word: Chastise
+        //        119072, //Holy Wrath
+        //        5484, //Howl of Terror
+        //        126246, //Lullaby (Crane)
+        //        115268, //Mesmerize (Shivarra)
+        //        6789, //Mortal Coil
+        //        118, //Polymorph
+        //        61305, //Polymorph: Black Cat
+        //        28272, //Polymorph: Pig
+        //        61721, //Polymorph: Rabbit
+        //        61780, //Polymorph: Turkey
+        //        28271, //Polymorph: Turtle
+        //        64044, //Psychic Horror
+        //        8122, //Psychic Scream
+        //        113792, //Psychic Terror (Psyfiend)
+        //        107079, //Quaking Palm
+        //        115001, //Remorseless Winter
+        //        20066, //Repentance
+        //        82691, //Ring of Frost
+        //        1513, //Scare Beast
+        //        19503, //Scatter Shot
+        //        132412, //Seduction (Grimoire of Sacrifice)
+        //        6358, //Seduction (Succubus)
+        //        9484, //Shackle Undead
+        //        30283, //Shadowfury
+        //        87204, //Sin and Punishment
+        //        104045, //Sleep (Metamorphosis)
+        //        50519, //Sonic Blast (Bat)
+        //        118905, //Static Charge (Capacitor Totem)
+        //        10326, //Turn Evil
+        //        108194, //Asphyxiate
+        //    };
+        private static readonly HashSet<int> Debuff63280DurationHS = new HashSet<int> { 
+            710, 0x12bec, 0x1cb16, 0x19bcd, 0x1c428, 0x1e201, 0x1cdff, 0xae1c, 0x63, 0x25d, 0x7bad, 0x1696, 0x1cfab, 0x1fe38, 0x19c79, 0x1caaa, 
+            0xd1b, 0x355, 0x1b06a, 0xa4d, 0x15a31, 0x1d120, 0x156c, 0x1ed26, 0x1c244, 0x1a85, 0x76, 0xef79, 0x6e70, 0xf119, 0xf154, 0x6e6f, 
+            0xfa2c, 0x1fba, 0x1bc80, 0x1a247, 0x1c139, 0x4e62, 0x14303, 0x5e9, 0x4c2f, 0x2053c, 0x18d6, 0x250c, 0x764b, 0x154a4, 0x1966d, 0xc557, 
+            0x1d079, 0x2856, 0x1a6a2
+         };
 
         private static bool Debuff63280Duration(WoWUnit target, double duration, bool LogSpell = false)
         {
-            if (!BasicCheck(target))
+            AuraCacheUpdate(target, false);
+            AuraCacheClass class2 = (from a in AuraCacheList
+                                     orderby a.AuraCacheAura.TimeLeft descending
+                                     select a).FirstOrDefault<AuraCacheClass>(a => ((a.AuraCacheUnit == target.Guid) && Debuff63280DurationHS.Contains(a.AuraCacheId)) && (a.AuraCacheAura.TimeLeft.TotalMilliseconds > duration));
+            if (class2 == null)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            var DebuffAura = AuraCacheList.OrderByDescending(a => a.AuraCacheAura.TimeLeft).FirstOrDefault(
-                a =>
-                a.AuraCacheUnit == target.Guid &&
-                Debuff63280DurationHS.Contains(a.AuraCacheId) &&
-                a.AuraCacheAura.TimeLeft.TotalMilliseconds > duration);
-
-
-            if (DebuffAura != null)
+            if (LogSpell)
             {
-                if (LogSpell)
-                {
-                    Logging.Write("Debuff63280Duration on {0} {1} SpellID {2} Duration: {3}",
-                                  target.SafeName,
-                                  DebuffAura.AuraCacheAura.Name,
-                                  DebuffAura.AuraCacheId,
-                                  DebuffAura.AuraCacheAura.TimeLeft.TotalMilliseconds);
-                }
-                return true;
+                Styx.Common.Logging.Write("Debuff63280Duration on {0} {1} SpellID {2} Duration: {3}", new object[] { target.SafeName, class2.AuraCacheAura.Name, class2.AuraCacheId, class2.AuraCacheAura.TimeLeft.TotalMilliseconds });
             }
-            return false;
+            return true;
         }
 
         private static void ShamanisticCC()
         {
-            if (!THSettings.Instance.ShamanisticCC ||
-                !HasGlyph.Contains("63280") ||
-                LastBreakCC >= DateTime.Now ||
-                SpellsCooldownCache.ContainsKey("Shamanistic Rage") ||
-                //SSpellManager.HasSpell("Shamanistic Rage") ||
-                Me.Mounted ||
-                !Debuff63280Duration(Me, THSettings.Instance.ShamanisticCCDuration) ||
-                SpellManager.Spells["Shamanistic Rage"].CooldownTimeLeft.TotalMilliseconds > MyLatency)
+            if (((THSettings.Instance.ShamanisticCC && HasGlyph.Contains("63280")) && ((LastBreakCC < DateTime.Now) && !SpellsCooldownCache.ContainsKey("Shamanistic Rage"))) && ((!Me.Mounted && Debuff63280Duration(Me, (double)THSettings.Instance.ShamanisticCCDuration, false)) && (SpellManager.Spells["Shamanistic Rage"].CooldownTimeLeft.TotalMilliseconds <= MyLatency)))
             {
-                return;
+                LastBreakCC = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
+                CastSpell("Shamanistic Rage", Me, "ShamanisticCC");
             }
-            LastBreakCC = DateTime.Now + TimeSpan.FromMilliseconds(1500);
-            CastSpell("Shamanistic Rage", Me, "ShamanisticCC");
         }
 
         #endregion
 
-        #region ShamanisticRage
+        #region ShamanisticRage@
 
         private static Composite ShamanisticRage()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.ShamanisticRageHP &&
-                    //SSpellManager.HasSpell("Shamanistic Rage") &&
-                    //!Me.Mounted &&
-                    Me.Combat &&
-                    HealWeightMe <= THSettings.Instance.ShamanisticRageHPHP &&
-                    CanCastCheck("Shamanistic Rage", true) &&
-                    HasEnemyTargettingUnit(Me, 40),
-                    new Action(
-                        ret =>
-                            {
-                                CastSpell("Shamanistic Rage", Me, "ShamanisticRageHP");
-                                return RunStatus.Failure;
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.ShamanisticRageMN &&
-                    //SSpellManager.HasSpell("Shamanistic Rage") &&
-                    //!Me.Mounted &&
-                    Me.Combat &&
-                    Me.ManaPercent <= THSettings.Instance.ShamanisticRageMNMN &&
-                    CanCastCheck("Shamanistic Rage", true) &&
-                    HasEnemyTargettingUnit(Me, 40),
-                    new Action(
-                        ret =>
-                            {
-                                CastSpell("Shamanistic Rage", Me, "ShamanisticRageHP");
-                                return RunStatus.Failure;
-                            }))
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(ret => ((THSettings.Instance.ShamanisticRageHP && Me.Combat) && ((HealWeight(Me) <= THSettings.Instance.ShamanisticRageHPHP) && CanCastCheck("Shamanistic Rage", true))) && HasEnemyTargettingUnit(Me, 40f), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Shamanistic Rage", Me, "ShamanisticRageHP");
+                return RunStatus.Failure;
+            })), new Decorator(ret => ((THSettings.Instance.ShamanisticRageMN && Me.Combat) && ((Me.ManaPercent <= THSettings.Instance.ShamanisticRageMNMN) && CanCastCheck("Shamanistic Rage", true))) && HasEnemyTargettingUnit(Me, 40f), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Shamanistic Rage", Me, "ShamanisticRageHP");
+                return RunStatus.Failure;
+            })) });
         }
 
         #endregion
@@ -5058,7 +4405,7 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region StoneBulwarkTotem
+        #region StoneBulwarkTotem@
 
         private static Composite StoneBulwarkTotem()
         {
@@ -5078,10 +4425,9 @@ namespace TuanHA_Combat_Routine
                     ret => { CastSpell("Stone Bulwark Totem", Me, "StoneBulwarkTotemHP"); })
                 );
         }
-
         #endregion
 
-        #region StopCastingCheck
+        #region StopCastingCheck@
 
         //Healing Surge 8004
         //Healing Wave 331
@@ -5095,364 +4441,138 @@ namespace TuanHA_Combat_Routine
         //Chain Lightning 421
         private static bool HaveInterrupterRound(WoWUnit target)
         {
-            return FarFriendlyPlayers.Any(
-                unit =>
-                BasicCheck(unit) &&
-                TalentSort(unit) == 1 &&
-                GetDistance(target, unit) < 10);
+            return FarUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(unit => ((TalentSort(unit) == 1) && (GetDistance(target, unit) < 10f)));
         }
 
         private static DateTime StopCastingCheckLast;
- 
+
         private void StopCastingCheck()
         {
-            if ((StopCastingCheckLast > DateTime.Now && !InArena) || ((LastCastTime + TimeSpan.FromMilliseconds(2000.0)) < DateTime.Now))
+            if (((StopCastingCheckLast <= DateTime.Now) || InArena) && ((LastCastTime + TimeSpan.FromMilliseconds(2000.0)) >= DateTime.Now))
             {
-                return;
-            }
-
-            if (Me.IsCasting)
-            {
-                try
+                StopCastingCheckLast = DateTime.Now + TimeSpan.FromMilliseconds(50.0);
+                if (Me.IsCasting)
                 {
-                    if (Me.CastingSpell.Id == 51514)
+                    try
                     {
-                        if (!BasicCheck(LastCastUnit))
+                        if (Me.CastingSpell.Id == 0xc93a)
+                        {
+                            if (!BasicCheck(LastCastUnit))
+                            {
+                                SpellManager.StopCasting();
+                            }
+                            else
+                            {
+                                AuraCacheUpdate(LastCastUnit, true);
+                            }
+                            if ((InvulnerableSpell(LastCastUnit) || DebuffCCDuration(LastCastUnit, 3000.0, false)) || !CanHex(LastCastUnit))
+                            {
+                                SpellManager.StopCasting();
+                                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
+                                return;
+                            }
+                        }
+                        if ((((UseSpecialization == 3) && (Me.CastingSpell.Id == 0x193)) && (UnitHealIsValid && HasGlyph.Contains("55453"))) && ((Me.ManaPercent > THSettings.Instance.UrgentHeal) && (UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)))
                         {
                             SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
                         }
-                        else
-                        {
-                            AuraCacheUpdate(LastCastUnit, true);
-                        }
-                        if ((InvulnerableSpell(LastCastUnit) || DebuffCCDuration(LastCastUnit, 3000.0, false)) || !CanHex(LastCastUnit))
+                        else if (((UseSpecialization == 2) && (InArena || InBattleground)) && ((Me.CastingSpell.Id == 0x193) && CurrentTargetAttackable(5.0, false, false)))
                         {
                             SpellManager.StopCasting();
-                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
-                            return;
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
                         }
-
+                        else if (((UseSpecialization == 1) && ((Me.CastingSpell.Id == 0x193) || (Me.CastingSpell.Id == 0x1a5))) && (MeHasAura(0x12fc2) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
+                        }
+                        else if (((UseSpecialization == 1) && (InArena || InBattleground)) && (((Me.CastingSpell.Id == 0x1c916) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)) && (MeHasAura(0x12fc2) && HaveInterrupterRound(Me))))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
+                        }
+                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Greater Healing Wave")) && (Me.CastingSpell.Id == 0x12ea0)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.GreaterHealingWaveHP + 20) + THSettings.Instance.HealBalancing))))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
+                        }
+                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Chain Heal")) && (Me.CastingSpell.Id == 0x428)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.ChainHealHP + 20) + THSettings.Instance.HealBalancing))))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
+                        }
+                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Healing Surge")) && (Me.CastingSpell.Id == 0x1f44)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.HealingSurgeResHP + 20) + THSettings.Instance.HealBalancing))))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
+                        }
+                        else if (((((UseSpecialization == 3) && !InDungeon) && (!InRaid && !InProvingGrounds)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b)) && ((Me.ManaPercent > 30.0) && (Me.CurrentCastTimeLeft.TotalMilliseconds > 1300.0)))) && (((LastCastUnit.HealthPercent < (THSettings.Instance.GreaterHealingWaveHP + THSettings.Instance.HealBalancing)) && MyAura("Tidal Waves", Me)) && (LastCastUnit.Combat || Me.Combat)))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
+                        }
+                        else if ((((UseSpecialization == 3) && InRaid) && ((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b))) && (LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
+                        }
+                        else if (((UseSpecialization == 3) && (InArena || InBattleground)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b)) && ((LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)) && (Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(600, 0x3e8)))))
+                        {
+                            SpellManager.StopCasting();
+                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
+                        }
                     }
-
-                    //if (Me.CastingSpell.Id == 51514 && //Hex
-                    //    (DebuffCCDuration(LastCastUnit, 3000) ||
-                    //     !CanHex(LastCastUnit)))
-                    //{
-                    //    SpellManager.StopCasting();
-                    //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
-                    //}
-
-                    if ((((UseSpecialization == 3) && (Me.CastingSpell.Id == 403)) && (UnitHealIsValid && HasGlyph.Contains("55453"))) && ((Me.ManaPercent > THSettings.Instance.UrgentHeal) && (UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)))
+                    catch (Exception)
                     {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
+                        Styx.Common.Logging.Write("StopCastingCheck Fail");
+                        throw;
                     }
-                    else if (((UseSpecialization == 2) && (InArena || InBattleground)) && ((Me.CastingSpell.Id == 403) && CurrentTargetAttackable(5.0, false, false)))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
-                    }
-                    else if (((UseSpecialization == 1) && ((Me.CastingSpell.Id == 403) || (Me.CastingSpell.Id == 421))) && (MeHasAura(77762) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
-                    }
-                    else if (((UseSpecialization == 1) && (InArena || InBattleground)) && (((Me.CastingSpell.Id == 117014) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)) && (MeHasAura(77762) && HaveInterrupterRound(Me))))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
-                    }
-                    else if ((((UseSpecialization == 3) && (LastCastSpell == "Greater Healing Wave")) && (Me.CastingSpell.Id == 77472)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.GreaterHealingWaveHP + 20) + THSettings.Instance.HealBalancing))))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
-                    }
-                    else if ((((UseSpecialization == 3) && (LastCastSpell == "Chain Heal")) && (Me.CastingSpell.Id == 1064)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.ChainHealHP + 20) + THSettings.Instance.HealBalancing))))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
-                    }
-                    else if ((((UseSpecialization == 3) && (LastCastSpell == "Healing Surge")) && (Me.CastingSpell.Id == 8004)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.HealingSurgeResHP + 20) + THSettings.Instance.HealBalancing))))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
-                    }
-                    else if (((((UseSpecialization == 3) && !InDungeon) && (!InRaid && !InProvingGrounds)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 331)) && ((Me.ManaPercent > 30.0) && (Me.CurrentCastTimeLeft.TotalMilliseconds > 1300.0)))) && (((LastCastUnit.HealthPercent < (THSettings.Instance.GreaterHealingWaveHP + THSettings.Instance.HealBalancing)) && MyAura("Tidal Waves", Me)) && (LastCastUnit.Combat || Me.Combat)))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
-                    }
-                    else if ((((UseSpecialization == 3) && InRaid) && ((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 331))) && (LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
-                    }
-                    else if (((UseSpecialization == 3) && (InArena || InBattleground)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 331)) && ((LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)) && (Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(600, 1000)))))
-                    {
-                        SpellManager.StopCasting();
-                        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
-                    }
-                }
-                catch (Exception)
-                {
-                    Logging.Write("StopCastingCheck Fail");
-                    throw;
                 }
             }
         }
-            //if (UseSpecialization == 3 &&
-            //    Me.CastingSpell.Id == 403 && //Lightning Bolt 403
-            //    UnitHealIsValid &&
-            //    HasGlyph.Contains("55453") && //Glyph of Telluric Currents - 55453
-            //    Me.ManaPercent > THSettings.Instance.UrgentHeal &&
-            //    UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") +
-            //                  "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
-            //    return;
-            //}
-
-            //if (UseSpecialization == 2 &&
-            //    (InArena || InBattleground) &&
-            //    Me.CastingSpell.Id == 403 &&
-            //    CurrentTargetAttackable(5))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
-            //}
-
-            //if (UseSpecialization == 1 &&
-            //    (Me.CastingSpell.Id == 403 ||
-            //     Me.CastingSpell.Id == 421) &&
-            //    MeHasAura(77762) &&
-            //    Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") +
-            //                  "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
-            //}
-
-            //if (UseSpecialization == 1 &&
-            //    (InArena || InBattleground) &&
-            //    Me.CastingSpell.Id == 117014 &&
-            //    Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency &&
-            //    MeHasAura(77762) &&
-            //    HaveInterrupterRound(Me))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") +
-            //                  "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
-            //}
-
-            //if (UseSpecialization == 3 &&
-            //    Me.CastingSpell.Id == 77472 && //"Greater Healing Wave" &&
-            //    (LastCastUnit.HealthPercent >
-            //     THSettings.Instance.DoNotHealAbove ||
-            //     LastCastUnit.HealthPercent > THSettings.Instance.GreaterHealingWaveHP + 20))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
-            //    return;
-            //}
-
-            //if (UseSpecialization == 3 &&
-            //    Me.CastingSpell.Id == 1064 && //"Chain Heal" &&
-            //    (LastCastUnit.HealthPercent >
-            //     THSettings.Instance.DoNotHealAbove ||
-            //     LastCastUnit.HealthPercent > THSettings.Instance.ChainHealHP + 20))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
-            //    return;
-            //}
-
-
-            //if (Me.CastingSpell.Id == 8004 && //"Healing Surge" &&
-            //    (LastCastUnit.HealthPercent >
-            //     THSettings.Instance.DoNotHealAbove ||
-            //     LastCastUnit.HealthPercent > THSettings.Instance.HealingSurgeResHP + 20))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
-            //    return;
-            //}
-
-            //if (UseSpecialization == 3 &&
-            //    !InDungeon &&
-            //    !InRaid &&
-            //    Me.CastingSpell.Id == 331 && //== "Healing Wave" &&
-            //    Me.ManaPercent > 30 &&
-            //    Me.CurrentCastTimeLeft.TotalMilliseconds > 1300 &&
-            //    LastCastUnit.HealthPercent < THSettings.Instance.GreaterHealingWaveHP &&
-            //    MyAura("Tidal Waves", Me) &&
-            //    (LastCastUnit.Combat || Me.Combat))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
-            //    return;
-            //}
-
-            //if (UseSpecialization == 3 &&
-            //    InRaid &&
-            //    Me.CastingSpell.Id == 331 && //Healing Wave
-            //    (LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove ||
-            //     LastCastUnit.HealthPercent > THSettings.Instance.HealingWaveHP + 10))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
-            //    return;
-            //}
-
-            //if (UseSpecialization == 3 &&
-            //    (InArena || InBattleground) &&
-            //    Me.CastingSpell.Id == 331 && //Healing Wave
-            //    LastCastUnit.HealthPercent < THSettings.Instance.DoNotHealAbove &&
-            //    Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(800, 1200))
-            //{
-            //    SpellManager.StopCasting();
-            //    Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
-            //    return;
-            //}
-
-            //Stop Casting Healing Spells
-            //if ((LastCastSpell == "Healing Wave" ||
-            //     LastCastSpell == "Healing Surge" ||
-            //     LastCastSpell == "Chain Heal" ||
-            //     LastCastSpell == "Healing Rain" ||
-            //     LastCastSpell == "Greater Healing Wave") &&
-            //    (Me.CastingSpell.Id == 331 ||
-            //     Me.CastingSpell.Id == 8004 ||
-            //     Me.CastingSpell.Id == 1064 ||
-            //     Me.CastingSpell.Id == 73920 ||
-            //     Me.CastingSpell.Id == 77472))
-            //{
-            //    var HealWeightLastCastUnit = LastCastUnit.HealthPercent;
-
-            //    if (Me.CastingSpell.Id == 77472 && //"Greater Healing Wave" &&
-            //        (HealWeightLastCastUnit >=
-            //         THSettings.Instance.DoNotHealAbove - THSettings.Instance.HealBalancing ||
-            //         HealWeightLastCastUnit >= THSettings.Instance.GreaterHealingWaveHP + 20))
-            //    {
-            //        SpellManager.StopCasting();
-            //        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
-            //        return;
-            //    }
-
-            //    if (UseSpecialization == 3 &&
-            //        Me.CastingSpell.Id == 8004 && //SSpellManager.HasSpell("Healing Surge") &&
-            //        (HealWeightLastCastUnit >=
-            //         THSettings.Instance.DoNotHealAbove - THSettings.Instance.HealBalancing
-            //         || HealWeightLastCastUnit >= THSettings.Instance.HealingSurgeResHP + 20))
-            //    {
-            //        SpellManager.StopCasting();
-            //        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
-            //        return;
-            //    }
-
-            //    if (!InDungeon &&
-            //        !InRaid &&
-            //        Me.CastingSpell.Id == 331 && //== "Healing Wave" &&
-            //        Me.ManaPercent > 30 &&
-            //        Me.CurrentCastTimeLeft.TotalMilliseconds > 1300 &&
-            //        HealWeightLastCastUnit < THSettings.Instance.GreaterHealingWaveHP &&
-            //        MyAura("Tidal Waves", Me) &&
-            //        (LastCastUnit.Combat || Me.Combat))
-            //    {
-            //        SpellManager.StopCasting();
-            //        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
-            //        return;
-            //    }
-
-            //    if (Me.CastingSpell.Id != 331 && //Healing Wave
-            //        Me.CastingSpell.Id != 73920 && //Healing Rain
-            //        HealWeightLastCastUnit >
-            //        THSettings.Instance.DoNotHealAbove - THSettings.Instance.HealBalancing)
-            //    {
-            //        SpellManager.StopCasting();
-            //        Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Unit Full HP");
-            //    }
-            //}
-        //}
-
         #endregion
 
-        #region Stormlash
+        #region Stormlash@
 
         private static bool StormlashEnemy()
         {
-            return NearbyUnFriendlyPlayers.Where(BasicCheck).Any(
-                unit =>
-                unit.HealthPercent <= THSettings.Instance.StormlashEnemyHP &&
-                HasFriendDPSTarget(unit));
+            return NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(unit => ((unit.HealthPercent <= THSettings.Instance.StormlashEnemyHP) && HasFriendDPSTarget(unit)));
         }
 
         private static Composite Stormlash()
         {
-            return new Decorator(
-                ret =>
-                (THSettings.Instance.StormlashCooldown ||
-                 THSettings.Instance.StormlashBurst &&
-                 THSettings.Instance.Burst ||
-                 THSettings.Instance.StormlashEnemy &&
-                 StormlashEnemy()) &&
-                //SSpellManager.HasSpell("Stormlash Totem") &&
-                //!Me.Mounted &&
-                Me.Combat &&
-                !MyTotemAirCheck(Me, 40) &&
-                CanCastCheck("Stormlash Totem") &&
-                HasEnemyNear(Me, 30),
-                new Action(
-                    ret => { CastSpell("Stormlash Totem", Me, "Stormlash"); })
-                );
+            return new Decorator(ret => (((THSettings.Instance.StormlashCooldown || (THSettings.Instance.StormlashBurst && THSettings.Instance.Burst)) || (THSettings.Instance.StormlashEnemy && StormlashEnemy())) && ((Me.Combat && !MyTotemAirCheck(Me, 40)) && CanCastCheck("Stormlash Totem", false))) && HasEnemyNear(Me, 30f), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Stormlash Totem", Me, "Stormlash");
+            }));
         }
 
         #endregion
 
-        #region Stormstrike
+        #region Stormstrike@
 
         private static Composite Stormblast()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.Stormstrike &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerablePhysic &&
-                //MeHasAura("Ascendence") &&
-                SpellManager.HasSpell("Stormblast") &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Primal Strike"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Primal Strike", Me.CurrentTarget, "Stormblast");
-                        }));
+            return new Decorator(ret => (((THSettings.Instance.Stormstrike && CurrentTargetAttackable(30.0, false, false)) && (!CurrentTargetCheckInvulnerablePhysic && SpellManager.HasSpell("Stormblast"))) && FacingOverride(Me.CurrentTarget)) && CanCastCheck("Primal Strike", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Primal Strike", Me.CurrentTarget, "Stormblast");
+            }));
         }
 
         private static Composite Stormstrike()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.Stormstrike &&
-                //SSpellManager.HasSpell("Primal Strike") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(5) &&
-                !CurrentTargetCheckInvulnerablePhysic &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Primal Strike"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Primal Strike", Me.CurrentTarget, "PrimalStrike/Stormstrike");
-                        }));
+            return new Decorator(ret => ((THSettings.Instance.Stormstrike && CurrentTargetAttackable(5.0, false, false)) && (!CurrentTargetCheckInvulnerablePhysic && FacingOverride(Me.CurrentTarget))) && CanCastCheck("Primal Strike", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Primal Strike", Me.CurrentTarget, "PrimalStrike/Stormstrike");
+            }));
         }
 
         #endregion
 
-        #region TargetMyPetTarget
+        #region TargetMyPetTarget@
 
         private static WoWUnit UnitAttackingMyPet;
         //61029 Prime Fire Elemental
@@ -5463,35 +4583,34 @@ namespace TuanHA_Combat_Routine
         private static bool GetUnitAttackingMyPet()
         {
             UnitAttackingMyPet = null;
-            UnitAttackingMyPet = NearbyUnFriendlyUnits.
-                OrderByDescending(unit => unit.ThreatInfo.RawPercent).
-                FirstOrDefault(
-                    unit => BasicCheck(unit) &&
-                            unit.Combat &&
-                            unit.CurrentTarget != null &&
-                            unit.CurrentTarget.IsValid &&
-                            (unit.CurrentTarget == Me ||
-                             unit.CurrentTarget.CreatedByUnit == Me));
-
-            return UnitAttackingMyPet != null;
+            UnitAttackingMyPet = (from unit in FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                  orderby unit.ThreatInfo.RawPercent descending
+                                  select unit).FirstOrDefault<WoWUnit>(delegate(WoWUnit unit)
+            {
+                if ((!MyAura("Hex", unit) || unit.IsPlayer) || unit.IsPet)
+                {
+                    if (!unit.Combat || !unit.GotTarget)
+                    {
+                        return false;
+                    }
+                    if (unit.CurrentTarget != Me)
+                    {
+                        return unit.CurrentTarget.CreatedByUnit == Me;
+                    }
+                }
+                return true;
+            });
+            return BasicCheck(UnitAttackingMyPet);
         }
 
         private static Composite TargetMyPetTarget()
         {
-            return new Decorator(
-                ret =>
-                IsUsingAFKBot &&
-                (Me.CurrentTarget == null ||
-                 !CurrentTargetAttackable(40)) &&
-                Me.Combat &&
-                GetUnitAttackingMyPet(),
-                new Action(delegate
-                    {
-                        Logging.Write(LogLevel.Diagnostic, "TargetMyPetTarget");
-                        UnitAttackingMyPet.Target();
-                        return RunStatus.Failure;
-                    }))
-                ;
+            return new Decorator(ret => (((!CurrentTargetAttackable(40.0, false, false) && Me.Combat) && (IsUsingAFKBot && !InArena)) && !InBattleground) && GetUnitAttackingMyPet(), new Styx.TreeSharp.Action(delegate(object param0)
+            {
+                Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, "TargetMyPetTarget");
+                UnitAttackingMyPet.Target();
+                return RunStatus.Failure;
+            }));
         }
 
         #endregion
@@ -6081,85 +5200,45 @@ namespace TuanHA_Combat_Routine
 
         #region Tremor
 
-        private static readonly HashSet<int> DebuffNeedTremor = new HashSet<int>
-            {
-                5782, //Fear
-                118699, //Fear
-                130616, //Fear (Glyph of Fear)
-                2637, //Hibernate
-                5484, //Howl of Terror
-                113056, //Intimidating Roar [Cowering in fear] (Warrior)
-                113004, //Intimidating Roar [Fleeing in fear] (Warrior)
-                5246, //Intimidating Shout (aoe)
-                20511, //Intimidating Shout (targeted)
-                126246, //Lullaby (Crane)
-                115268, //Mesmerize (Shivarra)
-                6789, //Mortal Coil
-                64044, //Psychic Horror
-                8122, //Psychic Scream
-                113792, //Psychic Terror (Psyfiend)
-                132412, //Seduction (Grimoire of Sacrifice)
-                6358, //Seduction (Succubus)
-                30283, //Shadowfury
-                132168, //Shockwave
-                87204, //Sin and Punishment
-                104045, //Sleep (Metamorphosis)
-            };
+        //private static readonly HashSet<int> DebuffNeedTremor = new HashSet<int>
+        //    {
+        //        5782, //Fear
+        //        118699, //Fear
+        //        130616, //Fear (Glyph of Fear)
+        //        2637, //Hibernate
+        //        5484, //Howl of Terror
+        //        113056, //Intimidating Roar [Cowering in fear] (Warrior)
+        //        113004, //Intimidating Roar [Fleeing in fear] (Warrior)
+        //        5246, //Intimidating Shout (aoe)
+        //        20511, //Intimidating Shout (targeted)
+        //        126246, //Lullaby (Crane)
+        //        115268, //Mesmerize (Shivarra)
+        //        6789, //Mortal Coil
+        //        64044, //Psychic Horror
+        //        8122, //Psychic Scream
+        //        113792, //Psychic Terror (Psyfiend)
+        //        132412, //Seduction (Grimoire of Sacrifice)
+        //        6358, //Seduction (Succubus)
+        //        30283, //Shadowfury
+        //        132168, //Shockwave
+        //        87204, //Sin and Punishment
+        //        104045, //Sleep (Metamorphosis)
+        //    };
+        private static readonly HashSet<int> BuffBurstHS = new HashSet<int> { 
+            0x1a436, 0x3004, 0x1da7f, 0xc847, 0xbf78, 0x190a0, 0x1e82e, 0x1a1c8, 0x4c76, 0xbe5, 0x30b8, 0x7c8c, 0x19d51, 0x152aa, 0x1528d, 0xca01, 
+            0xc9ea, 0x35b6, 0x1bd81, 0x1bd83, 0x1bcc2, 0x6b7, 0x1be1f
+         };
 
         private static bool NeedTremor(WoWUnit target, int duration, bool writelog = true)
         {
-            //if (!BasicCheck(target))
-            //{
-            //    return false;
-            //}
-
-            //foreach (var aura in target.GetAllAuras())
-            //{
-            //    if (aura.TimeLeft.TotalMilliseconds < duration ||
-            //        aura.SpellId == 30283 || // shadowfury
-            //        aura.SpellId == 132168) // shadowfury
-            //    {
-            //        continue;
-            //    }
-
-            //    if (DebuffNeedTremor.Contains(aura.SpellId) ||
-            //        aura.Spell.Mechanic == WoWSpellMechanic.Asleep ||
-            //        aura.Spell.Mechanic == WoWSpellMechanic.Charmed ||
-            //        aura.Spell.Mechanic == WoWSpellMechanic.Fleeing ||
-            //        aura.Spell.Mechanic == WoWSpellMechanic.Horrified)
-            //    {
-            //        if (writelog)
-            //        {
-            //            Logging.Write("NeedTremor {0} {1} ID: {2}", target.SafeName, aura.Name,
-            //                          aura.SpellId);
-            //        }
-            //        return true;
-            //    }
-            //}
-            //return false;
-
-            AuraCacheUpdate(target);
-
-            foreach (var aura in AuraCacheList)
+            AuraCacheUpdate(target, false);
+            foreach (AuraCacheClass class2 in AuraCacheList)
             {
-                if (aura.AuraCacheUnit != target.Guid ||
-                    aura.AuraCacheAura.TimeLeft.TotalMilliseconds < duration ||
-                    aura.AuraCacheId == 30283 || // shadowfury
-                    aura.AuraCacheId == 132168) // shadowfury
-                {
-                    continue;
-                }
-
-                if (DebuffNeedTremor.Contains(aura.AuraCacheId) ||
-                    aura.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Asleep ||
-                    aura.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Charmed ||
-                    aura.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Fleeing ||
-                    aura.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Horrified)
+                if ((((class2.AuraCacheUnit == target.Guid) && (class2.AuraCacheAura.TimeLeft.TotalMilliseconds >= duration)) && ((class2.AuraCacheId != 0x764b) && (class2.AuraCacheId != 0x20448))) && ((DebuffNeedTremor.Contains(class2.AuraCacheId) || (class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Asleep)) || (((class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Charmed) || (class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Fleeing)) || (class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Horrified))))
                 {
                     if (writelog)
                     {
-                        Logging.Write("NeedTremor {0} {1} ID: {2}", target.SafeName, aura.AuraCacheAura.Name,
-                                      aura.AuraCacheId);
+                        Styx.Common.Logging.Write("NeedTremor {0} {1} ID: {2}", new object[] { target.SafeName, class2.AuraCacheAura.Name, class2.AuraCacheId });
                     }
                     return true;
                 }
@@ -6169,28 +5248,23 @@ namespace TuanHA_Combat_Routine
 
         private static bool GetUnitNeedTremor()
         {
-            return NearbyFriendlyPlayers.Any(
-                unit =>
-                BasicCheck(unit) &&
-                unit.Distance <= 29 &&
-                (THSettings.Instance.TremorMe && unit == Me ||
-                 THSettings.Instance.TremorHealer && TalentSort(unit) > 3 ||
-                 THSettings.Instance.TremorDPS && TalentSort(unit) < 4) &&
-                NeedTremor(unit, THSettings.Instance.TremorDuration));
+            return NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(delegate(WoWUnit unit)
+            {
+                if ((unit.Distance > 29.0) || (((!THSettings.Instance.TremorMe || (unit != Me)) && (!THSettings.Instance.TremorHealer || (TalentSort(unit) <= 3))) && (!THSettings.Instance.TremorDPS || (TalentSort(unit) >= 4))))
+                {
+                    return false;
+                }
+                return NeedTremor(unit, THSettings.Instance.TremorDuration, true);
+            });
         }
 
         private static void Tremor()
         {
-            if (!THSettings.Instance.Tremor ||
-                LastBreakCC > DateTime.Now ||
-                Me.Mounted ||
-                !CanCastCheck("Tremor Totem") ||
-                !GetUnitNeedTremor())
+            if ((THSettings.Instance.Tremor && (LastBreakCC <= DateTime.Now)) && ((!Me.Mounted && CanCastCheck("Tremor Totem", false)) && GetUnitNeedTremor()))
             {
-                return;
+                LastBreakCC = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
+                CastSpell("Tremor Totem", Me, "Tremor");
             }
-            LastBreakCC = DateTime.Now + TimeSpan.FromMilliseconds(1500);
-            CastSpell("Tremor Totem", Me, "Tremor");
         }
 
         #endregion
@@ -6315,79 +5389,25 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region UseRacial
+        #region UseRacial@
 
         private static Composite UseRacial()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.AutoRacial &&
-                    //SSpellManager.HasSpell("Every Man for Himself") &&
-                    Me.Combat &&
-                    !MeHasAura("Sap") &&
-                    !MeHasAura("Scatter Shot") &&
-                    CanCastCheck("Every Man for Himself", true) &&
-                    DebuffCCDuration(Me, 4000),
-                    new Action(delegate
-                        {
-                            if (THSettings.Instance.AutoTarget && Me.CurrentTarget == null &&
-                                MyLastTarget != null &&
-                                MyLastTarget.IsValid)
-                            {
-                                MyLastTarget.Target();
-                            }
-
-                            Logging.Write("Use: Every Man for Himself");
-                            CastSpell("Every Man for Himself", Me);
-                            return RunStatus.Failure;
-                        })),
-                //Stoneform
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.AutoRacial && HealWeightMe < THSettings.Instance.UrgentHeal &&
-                    //SSpellManager.HasSpell("Stoneform") &&
-                    Me.Combat &&
-                    CanCastCheck("Stoneform", true),
-                    new Action(delegate
-                        {
-                            {
-                                //Logging.Write("Stoneform");
-                                CastSpell("Stoneform", Me);
-                            }
-                            return RunStatus.Failure;
-                        })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.AutoRacial &&
-                    HealWeightMe < THSettings.Instance.UrgentHeal &&
-                    //SSpellManager.HasSpell("Gift of the Naaru") &&
-                    Me.Combat &&
-                    CanCastCheck("Gift of the Naaru", true),
-                    new Action(delegate
-                        {
-                            {
-                                //Logging.Write("Gift of the Naaru");
-                                CastSpell("Gift of the Naaru", Me);
-                            }
-                            return RunStatus.Failure;
-                        })) //,
-                //new Decorator(
-                //    ret =>
-                //    THSettings.Instance.AutoRacial && Me.ManaPercent < THSettings.Instance.PriorityHeal &&
-                //    //SSpellManager.HasSpell("Arcane Torrent") && //SSpellManager.HasSpell("Holy Insight") &&
-                //    Me.Combat &&
-                //    (InDungeon || InRaid) &&
-                //    CanCastCheck("Arcane Torrent", true),
-                //    new Action(delegate
-                //        {
-                //            {
-                //                Logging.Write("Arcane Torrent");
-                //                CastSpell("Arcane Torrent", Me);
-                //            }
-                //            return RunStatus.Failure;
-                //        }))
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(ret => (((THSettings.Instance.AutoRacial && Me.Combat) && (!MeHasAura("Sap") && !MeHasAura("Scatter Shot"))) && CanCastCheck("Every Man for Himself", true)) && DebuffCCDuration(Me, 3000.0, false), new Styx.TreeSharp.Action(delegate (object param0) {
+                if ((THSettings.Instance.AutoTarget && (Me.CurrentTarget == null)) && ((MyLastTarget != null) && MyLastTarget.IsValid))
+                {
+                    MyLastTarget.Target();
+                }
+                Styx.Common.Logging.Write("Use: Every Man for Himself");
+                CastSpell("Every Man for Himself", Me, "");
+                return RunStatus.Failure;
+            })), new Decorator(ret => ((THSettings.Instance.AutoRacial && (HealWeight(Me) < THSettings.Instance.UrgentHeal)) && Me.Combat) && CanCastCheck("Stoneform", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                CastSpell("Stoneform", Me, "");
+                return RunStatus.Failure;
+            })), new Decorator(ret => ((THSettings.Instance.AutoRacial && (HealWeight(Me) < THSettings.Instance.UrgentHeal)) && Me.Combat) && CanCastCheck("Gift of the Naaru", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                CastSpell("Gift of the Naaru", Me, "");
+                return RunStatus.Failure;
+            })) });
         }
 
         #endregion
@@ -6935,271 +5955,96 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region UseProfession
+        #region UseProfession@
 
         private static Composite UseProfession()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.ProfBuff == 1 &&
-                //LastCastSpell != "SProfBuff" &&
-                Me.Combat &&
-                !Me.Mounted,
-                new PrioritySelector(
-                    //Engineering
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 1 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Cooldown");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 2 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        CurrentTargetAttackable(30) &&
-                        Me.CurrentTarget.IsBoss &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Cooldown (Boss Only");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 3 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        THSettings.Instance.Burst &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Burst Mode");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 4 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        CurrentTargetAttackable(30) &&
-                        DebuffCCDuration(Me, 3000) &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Lose Control");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 5 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        HealWeightMe < THSettings.Instance.ProfBuffHP &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: GLoves Buff Activated on Low HP");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 6 &&
-                        UnitHealIsValid &&
-                        HealWeightUnitHeal <= THSettings.Instance.ProfBuffHP &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Friendly Unit Low HP");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 7 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        CurrentTargetAttackable(20) &&
-                        !Me.CurrentTarget.IsPet &&
-                        Me.CurrentTarget.HealthPercent <= THSettings.Instance.ProfBuffHP &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Enemy Unit Low HP");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 8 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        Me.ManaPercent <= THSettings.Instance.ProfBuffHP &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Low Mana");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 9 &&
-                        //LastCastSpell != "SProfBuff" &&
-                        Me.Inventory.Equipped.Hands != null &&
-                        BuffBurst(Me) &&
-                        CanUseCheck(Me.Inventory.Equipped.Hands),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Gloves Buff Activated on Using Cooldown");
-                                StyxWoW.Me.Inventory.Equipped.Hands.Use();
-                                LastCastSpell = "SProfBuff";
-                                return RunStatus.Failure;
-                            })),
-                    //Herbalism
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 1 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Cooldown");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 2 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        CurrentTargetAttackable(30) &&
-                        Me.CurrentTarget.IsBoss &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Cooldown (Boss Only");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 3 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        THSettings.Instance.Burst &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Burst Mode");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 4 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        Me.Combat &&
-                        DebuffCCDuration(Me, 3000) &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Lose Control");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 5 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        HealWeightMe <= THSettings.Instance.ProfBuffHP &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Low HP");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 6 &&
-                        UnitHealIsValid &&
-                        HealWeightUnitHeal <= THSettings.Instance.ProfBuffHP &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Friendly Unit Low HP");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 7 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        CurrentTargetAttackable(20) &&
-                        !Me.CurrentTarget.IsPet &&
-                        Me.CurrentTarget.HealthPercent <= THSettings.Instance.ProfBuffHP &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Enemy Unit Low HP");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 8 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        Me.ManaPercent <= THSettings.Instance.ProfBuffHP &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Low Mana");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })),
-                    new Decorator(
-                        ret =>
-                        THSettings.Instance.ProfBuff == 9 &&
-                        //SSpellManager.HasSpell("Lifeblood") &&
-                        //LastCastSpell != "Lifeblood" &&
-                        BuffBurst(Me) &&
-                        CanCastCheck("Lifeblood", true),
-                        new Action(delegate
-                            {
-                                Logging.Write("Use: Lifeblood Activated on Using Cooldown");
-                                CastSpell("Lifeblood", Me);
-                                return RunStatus.Failure;
-                            })))
-                );
+            Composite[] children = new Composite[] { 
+                new Decorator(ret => ((THSettings.Instance.ProfBuff == 1) && (Me.Inventory.Equipped.Hands != null)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Cooldown");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 2) && (Me.Inventory.Equipped.Hands != null)) && (CurrentTargetAttackable(30.0, false, false) && Me.CurrentTarget.IsBoss)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Cooldown (Boss Only");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 3) && THSettings.Instance.Burst) && (Me.Inventory.Equipped.Hands != null)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Burst Mode");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 4) && (Me.Inventory.Equipped.Hands != null)) && (CurrentTargetAttackable(30.0, false, false) && DebuffCCDuration(Me, 3000.0, false))) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Lose Control");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 5) && (Me.Inventory.Equipped.Hands != null)) && (HealWeight(Me) < THSettings.Instance.ProfBuffHP)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: GLoves Buff Activated on Low HP");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 6) && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.ProfBuffHP) && (Me.Inventory.Equipped.Hands != null))) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Friendly Unit Low HP");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => ((((THSettings.Instance.ProfBuff == 7) && (Me.Inventory.Equipped.Hands != null)) && (CurrentTargetAttackable(20.0, false, false) && !Me.CurrentTarget.IsPet)) && (Me.CurrentTarget.HealthPercent <= THSettings.Instance.ProfBuffHP)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Enemy Unit Low HP");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 8) && (Me.Inventory.Equipped.Hands != null)) && (Me.ManaPercent <= THSettings.Instance.ProfBuffHP)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Low Mana");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 9) && (Me.Inventory.Equipped.Hands != null)) && BuffBurst(Me)) && CanUseCheck(Me.Inventory.Equipped.Hands), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Gloves Buff Activated on Using Cooldown");
+                    StyxWoW.Me.Inventory.Equipped.Hands.Use();
+                    LastCastSpell = "SProfBuff";
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (THSettings.Instance.ProfBuff == 1) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Cooldown");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 2) && CurrentTargetAttackable(30.0, false, false)) && Me.CurrentTarget.IsBoss) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Cooldown (Boss Only");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => ((THSettings.Instance.ProfBuff == 3) && THSettings.Instance.Burst) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Burst Mode");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 4) && Me.Combat) && DebuffCCDuration(Me, 3000.0, false)) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Lose Control");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => ((THSettings.Instance.ProfBuff == 5) && (HealWeight(Me) <= THSettings.Instance.ProfBuffHP)) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Low HP");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 6) && UnitHealIsValid) && (HealWeightUnitHeal <= THSettings.Instance.ProfBuffHP)) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Friendly Unit Low HP");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => (((THSettings.Instance.ProfBuff == 7) && CurrentTargetAttackable(20.0, false, false)) && (!Me.CurrentTarget.IsPet && (Me.CurrentTarget.HealthPercent <= THSettings.Instance.ProfBuffHP))) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Enemy Unit Low HP");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), 
+                new Decorator(ret => ((THSettings.Instance.ProfBuff == 8) && (Me.ManaPercent <= THSettings.Instance.ProfBuffHP)) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Low Mana");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                })), new Decorator(ret => ((THSettings.Instance.ProfBuff == 9) && BuffBurst(Me)) && CanCastCheck("Lifeblood", true), new Styx.TreeSharp.Action(delegate (object param0) {
+                    Styx.Common.Logging.Write("Use: Lifeblood Activated on Using Cooldown");
+                    CastSpell("Lifeblood", Me, "");
+                    return RunStatus.Failure;
+                }))
+             };
+            return new Decorator(ret => ((THSettings.Instance.ProfBuff == 1) && Me.Combat) && !Me.Mounted, new PrioritySelector(children));
         }
 
         #endregion
@@ -7249,33 +6094,20 @@ namespace TuanHA_Combat_Routine
 
         private void WarStompVoid()
         {
-            if (THSettings.Instance.AutoRacial &&
-                HealWeightUnitHeal > THSettings.Instance.PriorityHeal &&
-                //SSpellManager.HasSpell("War Stomp") &&
-                LastInterrupt < DateTime.Now &&
-                UnitHeal != null &&
-                UnitHeal.IsValid &&
-                !IsMoving(Me) &&
-                CanCastCheck("War Stomp") &&
-                GetUnitWarStomp())
+            if (((THSettings.Instance.AutoRacial && (HealWeightUnitHeal > THSettings.Instance.PriorityHeal)) && ((LastInterrupt < DateTime.Now) && (UnitHeal != null))) && ((UnitHeal.IsValid && !IsMoving(Me)) && (CanCastCheck("War Stomp", false) && GetUnitWarStomp())))
             {
                 if (Me.IsCasting || Me.IsChanneling)
                 {
                     SpellManager.StopCasting();
                 }
-
-
-                while (BasicCheck(UnitWarStomp) &&
-                       UnitWarStomp.CurrentCastTimeLeft.TotalMilliseconds >
-                       THSettings.Instance.WindShearInterruptMs + 500)
+                while (BasicCheck(UnitWarStomp) && (UnitWarStomp.CurrentCastTimeLeft.TotalMilliseconds > (THSettings.Instance.WindShearInterruptMs + 500)))
                 {
-                    Logging.Write("Waiting for War Stomp");
+                    Styx.Common.Logging.Write("Waiting for War Stomp");
                 }
-
                 if (UnitWarStomp.IsCasting || UnitWarStomp.IsChanneling)
                 {
                     CastSpell("War Stomp", Me, "War Stomp");
-                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500);
+                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
                 }
             }
         }
@@ -7350,173 +6182,69 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region WindShear
+        #region WindShear@
 
         private static WoWUnit UnitWindShear;
-        //////done
+
         private static bool GetUnitWindShear()
         {
             UnitWindShear = null;
-
             if (InBattleground || InArena)
             {
-                UnitWindShear = NearbyUnFriendlyPlayers.FirstOrDefault(
-                    //////unit => BasicCheck(unit) &&
-                    unit => (THSettings.Instance.InterruptAll ||
-                             THSettings.Instance.InterruptTarget &&
-                             Me.CurrentTarget != null &&
-                             unit == Me.CurrentTarget ||
-                             THSettings.Instance.InterruptFocus &&
-                             Me.FocusedUnit != null &&
-                             unit == Me.FocusedUnit) &&
-                            //FacingOverride(unit) &&
-                            InterruptCheck(unit, THSettings.Instance.WindShearInterruptMs + MyLatency + 1000, false) &&
-                            //Attackable(unit, 30));
-                            Attackable(unit, (int) SpellManager.Spells["Wind Shear"].MaxRange));
+                UnitWindShear = NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => (((THSettings.Instance.InterruptAll || ((THSettings.Instance.InterruptTarget && (Me.CurrentTarget != null)) && (unit == Me.CurrentTarget))) || ((THSettings.Instance.InterruptFocus && (Me.FocusedUnit != null)) && (unit == Me.FocusedUnit))) && InterruptCheck(unit, (THSettings.Instance.WindShearInterruptMs + MyLatency) + 1000.0, false)) && Attackable(unit, (int)SpellManager.Spells["Wind Shear"].MaxRange));
             }
-                //PvE Search
             else
             {
-                UnitWindShear = NearbyUnFriendlyUnits.FirstOrDefault(
-                    unit => BasicCheck(unit) &&
-                            (THSettings.Instance.InterruptAll ||
-                             THSettings.Instance.InterruptTarget &&
-                             Me.CurrentTarget != null &&
-                             unit == Me.CurrentTarget ||
-                             THSettings.Instance.InterruptFocus &&
-                             Me.FocusedUnit != null &&
-                             unit == Me.FocusedUnit) &&
-                            unit.Combat &&
-                            unit.CurrentTarget != null &&
-                            //FacingOverride(unit) &&
-                            FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                            InterruptCheck(unit, THSettings.Instance.WindShearInterruptMs + MyLatency + 1000, false) &&
-                            //Attackable(unit, 30));
-                            Attackable(unit, (int) SpellManager.Spells["Wind Shear"].MaxRange));
+                UnitWindShear = NearbyUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => (((THSettings.Instance.InterruptAll || ((THSettings.Instance.InterruptTarget && (Me.CurrentTarget != null)) && (unit == Me.CurrentTarget))) || ((THSettings.Instance.InterruptFocus && (Me.FocusedUnit != null)) && (unit == Me.FocusedUnit))) && ((InProvingGrounds || ((unit.Combat && unit.GotTarget) && FarFriendlyPlayers.Contains(unit.CurrentTarget))) && InterruptCheck(unit, (THSettings.Instance.WindShearInterruptMs + MyLatency) + 1000.0, false))) && Attackable(unit, (int)SpellManager.Spells["Wind Shear"].MaxRange));
             }
-
-            //if (BasicCheck(UnitWindShear))
-            //{
-            //    Logging.Write("Fround UnitWindShear {0}", UnitWindShear.SafeName);
-            //}
             return BasicCheck(UnitWindShear);
         }
 
         private static void WindShearInterruptVoid()
         {
-            if (THSettings.Instance.WindShearInterrupt &&
-                (UseSpecialization != 3 ||
-                 UseSpecialization == 3 && !UnitHealIsValid ||
-                 UseSpecialization == 3 && UnitHealIsValid && HealWeightUnitHeal > THSettings.Instance.UrgentHeal) &&
-                //SSpellManager.HasSpell("Wind Shear") &&
-                LastInterrupt < DateTime.Now &&
-                CanCastCheck("Wind Shear", true) &&
-                //!Me.Mounted &&
-                GetUnitWindShear())
+            if ((THSettings.Instance.WindShearInterrupt && (((UseSpecialization != 3) || ((UseSpecialization == 3) && !UnitHealIsValid)) || (((UseSpecialization == 3) && UnitHealIsValid) && (HealWeightUnitHeal > THSettings.Instance.UrgentHeal)))) && (((LastInterrupt < DateTime.Now) && CanCastCheck("Wind Shear", true)) && GetUnitWindShear()))
             {
                 if (Me.IsCasting || Me.IsChanneling)
                 {
                     SpellManager.StopCasting();
                 }
-
                 SafelyFacingTarget(UnitWindShear);
-
-                while (BasicCheck(UnitWindShear) &&
-                       UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds >
-                       THSettings.Instance.WindShearInterruptMs + MyLatency)
+                while (BasicCheck(UnitWindShear) && (UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds > (THSettings.Instance.WindShearInterruptMs + MyLatency)))
                 {
-                    Logging.Write("Waiting for Wind Shear");
+                    Styx.Common.Logging.Write("Waiting for Wind Shear");
                 }
-
-                if (UnitWindShear.IsCasting || UnitWindShear.IsChanneling)
+                if (UnitWindShear.IsCasting)
                 {
-                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500);
-                    CastSpell("Wind Shear", UnitWindShear, "Casting " +
-                                                           UnitWindShear.CastingSpell.Name + " - " +
-                                                           UnitWindShear.CastingSpellId);
+                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
+                    CastSpell("Wind Shear", UnitWindShear, string.Concat(new object[] { "Casting ", UnitWindShear.CastingSpell.Name, " - ", UnitWindShear.CastingSpellId }));
                 }
             }
         }
 
         #endregion
 
-        #region Windwalk
+        #region Windwalk@
 
         private static bool NeedFriendWindwalk()
         {
-            return NearbyFriendlyPlayers.Where(BasicCheck).Any(
-                unit =>
-                unit.Combat &&
-                IsEnemy(unit.CurrentTarget) &&
-                DebuffRoot(unit));
+            return NearbyFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(unit => (((unit.Combat && unit.GotTarget) && IsEnemy(unit.CurrentTarget)) && DebuffRoot(unit)));
         }
 
         private static Composite Windwalk()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.WindwalkRootMe &&
-                    HealWeightUnitHeal >= THSettings.Instance.UrgentHeal &&
-                    UseSpecialization == 3 &&
-                    Me.Combat &&
-                    //SSpellManager.HasSpell("Windwalk Totem") &&
-                    !MyTotemCheck("Earth Elemental Totem", Me, 40) &&
-                    CanCastCheck("Windwalk Totem", true) &&
-                    DebuffRoot(Me) &&
-                    HaveDPSTarget(Me),
-                    new Action(
-                        delegate
-                            {
-                                CastSpell("Windwalk Totem", Me, "WindwalkRootMeResto");
-                                return RunStatus.Failure;
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.WindwalkRootMe &&
-                    UseSpecialization != 3 &&
-                    Me.Combat &&
-                    //SSpellManager.HasSpell("Windwalk Totem") &&
-                    !MyTotemCheck("Earth Elemental Totem", Me, 40) &&
-                    CurrentTargetAttackable(40) &&
-                    CanCastCheck("Windwalk Totem", true) &&
-                    DebuffRoot(Me),
-                    new Action(
-                        delegate
-                            {
-                                CastSpell("Windwalk Totem", Me, "WindwalkRootMeEleEnh");
-                                return RunStatus.Failure;
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.WindwalkRootFriend &&
-                    HealWeightUnitHeal >= THSettings.Instance.UrgentHeal &&
-                    UseSpecialization == 3 &&
-                    //SSpellManager.HasSpell("Windwalk Totem") &&
-                    !MyTotemCheck("Earth Elemental Totem", Me, 40) &&
-                    CanCastCheck("Windwalk Totem", true) &&
-                    NeedFriendWindwalk(),
-                    new Action(
-                        delegate
-                            {
-                                CastSpell("Windwalk Totem", Me, "WindwalkRootFriendResto");
-                                return RunStatus.Failure;
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.WindwalkRootFriend &&
-                    UseSpecialization != 3 &&
-                    //SSpellManager.HasSpell("Windwalk Totem") &&
-                    !MyTotemCheck("Earth Elemental Totem", Me, 40) &&
-                    CanCastCheck("Windwalk Totem", true) &&
-                    NeedFriendWindwalk(),
-                    new Action(
-                        delegate
-                            {
-                                CastSpell("Windwalk Totem", Me, "WindwalkRootFriendEleEnh");
-                                return RunStatus.Failure;
-                            }))
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(ret => (((THSettings.Instance.WindwalkRootMe && (HealWeightUnitHeal >= THSettings.Instance.UrgentHeal)) && ((UseSpecialization == 3) && Me.Combat)) && ((!MyTotemCheck("Earth Elemental Totem", Me, 40) && CanCastCheck("Windwalk Totem", true)) && DebuffRoot(Me))) && HaveDPSTarget(Me), new Styx.TreeSharp.Action(delegate (object param0) {
+                CastSpell("Windwalk Totem", Me, "WindwalkRootMeResto");
+                return RunStatus.Failure;
+            })), new Decorator(ret => (((THSettings.Instance.WindwalkRootMe && (UseSpecialization != 3)) && (Me.Combat && !MyTotemCheck("Earth Elemental Totem", Me, 40))) && (CurrentTargetAttackable(40.0, false, false) && CanCastCheck("Windwalk Totem", true))) && DebuffRoot(Me), new Styx.TreeSharp.Action(delegate (object param0) {
+                CastSpell("Windwalk Totem", Me, "WindwalkRootMeEleEnh");
+                return RunStatus.Failure;
+            })), new Decorator(ret => (((THSettings.Instance.WindwalkRootFriend && (HealWeightUnitHeal >= THSettings.Instance.UrgentHeal)) && ((UseSpecialization == 3) && !MyTotemCheck("Earth Elemental Totem", Me, 40))) && CanCastCheck("Windwalk Totem", true)) && NeedFriendWindwalk(), new Styx.TreeSharp.Action(delegate (object param0) {
+                CastSpell("Windwalk Totem", Me, "WindwalkRootFriendResto");
+                return RunStatus.Failure;
+            })), new Decorator(ret => ((THSettings.Instance.WindwalkRootFriend && (UseSpecialization != 3)) && (!MyTotemCheck("Earth Elemental Totem", Me, 40) && CanCastCheck("Windwalk Totem", true))) && NeedFriendWindwalk(), new Styx.TreeSharp.Action(delegate (object param0) {
+                CastSpell("Windwalk Totem", Me, "WindwalkRootFriendEleEnh");
+                return RunStatus.Failure;
+            })) });
         }
 
         #endregion
