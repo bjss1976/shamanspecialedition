@@ -209,29 +209,11 @@ namespace TuanHA_Combat_Routine
             return true;
         }
 
-        private static readonly HashSet<int> GhostWolfHS = new HashSet<int>
-            {
-                51514, //Hex
-                //118, //Polymorph
-                //28271, //Polymorph
-                //28272, //Polymorph
-                //61721, //Polymorph
-                //61305, //Polymorph
-                20066, //Repentance
-                //605, //Dominate Mind
-                //115268, //Mesmerize
-            };
+        private static readonly HashSet<int> GhostWolfHS = new HashSet<int> { 0xc93a, 0x4e62 };
 
         private static bool IsCastingCCGhostWolfImmune(WoWUnit unit)
         {
-            if (unit == null ||
-                !unit.IsValid ||
-                !unit.IsCasting ||
-                unit.IsCasting && !GhostWolfHS.Contains(unit.CastingSpellId))
-            {
-                return false;
-            }
-            return true;
+            return (((unit != null) && unit.IsValid) && (unit.IsCasting && (!unit.IsCasting || GhostWolfHS.Contains(unit.CastingSpellId))));
         }
 
         #endregion

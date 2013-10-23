@@ -14,35 +14,22 @@ namespace TuanHA_Combat_Routine
         private static Composite EnhancementRotation()
         {
             return new PrioritySelector(
-                //////done
                 new Action(delegate
                     {
-                        if (LastAoESearch > DateTime.Now)
+                        if (LastAoESearch <= DateTime.Now)
                         {
-                            return RunStatus.Failure;
+                            if (THSettings.Instance.AutoAoE && (CountEnemyNear(Me, 10f) >= THSettings.Instance.UnittoStartAoE))
+                            {
+                                AoEModeOn = true;
+                            }
+                            else
+                            {
+                                AoEModeOn = false;
+                            }
+                            LastAoESearch = DateTime.Now + TimeSpan.FromMilliseconds(3000.0);
                         }
-
-                        if (THSettings.Instance.AutoAoE &&
-                            //.CurrentTargetAttackable(40) &&
-                            CountEnemyNear(Me, 10) >= THSettings.Instance.UnittoStartAoE)//.
-                        {
-                            //Logging.Write("AoEModeOn = true");
-                            //Eval("CurrentTargetAttackable(40)", () => CurrentTargetAttackable(40));
-                            //Eval("CountEnemyNear(Me, 10)", () => CountEnemyNear(Me, 10));
-                            AoEModeOn = true;
-                        }
-                        else
-                        {
-                            //Logging.Write("AoEModeOn = false");
-                            //Eval("CurrentTargetAttackable(40)", () => CurrentTargetAttackable(40));
-                            //Eval("CountEnemyNear(Me, 10)", () => CountEnemyNear(Me, 10));
-                            AoEModeOn = false;
-                        }
-
-                        LastAoESearch = DateTime.Now + TimeSpan.FromMilliseconds(5000);
                         return RunStatus.Failure;
                     }),
-                //////done
                 AutoTargetMelee(),//.
                 MovementMoveToMelee(ret => Me.CurrentTarget),
                 MovementMoveStop(ret => Me.CurrentTarget, 3),
@@ -73,20 +60,20 @@ namespace TuanHA_Combat_Routine
                         ///恢复血少，切有物理dps以自己为目标时使用
                         ///非恢复，敌人在40码内，自己被减速时使用
                         ///非恢复，队友被root，且队友目标为敌人
-                        //////done
+                        //可加入治疗职业被控时才用，需要调查一下是否可以用投掷
                         Windwalk(),
                         ///升腾时，30码使用Stormstrike
                         ///非升腾时，5码内使用
                         //////done
                         Stormblast(),
                         ///变青蛙
-                        //////done
+                        //需要改善
                         Hex(),
                         ///电鞭图腾,CD,burst,或者敌人血少
                         //////done
                         Stormlash(),
                         ///石壁图腾，血少且35码内有敌人
-                        //////done
+                        //改善为无治疗时使用
                         StoneBulwarkTotem(),
                         ///星界转换，血少且有敌人以我为目标
                         //////done
@@ -94,6 +81,7 @@ namespace TuanHA_Combat_Routine
                         ///30码内有队友血少时,用根基
                         GroundingLow(),
                         ///队友血少,敌人血少,可同时电多个人时,使用电能图腾
+                        //这个完全变了，而且配置界面也改变了，需要看看最新的界面
                         Capacitor(),
                         ///解青蛙
                         CleanseSpiritFriendlyASAPEnh(),

@@ -126,16 +126,7 @@ namespace TuanHA_Combat_Routine
 
         private static IEnumerable<WoWUnit> GetAllUnits()
         {
-            return ObjectManager.GetObjectsOfType<WoWUnit>(true, true)
-                                .Where(
-                                    unit =>
-                                    !Blacklist.Contains(unit.Guid, BlacklistFlags.All) &&
-                                    //unit.Attackable &&
-                                    unit.CanSelect &&
-                                    unit.IsAlive &&
-                                    unit.Distance <= 60)
-                                    //unit.DistanceSqr <= 3600)
-                                .ToList();
+            return ObjectManager.GetObjectsOfType<WoWUnit>(true, true);
         }
 
         private static readonly List<WoWUnit> FarFriendlyPlayers = new List<WoWUnit>();
@@ -146,141 +137,6 @@ namespace TuanHA_Combat_Routine
         private static readonly List<WoWUnit> NearbyUnFriendlyUnits = new List<WoWUnit>();
         private static readonly List<WoWUnit> FarUnFriendlyPlayers = new List<WoWUnit>(); //Don't use in this CC
         private static readonly List<WoWUnit> FarUnFriendlyUnits = new List<WoWUnit>();
-
-        //private static Composite GetUnits()
-        //{
-        //    return new Action(delegate
-        //        {
-        //            //if (LastGetUnits + TimeSpan.FromMilliseconds(THSettings.Instance.SearchInterval) > DateTime.Now)
-        //            //{
-        //            //    return RunStatus.Failure;
-        //            //}
-        //            //LastGetUnits = DateTime.Now;
-
-        //            NearbyFriendlyPlayers.Clear();
-        //            NearbyUnFriendlyPlayers.Clear();
-        //            NearbyFriendlyUnits.Clear();
-        //            NearbyUnFriendlyUnits.Clear();
-        //            FarFriendlyPlayers.Clear();
-        //            FarFriendlyUnits.Clear();
-        //            FarUnFriendlyPlayers.Clear();
-        //            FarUnFriendlyUnits.Clear();
-
-        //            EnemyListCacheClear();
-        //            FriendListCacheClear();
-
-        //            //NearbyFriendlyUnits.Add(Me);
-        //            //NearbyFriendlyPlayers.Add(Me);
-        //            //FarFriendlyUnits.Add(Me);
-        //            //FarFriendlyPlayers.Add(Me);
-
-        //            //foreach (WoWUnit unit in GetAllUnits().Where(unit => BasicCheck(unit) && unit.Distance <= 60))
-        //            foreach (WoWUnit unit in GetAllUnits())
-        //            {
-        //                if (FriendListCache.ContainsKey(unit.Guid))
-        //                {
-        //                    FarFriendlyUnits.Add(unit);
-        //                    var player = unit as WoWPlayer;
-        //                    if (player != null)
-        //                    {
-        //                        FarFriendlyPlayers.Add((WoWPlayer) unit);
-        //                    }
-        //                    if (unit.Distance <= 40)
-        //                    {
-        //                        NearbyFriendlyUnits.Add(unit);
-        //                        if (player != null)
-        //                        {
-        //                            NearbyFriendlyPlayers.Add(player);
-        //                        }
-        //                    }
-        //                }
-        //                else if (EnemyListCache.ContainsKey(unit.Guid))
-        //                {
-        //                    FarUnFriendlyUnits.Add(unit);
-        //                    var player = unit as WoWPlayer;
-        //                    if (player != null)
-        //                    {
-        //                        FarUnFriendlyPlayers.Add((WoWPlayer) unit);
-        //                    }
-        //                    if (unit.Distance <= 40)
-        //                    {
-        //                        NearbyUnFriendlyUnits.Add(unit);
-        //                        if (player != null)
-        //                        {
-        //                            NearbyUnFriendlyPlayers.Add(player);
-        //                        }
-        //                    }
-        //                }
-        //                else if (!InArena && !InBattleground &&
-        //                         ((!unit.IsFriendly && unit.Attackable && !unit.IsQuestGiver) ||
-        //                          //////unit.Combat && !unit.IsFriendly ||
-        //                          Me.Combat && IsDummy(unit) && Me.IsFacing(unit)))
-        //                {
-        //                    EnemyListCacheAdd(unit,10);
-        //                    FarUnFriendlyUnits.Add(unit);
-
-        //                    if (GetDistance(unit) < 40)
-        //                    {
-        //                        NearbyUnFriendlyUnits.Add(unit);
-        //                    }
-
-        //                    //Do not attack world player
-        //                    var player = unit as WoWPlayer;
-
-        //                    if (player != null && player.CurrentTarget != null && player.CurrentTarget == Me)
-        //                        //Do not attack world player
-        //                    {
-        //                        NearbyUnFriendlyPlayers.Add(player);
-        //                    }
-        //                }
-        //                else if (IsMyPartyRaidMember(unit))
-        //                {
-        //                    FriendListCacheAdd(unit, 60);
-        //                    FarFriendlyUnits.Add(unit);
-
-        //                    var player = unit as WoWPlayer;
-
-        //                    if (player != null)
-        //                    {
-        //                        FarFriendlyPlayers.Add((WoWPlayer) unit);
-        //                    }
-
-        //                    if (GetDistance(unit) < 40)
-        //                    {
-        //                        NearbyFriendlyUnits.Add(unit);
-
-        //                        if (player != null)
-        //                        {
-        //                            NearbyFriendlyPlayers.Add(player);
-        //                        }
-        //                    }
-        //                }
-        //                else if (InArena || InBattleground)
-        //                {
-        //                    EnemyListCacheAdd(unit,10);
-        //                    FarUnFriendlyUnits.Add(unit);
-
-        //                    var player = unit as WoWPlayer;
-
-        //                    if (player != null)
-        //                    {
-        //                        FarUnFriendlyPlayers.Add((WoWPlayer) unit);
-        //                    }
-
-        //                    if (GetDistance(unit) < 40)
-        //                    {
-        //                        NearbyUnFriendlyUnits.Add(unit);
-
-        //                        if (player != null)
-        //                        {
-        //                            NearbyUnFriendlyPlayers.Add(player);
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //            return RunStatus.Failure;
-        //        });
-        //}
 
         private static Composite GetUnits()
         {
@@ -294,124 +150,77 @@ namespace TuanHA_Combat_Routine
                 NearbyUnFriendlyUnits.Clear();
                 FarUnFriendlyPlayers.Clear();
                 FarUnFriendlyUnits.Clear();
-                EnemyListCacheClear();
-                FriendListCacheClear();
                 foreach (WoWUnit unit in GetAllUnits())
                 {
-                    if (((!Blacklist.Contains(unit.Guid, BlacklistFlags.All) && unit.IsAlive) && (unit.CanSelect && !unit.IsPet)) && (unit.Distance <= 60.0))
+                    if (((Blacklist.Contains(unit.Guid, BlacklistFlags.Pull | BlacklistFlags.Interact | BlacklistFlags.Node | BlacklistFlags.Combat | BlacklistFlags.Loot) || !unit.IsAlive) || (!unit.CanSelect || unit.IsPet)) || (unit.Distance > 60.0))
                     {
-                        if (FriendListCache.ContainsKey(unit.Guid))
+                        continue;
+                    }
+                    if (IsMyPartyRaidMember(unit))
+                    {
+                        WoWPlayer player = unit as WoWPlayer;
+                        if ((player != null) || NeedHealUnit(unit))
                         {
-                            WoWPlayer player = unit as WoWPlayer;
-                            //if ((player != null) || NeedHealUnit(unit))
-                            if (player != null)
+                            FarFriendlyPlayers.Add(unit);
+                            FarFriendlyUnits.Add(unit);
+                            if (unit.Distance <= 40.0)
                             {
-                                FarFriendlyUnits.Add(unit);
-                                FarFriendlyPlayers.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyFriendlyUnits.Add(unit);
-                                    NearbyFriendlyPlayers.Add(unit);
-                                }
-                            }
-                            else
-                            {
-                                FarFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyFriendlyUnits.Add(unit);
-                                }
+                                NearbyFriendlyUnits.Add(unit);
+                                NearbyFriendlyPlayers.Add(unit);
                             }
                         }
-                        else if (EnemyListCache.ContainsKey(unit.Guid))
+                        else
                         {
-                            WoWPlayer player2 = unit as WoWPlayer;
-                            if (player2 != null)
+                            FarFriendlyUnits.Add(unit);
+                            if (unit.Distance <= 40.0)
                             {
-                                FarUnFriendlyPlayers.Add(unit);
-                                FarUnFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyUnFriendlyUnits.Add(unit);
-                                    NearbyUnFriendlyPlayers.Add(unit);
-                                }
-                            }
-                            else
-                            {
-                                FarUnFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyUnFriendlyUnits.Add(unit);
-                                }
+                                NearbyFriendlyUnits.Add(unit);
                             }
                         }
-                        else if (IsMyPartyRaidMember(unit))
+                        continue;
+                    }
+                    if (Me.CurrentMap.IsArena || Me.CurrentMap.IsBattleground)
+                    {
+                        WoWPlayer player2 = unit as WoWPlayer;
+                        if (player2 != null)
                         {
-                            FriendListCacheAdd(unit, 60);
-                            WoWPlayer player3 = unit as WoWPlayer;
-                            if ((player3 != null) || NeedHealUnit(unit))
+                            FarUnFriendlyPlayers.Add(unit);
+                            FarUnFriendlyUnits.Add(unit);
+                            if (unit.Distance <= 40.0)
                             {
-                                FarFriendlyPlayers.Add(unit);
-                                FarFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyFriendlyUnits.Add(unit);
-                                    NearbyFriendlyPlayers.Add(unit);
-                                }
-                            }
-                            else
-                            {
-                                FarFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyFriendlyUnits.Add(unit);
-                                }
+                                NearbyUnFriendlyUnits.Add(unit);
+                                NearbyUnFriendlyPlayers.Add(unit);
                             }
                         }
-                        else if (InArena || InBattleground)
+                        else
                         {
-                            EnemyListCacheAdd(unit, 10);
-                            WoWPlayer player4 = unit as WoWPlayer;
-                            if (player4 != null)
+                            FarUnFriendlyUnits.Add(unit);
+                            if (unit.Distance <= 40.0)
                             {
-                                FarUnFriendlyPlayers.Add(unit);
-                                FarUnFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyUnFriendlyUnits.Add(unit);
-                                    NearbyUnFriendlyPlayers.Add(unit);
-                                }
-                            }
-                            else
-                            {
-                                FarUnFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyUnFriendlyUnits.Add(unit);
-                                }
+                                NearbyUnFriendlyUnits.Add(unit);
                             }
                         }
-                        else if (((!unit.IsFriendly && unit.Attackable) && !unit.IsQuestGiver) || ((Me.Combat && IsDummy(unit)) && Me.IsFacing(unit)))
+                        continue;
+                    }
+                    if (((!unit.IsFriendly && unit.Attackable) && !unit.IsQuestGiver) || ((Me.Combat && IsDummy(unit)) && Me.IsFacing(unit)))
+                    {
+                        WoWPlayer player3 = unit as WoWPlayer;
+                        if (((!IsUsingAFKBot && (player3 != null)) && (player3.Combat && (player3.CurrentTarget != null))) && (player3.CurrentTarget == Me))
                         {
-                            EnemyListCacheAdd(unit, 10);
-                            WoWPlayer player5 = unit as WoWPlayer;
-                            if (((!IsUsingAFKBot && (player5 != null)) && (player5.Combat && (player5.CurrentTarget != null))) && (player5.CurrentTarget == Me))
+                            FarUnFriendlyPlayers.Add(unit);
+                            FarUnFriendlyUnits.Add(unit);
+                            if (unit.Distance <= 40.0)
                             {
-                                FarUnFriendlyPlayers.Add(unit);
-                                FarUnFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyUnFriendlyUnits.Add(unit);
-                                    NearbyUnFriendlyPlayers.Add(unit);
-                                }
+                                NearbyUnFriendlyUnits.Add(unit);
+                                NearbyUnFriendlyPlayers.Add(unit);
                             }
-                            else
+                        }
+                        else
+                        {
+                            FarUnFriendlyUnits.Add(unit);
+                            if (unit.Distance <= 40.0)
                             {
-                                FarUnFriendlyUnits.Add(unit);
-                                if (unit.Distance <= 40.0)
-                                {
-                                    NearbyUnFriendlyUnits.Add(unit);
-                                }
+                                NearbyUnFriendlyUnits.Add(unit);
                             }
                         }
                     }
@@ -603,7 +412,7 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region Pulse
+        #region Pulse@
 
         private static DateTime LastSwitch;
         private static DateTime BurstLast;
@@ -611,236 +420,221 @@ namespace TuanHA_Combat_Routine
 
         public override void Pulse()
         {
-            if (!BasicCheck(Me) ||
-                !StyxWoW.IsInWorld ||
-                Me.Mounted)
+            if (BasicCheck(Me) && StyxWoW.IsInWorld)
             {
-                return;
-            }
 
-            if (THSettings.Instance.UpdateStatus)
-            {
-                UpdateStatus();
-            }
-            else
-            {
-                //////done
-                GlobalCheck();
-                //////done
-                UseTrinketVoid();
-                //////done
-                ReturningFlag();
-                if (!Me.Mounted &&
-                    (THSettings.Instance.AutoGhostWolfCancel ||
-                     !MeHasAura("Ghost Wolf")))
+                if (THSettings.Instance.UpdateStatus)
                 {
-                    //////done
-                    WindShearInterruptVoid();
-                    //////done
-                    ///可优化逻辑，例如当通过hotkey使用电能图腾时，投掷目标为当前目标或者focus。另外队友血少，可增加队友被晕，切敌人目标为队友
-                    CapacitorProjection(THSettings.Instance.CapacitorProjectionMs);
-                    //////done
-                    GroundingCastInterruptVoid();
-                    //CapacitorTestPosition();
-                    //////TotemicRestoration();
-                    //////done
-                    Tremor();
-                    //////done
-                    ShamanisticCC();
-                    //////done
-                    GhostWolfAvoidCC();
-
-                    WarStompVoid();
-
-                    StopCastingCheck();
+                    UpdateStatus();
                 }
-
-                //Pause
-                if (THSettings.Instance.PauseKeyUse && THSettings.Instance.PauseKey != 0)
+                else
                 {
-                    //AoE Mode
-                    if (GetAsyncKeyState(Keys.LControlKey) < 0 &&
-                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.PauseKey)) < 0 &&
-                        LastSwitch.AddSeconds(1) < DateTime.Now) // && GetActiveWindowTitle() == "World of Warcraft")
+                    GlobalCheck();
+                    UseTrinketVoid();
+                    ReturningFlag();
+                    if (!Me.Mounted && (THSettings.Instance.AutoGhostWolfCancel || !MeHasAura("Ghost Wolf")))
                     {
-                        if (THSettings.Instance.Pause)
+                        //需要根据不同组合打断
+                        WindShearInterruptVoid();
+                        ///可优化逻辑，例如当通过hotkey使用电能图腾时，投掷目标为当前目标或者focus。另外队友血少，可增加队友被晕，切敌人目标为队友
+                        CapacitorProjection(THSettings.Instance.CapacitorProjectionMs);
+                        GroundingCastInterruptVoid();
+                        //在无治疗时才用，还有通过丢图腾帮治疗解恐惧
+                        Tremor();
+                        ShamanisticCC();
+                        GhostWolfAvoidCC();
+                        WarStompVoid();
+                        StopCastingCheck();
+                    }
+
+                    //Pause
+                    if (THSettings.Instance.PauseKeyUse && THSettings.Instance.PauseKey != 0)
+                    {
+                        //AoE Mode
+                        if (GetAsyncKeyState(Keys.LControlKey) < 0 &&
+                            GetAsyncKeyState(IndexToKeys(THSettings.Instance.PauseKey)) < 0 &&
+                            LastSwitch.AddSeconds(1) < DateTime.Now) // && GetActiveWindowTitle() == "World of Warcraft")
                         {
-                            THSettings.Instance.Pause = false;
-                            LastSwitch = DateTime.Now;
-                            Logging.Write("Pause Mode is OFF, Hold 1 second Ctrl + " +
-                                          IndexToKeys(THSettings.Instance.PauseKey) +
-                                          " to Override bot action.");
-                            Lua.DoString("RunMacroText(\"/script msg='Pause Mode OFF' print(msg)\")");
-                        }
-                        else
-                        {
-                            THSettings.Instance.Pause = true;
-                            THSettings.Instance.UpdateStatus = true;
-                            LastSwitch = DateTime.Now;
-                            Logging.Write("Pause Mode is ON, Hold 1 second Ctrl + " +
-                                          IndexToKeys(THSettings.Instance.PauseKey) +
-                                          " to resume bot action.");
-                            Lua.DoString("RunMacroText(\"/script msg='Pause Mode ON' print(msg)\")");
+                            if (THSettings.Instance.Pause)
+                            {
+                                THSettings.Instance.Pause = false;
+                                LastSwitch = DateTime.Now;
+                                Logging.Write("Pause Mode is OFF, Hold 1 second Ctrl + " +
+                                              IndexToKeys(THSettings.Instance.PauseKey) +
+                                              " to Override bot action.");
+                                Lua.DoString("RunMacroText(\"/script msg='Pause Mode OFF' print(msg)\")");
+                            }
+                            else
+                            {
+                                THSettings.Instance.Pause = true;
+                                THSettings.Instance.UpdateStatus = true;
+                                LastSwitch = DateTime.Now;
+                                Logging.Write("Pause Mode is ON, Hold 1 second Ctrl + " +
+                                              IndexToKeys(THSettings.Instance.PauseKey) +
+                                              " to resume bot action.");
+                                Lua.DoString("RunMacroText(\"/script msg='Pause Mode ON' print(msg)\")");
+                            }
                         }
                     }
-                }
 
-                //Auto Disactivate Burst after a Timer or Me get CC
-                if (THSettings.Instance.Burst && BurstLast < DateTime.Now)
-                {
-                    THSettings.Instance.Burst = false;
-                    BurstLast = DateTime.Now;
-                    Logging.Write("Burst Mode is OFF");
-                    Lua.DoString("RunMacroText(\"/script msg='Burst Mode OFF' print(msg)\")");
-                }
-
-                //Burst on Cooldown
-                if (THSettings.Instance.BurstKey == 1 &&
-                    THSettings.Instance.Burst == false &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated On Cooldown");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst on Cooldown
-                if (THSettings.Instance.BurstKey == 2 &&
-                    THSettings.Instance.Burst == false &&
-                    CurrentTargetAttackable(40) &&
-                    Me.CurrentTarget.IsBoss &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated On Cooldown (Boss Only)");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst on Bloodlust
-                if (THSettings.Instance.BurstKey == 3 &&
-                    THSettings.Instance.Burst == false &&
-                    (MeHasAura("Bloodlust") || MeHasAura("Heroism") || MeHasAura("Time Warp") ||
-                     MeHasAura("Ancient Hysteria")) &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated On Bloodlust/Heroism/Time Warp/Ancient Hysteria");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst On Lose Control
-                if (THSettings.Instance.BurstKey == 4 &&
-                    THSettings.Instance.Burst == false &&
-                    DebuffCCDuration(Me, 3000))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated on Lose Control");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst On My Health Below
-                if (THSettings.Instance.BurstKey == 5 &&
-                    THSettings.Instance.Burst == false &&
-                    HealWeightMe < THSettings.Instance.BurstHP &&
-                    ! DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated on My Health Low");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst On Friend Health Below
-                if (THSettings.Instance.BurstKey == 6 &&
-                    THSettings.Instance.Burst == false &&
-                    BasicCheck(UnitHeal) &&
-                    !UnitHeal.IsPet &&
-                    HealWeightUnitHeal <= THSettings.Instance.BurstHP &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated on Friend Health Low");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst On Enemy Health Below
-                if (THSettings.Instance.BurstKey == 7 &&
-                    THSettings.Instance.Burst == false &&
-                    CurrentTargetAttackable(40) &&
-                    !Me.CurrentTarget.IsPet &&
-                    HealWeightMe > THSettings.Instance.UrgentHeal &&
-                    Me.CurrentTarget.HealthPercent <= THSettings.Instance.BurstHP &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated on Enemy Health Low");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst On My Mana Below
-                if (THSettings.Instance.BurstKey == 8 &&
-                    THSettings.Instance.Burst == false &&
-                    Me.ManaPercent < THSettings.Instance.BurstHP &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated on My Mana Low");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst On Using Cooldown 使用升腾的时候，自动设置为burst
-                if (THSettings.Instance.BurstKey == 9 &&
-                    THSettings.Instance.Burst == false &&
-                    BuffBurst(Me) &&
-                    !DebuffCC(Me))
-                {
-                    BurstLast = DateTime.Now.AddSeconds(15);
-                    Logging.Write("Burst Mode Activated on Using Cooldown");
-                    THSettings.Instance.Burst = true;
-                }
-
-                //Burst by key press
-                if (THSettings.Instance.BurstKey > 9)
-                {
-                    if(THSettings.Instance.Burst == false &&
-                       CurrentTargetAttackable(30) &&
-                       !Me.CurrentTarget.IsPet &&
-                       Me.CurrentTarget.HealthPercent <= THSettings.Instance.BurstHP &&
-                       !CurrentTargetCheckInvulnerablePhysic &&
-                       !DebuffCC(Me) &&
-                        //SSpellManager.HasSpell("Ascendance") &&
-                       Me.ManaPercent > 20 &&
-                       InArena &&
-                       CanCastCheck("Ascendance", true) &&
-                       CanCastCheck("Primal Strike")) //Suck to pop CD and no Mana to use seplls
-                       {
-                           BurstLast = DateTime.Now.AddSeconds(15);
-                           Logging.Write("Burst Mode Activated on Enemy Health Low");
-                           THSettings.Instance.Burst = true;
-                       }
-
-                    //Burst Mode
-                    if (GetAsyncKeyState(Keys.LControlKey) < 0 &&
-                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.BurstKey - 9)) < 0 &&
-                        LastSwitch.AddSeconds(1) < DateTime.Now) // && GetActiveWindowTitle() == "World of Warcraft")
+                    //Auto Disactivate Burst after a Timer or Me get CC
+                    if (THSettings.Instance.Burst && BurstLast < DateTime.Now)
                     {
-                        if (THSettings.Instance.Burst)
+                        THSettings.Instance.Burst = false;
+                        BurstLast = DateTime.Now;
+                        Logging.Write("Burst Mode is OFF");
+                        Lua.DoString("RunMacroText(\"/script msg='Burst Mode OFF' print(msg)\")");
+                    }
+
+                    //Burst on Cooldown
+                    if (THSettings.Instance.BurstKey == 1 &&
+                        THSettings.Instance.Burst == false &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated On Cooldown");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst on Cooldown
+                    if (THSettings.Instance.BurstKey == 2 &&
+                        THSettings.Instance.Burst == false &&
+                        CurrentTargetAttackable(40) &&
+                        Me.CurrentTarget.IsBoss &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated On Cooldown (Boss Only)");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst on Bloodlust
+                    if (THSettings.Instance.BurstKey == 3 &&
+                        THSettings.Instance.Burst == false &&
+                        (MeHasAura("Bloodlust") || MeHasAura("Heroism") || MeHasAura("Time Warp") ||
+                         MeHasAura("Ancient Hysteria")) &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated On Bloodlust/Heroism/Time Warp/Ancient Hysteria");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst On Lose Control
+                    if (THSettings.Instance.BurstKey == 4 &&
+                        THSettings.Instance.Burst == false &&
+                        DebuffCCDuration(Me, 3000))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated on Lose Control");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst On My Health Below
+                    if (THSettings.Instance.BurstKey == 5 &&
+                        THSettings.Instance.Burst == false &&
+                        HealWeightMe < THSettings.Instance.BurstHP &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated on My Health Low");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst On Friend Health Below
+                    if (THSettings.Instance.BurstKey == 6 &&
+                        THSettings.Instance.Burst == false &&
+                        BasicCheck(UnitHeal) &&
+                        !UnitHeal.IsPet &&
+                        HealWeightUnitHeal <= THSettings.Instance.BurstHP &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated on Friend Health Low");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst On Enemy Health Below
+                    if (THSettings.Instance.BurstKey == 7 &&
+                        THSettings.Instance.Burst == false &&
+                        CurrentTargetAttackable(40) &&
+                        !Me.CurrentTarget.IsPet &&
+                        HealWeightMe > THSettings.Instance.UrgentHeal &&
+                        Me.CurrentTarget.HealthPercent <= THSettings.Instance.BurstHP &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated on Enemy Health Low");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst On My Mana Below
+                    if (THSettings.Instance.BurstKey == 8 &&
+                        THSettings.Instance.Burst == false &&
+                        Me.ManaPercent < THSettings.Instance.BurstHP &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated on My Mana Low");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst On Using Cooldown 使用升腾的时候，自动设置为burst
+                    if (THSettings.Instance.BurstKey == 9 &&
+                        THSettings.Instance.Burst == false &&
+                        BuffBurst(Me) &&
+                        !DebuffCC(Me))
+                    {
+                        BurstLast = DateTime.Now.AddSeconds(15);
+                        Logging.Write("Burst Mode Activated on Using Cooldown");
+                        THSettings.Instance.Burst = true;
+                    }
+
+                    //Burst by key press
+                    if (THSettings.Instance.BurstKey > 9)
+                    {
+                        //新增加的判断,敌人血少时自动开burst.
+                        if (THSettings.Instance.Burst == false &&
+                           CurrentTargetAttackable(30) &&
+                           !Me.CurrentTarget.IsPet &&
+                           Me.CurrentTarget.HealthPercent <= THSettings.Instance.BurstHP &&
+                           !CurrentTargetCheckInvulnerablePhysic &&
+                           !DebuffCC(Me) &&
+                            //SSpellManager.HasSpell("Ascendance") &&
+                           Me.ManaPercent > 20 &&
+                           InArena &&
+                           CanCastCheck("Ascendance", true) &&
+                           CanCastCheck("Primal Strike")) //Suck to pop CD and no Mana to use seplls
                         {
-                            THSettings.Instance.Burst = false;
-                            LastSwitch = DateTime.Now;
-                            Logging.Write("Burst Mode is OFF, Hold 1 second Ctrl + " +
-                                          IndexToKeys(THSettings.Instance.BurstKey - 8) +
-                                          " to Turn Burst Mode ON.");
-                            Lua.DoString("RunMacroText(\"/script msg='Burst Mode OFF' print(msg)\")");
-                        }
-                        else if (!DebuffCC(Me))
-                        {
-                            THSettings.Instance.Burst = true;
-                            LastSwitch = DateTime.Now;
                             BurstLast = DateTime.Now.AddSeconds(15);
-                            Logging.Write("Burst Mode is ON, Hold 1 second Ctrl + " +
-                                          IndexToKeys(THSettings.Instance.BurstKey - 8) +
-                                          " to Turn Burst Mode OFF.");
-                            Lua.DoString("RunMacroText(\"/script msg='Burst Mode ON' print(msg)\")");
+                            Logging.Write("Burst Mode Activated on Enemy Health Low");
+                            THSettings.Instance.Burst = true;
+                        }
+
+                        //Burst Mode
+                        if (GetAsyncKeyState(Keys.LControlKey) < 0 &&
+                            GetAsyncKeyState(IndexToKeys(THSettings.Instance.BurstKey - 9)) < 0 &&
+                            LastSwitch.AddSeconds(1) < DateTime.Now) // && GetActiveWindowTitle() == "World of Warcraft")
+                        {
+                            if (THSettings.Instance.Burst)
+                            {
+                                THSettings.Instance.Burst = false;
+                                LastSwitch = DateTime.Now;
+                                Logging.Write("Burst Mode is OFF, Hold 1 second Ctrl + " +
+                                              IndexToKeys(THSettings.Instance.BurstKey - 8) +
+                                              " to Turn Burst Mode ON.");
+                                Lua.DoString("RunMacroText(\"/script msg='Burst Mode OFF' print(msg)\")");
+                            }
+                            else if (!DebuffCC(Me))
+                            {
+                                THSettings.Instance.Burst = true;
+                                LastSwitch = DateTime.Now;
+                                BurstLast = DateTime.Now.AddSeconds(15);
+                                Logging.Write("Burst Mode is ON, Hold 1 second Ctrl + " +
+                                              IndexToKeys(THSettings.Instance.BurstKey - 8) +
+                                              " to Turn Burst Mode OFF.");
+                                Lua.DoString("RunMacroText(\"/script msg='Burst Mode ON' print(msg)\")");
+                            }
                         }
                     }
                 }
@@ -936,13 +730,13 @@ namespace TuanHA_Combat_Routine
 
         #region MainRotation
 
-        private static Composite PreCombatRotation()
-        {
-            return new Decorator(
-                ret =>
-                !Me.Combat,
-                MainRotation());
-        }
+        //private static Composite PreCombatRotation()
+        //{
+        //    return new Decorator(
+        //        ret =>
+        //        !Me.Combat,
+        //        MainRotation());
+        //}
 
         private static bool AoEModeOn;
         private static readonly Stopwatch sw = Stopwatch.StartNew();
@@ -1056,6 +850,7 @@ namespace TuanHA_Combat_Routine
                 
                 Hold(),//.
                 //SWStop("Hold"),
+                //ManualCastPause(),
                 //Hotkey1 & Hotkey2增加了一个6秒的计时,计时内,根据不同计时器名称,判断图腾是丢给目标或者焦点
                 Hotkey1(),//.
                 //SWStop("Hotkey1"),

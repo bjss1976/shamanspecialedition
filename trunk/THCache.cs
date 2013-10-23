@@ -362,55 +362,49 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region InLineOfSpellSightCache
+        #region InLineOfSpellSightCache@
 
         private static readonly Dictionary<ulong, DateTime> InLineOfSpellSightCache = new Dictionary<ulong, DateTime>();
 
         private static void InLineOfSpellSightCacheClear()
         {
-            var indexToRemove = InLineOfSpellSightCache.Where(
-                unit =>
-                unit.Value < DateTime.Now).Select(unit => unit.Key).ToList();
-
-
-            foreach (var index in indexToRemove)
+            foreach (ulong num in (from unit in InLineOfSpellSightCache
+                                   where unit.Value < DateTime.Now
+                                   select unit.Key).ToList<ulong>())
             {
-                InLineOfSpellSightCache.Remove(index);
+                InLineOfSpellSightCache.Remove(num);
             }
         }
 
         private static void InLineOfSpellSightCacheAdd(WoWUnit unit, int expireMilliseconds = 100)
         {
-            if (InLineOfSpellSightCache.ContainsKey(unit.Guid)) return;
-            //Logging.Write("Add {0} ({1}) to InLineOfSpellSightCache", unit.Guid, unit.Name);
-            InLineOfSpellSightCache.Add(unit.Guid, DateTime.Now + TimeSpan.FromMilliseconds(expireMilliseconds));
+            if (!InLineOfSpellSightCache.ContainsKey(unit.Guid))
+            {
+                InLineOfSpellSightCache.Add(unit.Guid, DateTime.Now + TimeSpan.FromMilliseconds((double)expireMilliseconds));
+            }
         }
 
         private static bool InLineOfSpellSightCheck(WoWUnit unit)
         {
-            if (unit == null || !unit.IsValid)
+            if ((unit == null) || !unit.IsValid)
             {
                 return false;
             }
-
             InLineOfSpellSightCacheClear();
-
-            if (unit == Me || InLineOfSpellSightCache.ContainsKey(unit.Guid))
+            if ((unit != Me) && !InLineOfSpellSightCache.ContainsKey(unit.Guid))
             {
-                return true;
-            }
-
-            if (unit.InLineOfSpellSight)
-            {
+                if (!unit.InLineOfSpellSight)
+                {
+                    return false;
+                }
                 if (InRaid || InDungeon)
                 {
                     InLineOfSpellSightCacheAdd(unit, 300);
                     return true;
                 }
-                InLineOfSpellSightCacheAdd(unit,100);//.
-                return true;
+                InLineOfSpellSightCacheAdd(unit, 100);
             }
-            return false;
+            return true;
         }
 
         #endregion
