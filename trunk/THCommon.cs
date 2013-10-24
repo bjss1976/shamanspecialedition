@@ -3526,20 +3526,10 @@ namespace TuanHA_Combat_Routine
 
         private static Composite LightningShield()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningShield &&
-                //SSpellManager.HasSpell("Lightning Shield") &&
-                //!Me.Mounted &&
-                //!MeHasAura(52127) &&
-                //(!MeHasAura(52127) ||
-                // MeHasAura(52127) &&
-                // Me.ManaPercent > THSettings.Instance.PriorityHeal) && //Water Shield
-                MyAuraTimeLeft(324, Me) < 1800000 &&
-                CanCastCheck("Lightning Shield"),
-                new Action(
-                    ret => { CastSpell("Lightning Shield", Me, "LightningShield"); })
-                );
+            return new Decorator(ret => (THSettings.Instance.LightningShield && (MyAuraTimeLeft(0x144, Me) < 1800000.0)) && CanCastCheck("Lightning Shield", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Lightning Shield", Me, "LightningShield");
+            }));
         }
 
         #endregion
