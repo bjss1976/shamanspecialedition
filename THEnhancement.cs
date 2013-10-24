@@ -91,12 +91,12 @@ namespace TuanHA_Combat_Routine
                         FireElemental(),
                         ///需要治疗者在30码内，血少于门限，连接图腾
                         HealingTideTotem(),
-                        ///治疗图腾，血少用
+                        ///治疗图腾，需要增加没有治疗时使用,或者治疗被晕时给治疗使用
                         HealingStreamTotem(),
                         //////done
-                        ///4层漩涡或20码外或5码外且自己被定身或20码内，对方血不少或比我高，蓝高于40%，用治疗波
+                        ///4层漩涡或20码外或5码外且自己被定身或20码内，对方血不少或比我高，蓝高于40%，用治疗波,需要增加治疗被晕时给治疗加血
                         HealingSurgeInCombatEnh(),
-                        ///自动补电盾
+                        ///自动补电盾,血少改水盾
                         LightningShield(),
                         ///武器付魔
                         //////TemporaryEnchantmentEnhancement(),
