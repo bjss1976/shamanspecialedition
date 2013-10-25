@@ -43,8 +43,8 @@ namespace TuanHA_Combat_Routine
 
         public override Composite PreCombatBuffBehavior
         {
-            get { return PreCombatRotation(); }
-            //get { return MainRotation(); }
+            //get { return PreCombatRotation(); }
+            get { return MainRotation(); }
         }
 
         //public override Composite PullBuffBehavior
@@ -152,75 +152,72 @@ namespace TuanHA_Combat_Routine
                 FarUnFriendlyUnits.Clear();
                 foreach (WoWUnit unit in GetAllUnits())
                 {
-                    if (((Blacklist.Contains(unit.Guid, BlacklistFlags.Pull | BlacklistFlags.Interact | BlacklistFlags.Node | BlacklistFlags.Combat | BlacklistFlags.Loot) || !unit.IsAlive) || (!unit.CanSelect || unit.IsPet)) || (unit.Distance > 60.0))
+                    if (((!Blacklist.Contains(unit.Guid, BlacklistFlags.All) && unit.IsAlive) && (unit.CanSelect && !unit.IsPet)) && (unit.Distance <= 60.0))
                     {
-                        continue;
-                    }
-                    if (IsMyPartyRaidMember(unit))
-                    {
-                        WoWPlayer player = unit as WoWPlayer;
-                        if ((player != null) || NeedHealUnit(unit))
+                        if (IsMyPartyRaidMember(unit))
                         {
-                            FarFriendlyPlayers.Add(unit);
-                            FarFriendlyUnits.Add(unit);
-                            if (unit.Distance <= 40.0)
+                            WoWPlayer player = unit as WoWPlayer;
+                            if ((player != null) || NeedHealUnit(unit))
                             {
-                                NearbyFriendlyUnits.Add(unit);
-                                NearbyFriendlyPlayers.Add(unit);
+                                FarFriendlyPlayers.Add(unit);
+                                FarFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyFriendlyUnits.Add(unit);
+                                    NearbyFriendlyPlayers.Add(unit);
+                                }
+                            }
+                            else
+                            {
+                                FarFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyFriendlyUnits.Add(unit);
+                                }
                             }
                         }
-                        else
+                        else if (Me.CurrentMap.IsArena || Me.CurrentMap.IsBattleground)
                         {
-                            FarFriendlyUnits.Add(unit);
-                            if (unit.Distance <= 40.0)
+                            WoWPlayer player2 = unit as WoWPlayer;
+                            if (player2 != null)
                             {
-                                NearbyFriendlyUnits.Add(unit);
+                                FarUnFriendlyPlayers.Add(unit);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                    NearbyUnFriendlyPlayers.Add(unit);
+                                }
+                            }
+                            else
+                            {
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                }
                             }
                         }
-                        continue;
-                    }
-                    if (Me.CurrentMap.IsArena || Me.CurrentMap.IsBattleground)
-                    {
-                        WoWPlayer player2 = unit as WoWPlayer;
-                        if (player2 != null)
+                        else if (((!unit.IsFriendly && unit.Attackable) && !unit.IsQuestGiver) || ((Me.Combat && IsDummy(unit)) && Me.IsFacing(unit)))
                         {
-                            FarUnFriendlyPlayers.Add(unit);
-                            FarUnFriendlyUnits.Add(unit);
-                            if (unit.Distance <= 40.0)
+                            WoWPlayer player3 = unit as WoWPlayer;
+                            if (((!IsUsingAFKBot && (player3 != null)) && (player3.Combat && (player3.CurrentTarget != null))) && (player3.CurrentTarget == Me))
                             {
-                                NearbyUnFriendlyUnits.Add(unit);
-                                NearbyUnFriendlyPlayers.Add(unit);
+                                FarUnFriendlyPlayers.Add(unit);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                    NearbyUnFriendlyPlayers.Add(unit);
+                                }
                             }
-                        }
-                        else
-                        {
-                            FarUnFriendlyUnits.Add(unit);
-                            if (unit.Distance <= 40.0)
+                            else
                             {
-                                NearbyUnFriendlyUnits.Add(unit);
-                            }
-                        }
-                        continue;
-                    }
-                    if (((!unit.IsFriendly && unit.Attackable) && !unit.IsQuestGiver) || ((Me.Combat && IsDummy(unit)) && Me.IsFacing(unit)))
-                    {
-                        WoWPlayer player3 = unit as WoWPlayer;
-                        if (((!IsUsingAFKBot && (player3 != null)) && (player3.Combat && (player3.CurrentTarget != null))) && (player3.CurrentTarget == Me))
-                        {
-                            FarUnFriendlyPlayers.Add(unit);
-                            FarUnFriendlyUnits.Add(unit);
-                            if (unit.Distance <= 40.0)
-                            {
-                                NearbyUnFriendlyUnits.Add(unit);
-                                NearbyUnFriendlyPlayers.Add(unit);
-                            }
-                        }
-                        else
-                        {
-                            FarUnFriendlyUnits.Add(unit);
-                            if (unit.Distance <= 40.0)
-                            {
-                                NearbyUnFriendlyUnits.Add(unit);
+                                FarUnFriendlyUnits.Add(unit);
+                                if (unit.Distance <= 40.0)
+                                {
+                                    NearbyUnFriendlyUnits.Add(unit);
+                                }
                             }
                         }
                     }
@@ -611,6 +608,31 @@ namespace TuanHA_Combat_Routine
                             THSettings.Instance.Burst = true;
                         }
 
+                        //新增加，在JJC，如果治疗血少且被2人攻击，我的先祖可以使用时，爆发回血
+                        if (THSettings.Instance.Burst == false &&
+                           CurrentTargetAttackable(30) &&
+                           !Me.CurrentTarget.IsPet &&
+                           InArena &&
+                           UnitHealIsValid &&
+                           TalentSort(UnitHeal) == 4 &&
+                           (UnitHeal.HealthPercent <= 20 ||
+                            (DebuffStunDuration(UnitHeal,4000) &&
+                             UnitHeal.HealthPercent <= 50) ||
+                            (DebuffStunDuration(UnitHeal,4000) &&
+                             UnitHeal.HealthPercent <= 70 &&
+                             CountDPSTarget(UnitHeal) >1)) &&
+                           Me.ManaPercent > 20 &&
+                           CanCastCheck("Ascendance", true) &&
+                           CanCastCheck("Primal Strike") &&
+                            CanCastCheck("Ancestral Guidance") &&
+                           !CurrentTargetCheckInvulnerablePhysic &&
+                           !DebuffCC(Me))
+                        {
+                            BurstLast = DateTime.Now.AddSeconds(15);
+                            Logging.Write("Burst Mode Activated due to healer health too low");
+                            THSettings.Instance.Burst = true;
+                        }
+
                         //Burst Mode
                         if (GetAsyncKeyState(Keys.LControlKey) < 0 &&
                             GetAsyncKeyState(IndexToKeys(THSettings.Instance.BurstKey - 9)) < 0 &&
@@ -846,11 +868,9 @@ namespace TuanHA_Combat_Routine
                         }
                         return RunStatus.Failure;
                     }),
-
-                
                 Hold(),//.
                 //SWStop("Hold"),
-                //ManualCastPause(),
+
                 //Hotkey1 & Hotkey2增加了一个6秒的计时,计时内,根据不同计时器名称,判断图腾是丢给目标或者焦点
                 Hotkey1(),//.
                 //SWStop("Hotkey1"),
@@ -862,7 +882,7 @@ namespace TuanHA_Combat_Routine
                 //SWStop("Hotkey4"),
                 Hotkey5(),//.
                 //SWStop("Hotkey5"),
-
+                ManualCastPause(),
                 //UpdateRaidPartyMembersComp(),
 
                 new Decorator(

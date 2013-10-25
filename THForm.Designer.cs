@@ -55,6 +55,8 @@
             this.Hex = new System.Windows.Forms.CheckBox();
             this.HexHealer = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.AutoDetectManualCast = new System.Windows.Forms.CheckBox();
+            this.AutoDetectManualCastMS = new System.Windows.Forms.NumericUpDown();
             this.AutoAttackOutCombat = new System.Windows.Forms.CheckBox();
             this.AutoSetFocus = new System.Windows.Forms.CheckBox();
             this.FlagReturnorPickup = new System.Windows.Forms.CheckBox();
@@ -74,7 +76,6 @@
             this.AutoUseFoodHP = new System.Windows.Forms.NumericUpDown();
             this.AutoMove = new System.Windows.Forms.CheckBox();
             this.AutoTarget = new System.Windows.Forms.CheckBox();
-            this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -351,6 +352,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.Trinket1HP)).BeginInit();
             this.groupBox16.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.AutoDetectManualCastMS)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.UnittoStartAoE)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.AutoUseFoodHP)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -466,7 +468,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(752, 352);
+            this.tabPage1.Size = new System.Drawing.Size(878, 352);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Welcome";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -836,6 +838,8 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.AutoDetectManualCast);
+            this.groupBox3.Controls.Add(this.AutoDetectManualCastMS);
             this.groupBox3.Controls.Add(this.AutoAttackOutCombat);
             this.groupBox3.Controls.Add(this.AutoSetFocus);
             this.groupBox3.Controls.Add(this.FlagReturnorPickup);
@@ -855,7 +859,6 @@
             this.groupBox3.Controls.Add(this.AutoUseFoodHP);
             this.groupBox3.Controls.Add(this.AutoMove);
             this.groupBox3.Controls.Add(this.AutoTarget);
-            this.groupBox3.Controls.Add(this.label7);
             this.groupBox3.Controls.Add(this.label6);
             this.groupBox3.Controls.Add(this.label5);
             this.groupBox3.Controls.Add(this.label4);
@@ -874,6 +877,35 @@
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Control";
+            // 
+            // AutoDetectManualCast
+            // 
+            this.AutoDetectManualCast.AutoSize = true;
+            this.AutoDetectManualCast.Location = new System.Drawing.Point(7, 223);
+            this.AutoDetectManualCast.Name = "AutoDetectManualCast";
+            this.AutoDetectManualCast.Size = new System.Drawing.Size(174, 16);
+            this.AutoDetectManualCast.TabIndex = 212;
+            this.AutoDetectManualCast.Text = "Auto Pause on Manual Cast";
+            this.AutoDetectManualCast.UseVisualStyleBackColor = true;
+            this.AutoDetectManualCast.CheckedChanged += new System.EventHandler(this.AutoDetectManualCast_CheckedChanged);
+            // 
+            // AutoDetectManualCastMS
+            // 
+            this.AutoDetectManualCastMS.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.AutoDetectManualCastMS.Location = new System.Drawing.Point(212, 217);
+            this.AutoDetectManualCastMS.Name = "AutoDetectManualCastMS";
+            this.AutoDetectManualCastMS.Size = new System.Drawing.Size(40, 21);
+            this.AutoDetectManualCastMS.TabIndex = 211;
+            this.AutoDetectManualCastMS.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.AutoDetectManualCastMS.ValueChanged += new System.EventHandler(this.AutoDetectManualCastMS_ValueChanged);
             // 
             // AutoAttackOutCombat
             // 
@@ -975,7 +1007,7 @@
             "Ctrl + Down",
             "Ctrl + Left",
             "Ctrl + Right"});
-            this.PauseKey.Location = new System.Drawing.Point(165, 222);
+            this.PauseKey.Location = new System.Drawing.Point(165, 246);
             this.PauseKey.Name = "PauseKey";
             this.PauseKey.Size = new System.Drawing.Size(73, 20);
             this.PauseKey.TabIndex = 65;
@@ -984,7 +1016,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(6, 225);
+            this.label10.Location = new System.Drawing.Point(6, 249);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(107, 12);
             this.label10.TabIndex = 66;
@@ -1036,7 +1068,7 @@
             // 
             // UnittoStartAoE
             // 
-            this.UnittoStartAoE.Location = new System.Drawing.Point(198, 174);
+            this.UnittoStartAoE.Location = new System.Drawing.Point(212, 169);
             this.UnittoStartAoE.Minimum = new decimal(new int[] {
             1,
             0,
@@ -1103,7 +1135,7 @@
             0,
             0,
             0});
-            this.AutoUseFoodHP.Location = new System.Drawing.Point(198, 198);
+            this.AutoUseFoodHP.Location = new System.Drawing.Point(212, 193);
             this.AutoUseFoodHP.Name = "AutoUseFoodHP";
             this.AutoUseFoodHP.Size = new System.Drawing.Size(40, 21);
             this.AutoUseFoodHP.TabIndex = 60;
@@ -1130,15 +1162,6 @@
             this.AutoTarget.Text = "Auto Target";
             this.AutoTarget.UseVisualStyleBackColor = true;
             this.AutoTarget.CheckedChanged += new System.EventHandler(this.AutoTarget_CheckedChanged);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(6, 244);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(251, 12);
-            this.label7.TabIndex = 49;
-            this.label7.Text = "Override  Hotkeys - (Disable CR Movement)";
             // 
             // label6
             // 
@@ -4769,7 +4792,7 @@
             this.tabPage6.Controls.Add(this.richTextBox1);
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Size = new System.Drawing.Size(752, 352);
+            this.tabPage6.Size = new System.Drawing.Size(878, 352);
             this.tabPage6.TabIndex = 5;
             this.tabPage6.Text = "Special Thanks";
             this.tabPage6.UseVisualStyleBackColor = true;
@@ -4912,6 +4935,7 @@
             this.groupBox16.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.AutoDetectManualCastMS)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.UnittoStartAoE)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.AutoUseFoodHP)).EndInit();
             this.groupBox1.ResumeLayout(false);
@@ -5037,7 +5061,6 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox AutoMove;
         private System.Windows.Forms.CheckBox AutoTarget;
-        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
@@ -5335,5 +5358,7 @@
         private System.Windows.Forms.CheckBox AutoAttackOutCombat;
         private System.Windows.Forms.CheckBox AutoSetFocus;
         private System.Windows.Forms.CheckBox BindElemental;
+        private System.Windows.Forms.CheckBox AutoDetectManualCast;
+        private System.Windows.Forms.NumericUpDown AutoDetectManualCastMS;
     }
 }
