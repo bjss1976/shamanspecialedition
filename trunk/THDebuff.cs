@@ -12,48 +12,45 @@ namespace TuanHA_Combat_Routine
     {
         #region BuffBurst
         //////done
-        private static readonly HashSet<int> BuffBurstHS = new HashSet<int>
-            {
-                51271, // "Pillar of Frost",
-                49016, //"Unholy Frenzy",
-                102560, // "Incarnation: Chosen of Elune",
-                124974, //"Nature's Vigil",
-                106952, //"Berserk ",
-                19574, //"Bestial Wrath",
-                3045, //"Rapid Fire",
-                12472, //"Icy Veins",
-                //"Time Warp",
-                //"Tigereye Brew",
-                31884, //"Avenging Wrath",
-                105809, //"Holy Avenger",
-                86698, //"Guardian of Ancient Kings",
-                86669, //"Guardian of Ancient Kings",
-                51713, //"Shadow Dance",
-                51690, // "Killing Spree",
-                13750, //Adrenaline Rush
-                114049, // "Ascendance",
-                114051, // "Ascendance",
-                //"Bloodlust",
-                113858, //"Dark Soul: Instability",
-                1719, //"Recklessness",
-                114207, //"Skull Banner",
-            };
+        //private static readonly HashSet<int> BuffBurstHS = new HashSet<int>
+        //    {
+        //        51271, // "Pillar of Frost",
+        //        49016, //"Unholy Frenzy",
+        //        102560, // "Incarnation: Chosen of Elune",
+        //        124974, //"Nature's Vigil",
+        //        106952, //"Berserk ",
+        //        19574, //"Bestial Wrath",
+        //        3045, //"Rapid Fire",
+        //        12472, //"Icy Veins",
+        //        //"Time Warp",
+        //        //"Tigereye Brew",
+        //        31884, //"Avenging Wrath",
+        //        105809, //"Holy Avenger",
+        //        86698, //"Guardian of Ancient Kings",
+        //        86669, //"Guardian of Ancient Kings",
+        //        51713, //"Shadow Dance",
+        //        51690, // "Killing Spree",
+        //        13750, //Adrenaline Rush
+        //        114049, // "Ascendance",
+        //        114051, // "Ascendance",
+        //        //"Bloodlust",
+        //        113858, //"Dark Soul: Instability",
+        //        1719, //"Recklessness",
+        //        114207, //"Skull Banner",
+        //    };
         //////done
+        private static readonly HashSet<int> BuffBurstHS = new HashSet<int> { 
+            0x1a436, 0x3004, 0x1da7f, 0xc847, 0xbf78, 0x190a0, 0x1e82e, 0x1a1c8, 0x4c76, 0xbe5, 0x30b8, 0x7c8c, 0x19d51, 0x152aa, 0x1528d, 0xca01, 
+            0xc9ea, 0x35b6, 0x1bd81, 0x1bd83, 0x1bcc2, 0x6b7, 0x1be1f
+         };
         private static bool BuffBurst(WoWUnit target)
         {
-            //////if (InRaid || !BasicCheck(target))
             if (InRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                BuffBurstHS.Contains(aura.AuraCacheId));
+            AuraCacheUpdate(target, false);
+            return AuraCacheList.Any<AuraCacheClass>(aura => ((aura.AuraCacheUnit == target.Guid) && BuffBurstHS.Contains(aura.AuraCacheId)));
         }
 
         #endregion

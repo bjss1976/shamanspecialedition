@@ -118,6 +118,8 @@ namespace TuanHA_Combat_Routine
             AutoSetFocus.Checked = THSettings.Instance.AutoSetFocus;
             AutoWaterWalking.Checked = THSettings.Instance.AutoWaterWalking;
             AutoWriteLog.Checked = THSettings.Instance.AutoWriteLog;
+            AutoDetectManualCast.Checked = THSettings.Instance.AutoDetectManualCast;
+            AutoDetectManualCastMS.Value = THSettings.Instance.AutoDetectManualCastMS;
             Backward.SelectedIndex = THSettings.Instance.Backward;
             BattleStandard.Checked = THSettings.Instance.BattleStandard;
             BattleStandardHP.Value = THSettings.Instance.BattleStandardHP;
@@ -2042,6 +2044,16 @@ namespace TuanHA_Combat_Routine
         private void BindElemental_CheckedChanged(object sender, EventArgs e)
         {
             THSettings.Instance.BindElemental = BindElemental.Checked;
+        }
+
+        private void AutoDetectManualCast_CheckedChanged(object sender, EventArgs e)
+        {
+            THSettings.Instance.AutoDetectManualCast = AutoDetectManualCast.Checked;
+        }
+
+        private void AutoDetectManualCastMS_ValueChanged(object sender, EventArgs e)
+        {
+            THSettings.Instance.AutoDetectManualCastMS = (int) AutoDetectManualCastMS.Value; 
         }
     }
 }

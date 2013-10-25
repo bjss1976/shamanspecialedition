@@ -608,6 +608,32 @@ namespace TuanHA_Combat_Routine
 
         #region CountDPSTarget
 
+        private static int CountDPSTarget(WoWUnit target)
+        {
+            Func<WoWUnit, bool> predicate = null;
+            Func<WoWUnit, bool> func2 = null;
+            if (InArena || InBattleground)
+            {
+                if (predicate == null)
+                {
+                    predicate = delegate(WoWUnit unit)
+                    {
+                        if (((!BasicCheck(unit) || (unit.CurrentTarget == null)) || (!unit.CurrentTarget.IsValid || (unit.CurrentTarget != target))) || ((((TalentSort(unit) < 2) || (TalentSort(unit) > 3)) || (unit.Location.Distance(target.Location) >= 40f)) && ((TalentSort(unit) != 1) || (unit.Location.Distance(target.Location) >= 15f))))
+                        {
+                            return false;
+                        }
+                        return !DebuffCC(unit);
+                    };
+                }
+                return NearbyUnFriendlyPlayers.Count<WoWUnit>(predicate);
+            }
+            if (func2 == null)
+            {
+                func2 = unit => ((BasicCheck(unit) && (unit.CurrentTarget != null)) && (unit.CurrentTarget.IsValid && (unit.CurrentTarget == target))) && !DebuffCC(unit);
+            }
+            return NearbyUnFriendlyUnits.Count<WoWUnit>(func2);
+        }
+
         //////done
         private static bool HaveDPSTarget(WoWUnit target)
         {
@@ -784,33 +810,28 @@ namespace TuanHA_Combat_Routine
 
         #region CountEneyNeary
 
-        private static int CountEnemyNear(WoWUnit unitCenter, float distance)
+        private static double CountEnemyNear(WoWUnit unitCenter, float distance)
         {
-            return FarUnFriendlyUnits.Count(
-                unit =>
-                BasicCheck(unit) &&
-                unit.MaxHealth > MeMaxHealth * 0.3 &&
-                //!unit.IsPet &&
-                (InProvingGrounds || 
-                 IsDummy(unit) ||
-                 unit.Combat &&
-                 FarFriendlyPlayers.Contains(unit.CurrentTarget)) &&
-                GetDistance(unitCenter, unit) <= distance);
+            return (double)FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(delegate(WoWUnit unit)
+            {
+                if ((!InProvingGrounds && !IsDummy(unit)) && ((!unit.Combat || (unit.MaxHealth <= (MeMaxHealth * 0.2))) || (!unit.GotTarget || !FarFriendlyUnits.Contains(unit.CurrentTarget))))
+                {
+                    return false;
+                }
+                return (GetDistance(unitCenter, unit) <= distance);
+            });
         }
 
         private static bool HasEnemyNear(WoWUnit unitCenter, float distance)
         {
-            return FarUnFriendlyUnits.Where(BasicCheck).Any(
-                unit =>
-                //BasicCheck(unit) &&
-                unit.MaxHealth > MeMaxHealth * 0.3 &&
-                !unit.IsPet &&
-                (InProvingGrounds ||
-                 IsDummy(unit) ||
-                 unit.Combat &&
-                 //BasicCheck(unit.CurrentTarget) &&
-                 FarFriendlyPlayers.Contains(unit.CurrentTarget)) &&
-                GetDistance(unitCenter, unit) <= distance);
+            return FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(delegate(WoWUnit unit)
+            {
+                if ((!InProvingGrounds && !IsDummy(unit)) && ((!unit.Combat || (unit.MaxHealth <= (MeMaxHealth * 0.2))) || (!unit.GotTarget || !FarFriendlyUnits.Contains(unit.CurrentTarget))))
+                {
+                    return false;
+                }
+                return (GetDistance(unitCenter, unit) <= distance);
+            });
         }
 
         #endregion
@@ -884,7 +905,7 @@ namespace TuanHA_Combat_Routine
             }
 
             CurrentTargetCheckLast = Me.CurrentTarget;
-            CurrentTargetCheckFacing = Me.IsSafelyFacing(Me.CurrentTarget,180);
+            CurrentTargetCheckFacing = Me.IsSafelyFacing(Me.CurrentTarget,230);
             CurrentTargetCheckDist = GetDistance(Me.CurrentTarget);
 
             CurrentTargetCheckIsEnemy = IsEnemy(Me.CurrentTarget);
@@ -2610,65 +2631,15 @@ namespace TuanHA_Combat_Routine
 
         private static bool IsEnemy(WoWUnit target)
         {
-            //using (StyxWoW.Memory.AcquireFrame())
+            if (UnitHasAura("Reshape Life", target) || UnitHasAura("Convert", target))
             {
-                if (!BasicCheck(target))
-                {
-                    return false;
-                }
-
-                //if (target.Entry == 62442 && target.IsFriendly) //tsulong
-                //{
-                //    return false;
-                //}
-
-                //if (UnitHasAura("Reshape Life") || //Reshape Life
-                //    UnitHasAura("Convert")) //Convert
-                //{
-                //    return true;
-                //}
-
-
-                if (EnemyListCache.ContainsKey(target.Guid))
-                {
-                    //Logging.Write("{0} in EnemyListCache, Skip Check!", target.Name);
-                    return true;
-                }
-
-                if (FriendListCache.ContainsKey(target.Guid))
-                {
-                    //Logging.Write("{0} in FriendListCache, Skip Check!", target.Name);
-                    return false;
-                }
-
-
-                if (IsMyPartyRaidMember(target))
-                {
-                    //Logging.Write("{0} in IsMyPartyRaidMember, Skip Check!", target.Name);
-                    return false;
-                }
-
-                //////if ((InArena || InBattleground) && SpellTypeCheck())
-                if (InArena || InBattleground)
-                {
-                    //Logging.Write("{0} in InArena || InBattleground, Skip Check!", target.Name);
-                    return true;
-                }
-
-                if (!target.IsFriendly && target.Attackable)
-
-                {
-                    //Logging.Write("{0} !target.IsFriendly && target.Attackable, Skip Check!", target.Name);
-                    return true;
-                }
-
-                if (IsDummy(target) && Me.Combat && Me.IsFacing(target))
-                {
-                    //Logging.Write("{0} IsDummy(target) && Me.Combat && Me.IsFacing(target), Skip Check!", target.Name);
-                    return true;
-                }
+                return true;
+            }
+            if (IsMyPartyRaidMember(target))
+            {
                 return false;
             }
+            return ((Me.CurrentMap.IsArena || Me.CurrentMap.IsBattleground) || (((!target.IsFriendly && target.Attackable) && !target.IsQuestGiver) || ((Me.Combat && IsDummy(target)))));
         }
 
         #endregion
@@ -2694,6 +2665,28 @@ namespace TuanHA_Combat_Routine
                             .Any(unit => (unit.Role & WoWPartyMember.GroupRole.Tank) != 0);
         }
 
+        #endregion
+
+        #region ManualCastPause@
+
+        private static bool AnyKeyPressed()
+        {
+            foreach (Keys keys in System.Enum.GetValues(typeof(Keys)))
+            {
+                if ((((((GetAsyncKeyState(keys) != 0) && (keys != Keys.Space)) && ((keys != Keys.LButton) && (keys != Keys.RButton))) && (((keys != Keys.None) && (keys != Keys.LWin)) && ((keys != Keys.RWin) && (keys != Keys.LShiftKey)))) && ((((keys != Keys.RShiftKey) && (keys != Keys.LControlKey)) && ((keys != Keys.RControlKey) && (keys != Keys.LMenu))) && (((keys != Keys.RMenu) && (keys != Keys.Tab)) && ((keys != Keys.Capital) && (keys != IndexToKeys(THSettings.Instance.StrafleLeft)))))) && ((((keys != IndexToKeys(THSettings.Instance.Forward)) && (keys != IndexToKeys(THSettings.Instance.StrafleRight))) && ((keys != IndexToKeys(THSettings.Instance.TurnLeft)) && (keys != IndexToKeys(THSettings.Instance.Backward)))) && (keys != IndexToKeys(THSettings.Instance.TurnRight))))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static Composite ManualCastPause()
+        {
+            return new Sequence(new Composite[] { new Decorator(ret => THSettings.Instance.AutoDetectManualCast && AnyKeyPressed(), new ActionAlwaysSucceed()), new Styx.TreeSharp.Action(delegate (object param0) {
+                Styx.Common.Logging.Write(Styx.Common.LogLevel.Diagnostic, Colors.Gray, "{0} Manual Cast Detected, Pause for {1} ms", new object[] { DateTime.Now.ToString("ss:fff"), THSettings.Instance.AutoDetectManualCastMS });
+            }), new WaitContinue(TimeSpan.FromMilliseconds((double) THSettings.Instance.AutoDetectManualCastMS), ret => false, new ActionAlwaysSucceed()) });
+        }
         #endregion
 
         #region NeedHealUnit
@@ -2775,9 +2768,9 @@ namespace TuanHA_Combat_Routine
         private static Composite RestRotation()
         {
             return new PrioritySelector(
-                HealingSurgeOutCombatEle(),
-                HealingSurgeOutCombatEnh(),
-                HealingWave(),
+                //HealingSurgeOutCombatEle(),
+                //HealingSurgeOutCombatEnh(),
+                //HealingWave(),
                 new Decorator(
                     ret =>
                     THSettings.Instance.AutoUseFood &&

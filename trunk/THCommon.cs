@@ -31,7 +31,9 @@ namespace TuanHA_Combat_Routine
                 //!Me.Mounted &&
                 //.这个需要考察考察
                 UnitHealIsValid &&
-                UnitHeal.HealthPercent <= 70 &&
+                (UnitHeal.HealthPercent <= 50 ||
+                 !HasHealerWithMe() &&
+                 UnitHeal.HealthPercent <= 70) &&
                 Me.Combat &&
                 CanCastCheck("Ancestral Guidance", true),
                 new Action(
@@ -64,32 +66,23 @@ namespace TuanHA_Combat_Routine
 
         private static Composite AscendanceEnh()
         {
-            return new Decorator(
-                ret =>
-                (THSettings.Instance.AscendanceEnhCooldown ||
-                 THSettings.Instance.AscendanceEnhBurst &&
-                 THSettings.Instance.Burst) &&
-                //!Me.Mounted &&
-                Me.Combat &&
-                CurrentTargetAttackable(30) &&
-                !MeHasAura("Ascendance") &&
-                !CurrentTargetCheckInvulnerablePhysic &&
-                //SSpellManager.HasSpell("Ascendance") &&
-                Me.ManaPercent > 20 &&
-                CanCastCheck("Ascendance", true) &&
-                CanCastCheck("Primal Strike") && //Suck to pop CD and no Mana to use seplls
-                (InArena && IsWorthyTarget(Me.CurrentTarget, 2, 0.1) ||
-                 IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                 HaveWorthyTargetAttackingMe()),
-                new Action(
-                    ret =>
-                        {
-                            CastSpell("Ascendance", Me, "AscendanceEnh");
-                            AuraCacheUpdate(Me, true);
-                            return RunStatus.Failure;
-                        })
-                )
-                ;
+            return new Decorator(delegate(object ret)
+            {
+                if ((THSettings.Instance.AscendanceEnhCooldown || (THSettings.Instance.AscendanceEnhBurst && THSettings.Instance.Burst)) && (((Me.Combat && CurrentTargetAttackable(30.0, false, false)) && (!CurrentTargetCheckInvulnerablePhysic && (Me.ManaPercent > 20.0))) && ((!MeHasAura("Ascendance") && CanCastCheck("Ascendance", true)) && CanCastCheck("Primal Strike", false))))
+                {
+                    if (!IsWorthyTarget(Me.CurrentTarget, 2.0, 0.3))
+                    {
+                        return HaveWorthyTargetAttackingMe();
+                    }
+                    return true;
+                }
+                return false;
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Ascendance", Me, "AscendanceEnh");
+                AuraCacheUpdate(Me, true);
+                return RunStatus.Failure;
+            }));
         }
 
         private static Composite AscendanceEle()
@@ -447,13 +440,13 @@ namespace TuanHA_Combat_Routine
                         LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(2000.0);
                         return RunStatus.Failure;
                     }
-                    if ((((UseSpecialization != 3) && (Me.CurrentTarget != null)) && (Me.FocusedUnit != null)) && (((Me.CurrentTarget == Me.FocusedUnit) || !AttackableNoCCLoS(Me.FocusedUnit, 60)) || (((TalentSort(Me.FocusedUnit) < 4) && GetBestFocus()) && (TalentSort(UnitBestFocus) == 4))))
-                    {
-                        Styx.Common.Logging.Write("Clear Focus");
-                        Lua.DoString("RunMacroText('/clearfocus');", "WoW.lua");
-                        Me.SetFocus((ulong)0L);
-                        LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
-                    }
+                    //if ((((UseSpecialization != 3) && (Me.CurrentTarget != null)) && (Me.FocusedUnit != null)) && (((Me.CurrentTarget == Me.FocusedUnit) || !AttackableNoCCLoS(Me.FocusedUnit, 60)) || (((TalentSort(Me.FocusedUnit) < 4) && GetBestFocus()) && (TalentSort(UnitBestFocus) == 4))))
+                    //{
+                    //    Styx.Common.Logging.Write("Clear Focus");
+                    //    Lua.DoString("RunMacroText('/clearfocus');", "WoW.lua");
+                    //    Me.SetFocus((ulong)0L);
+                    //    LastAutoFocus = DateTime.Now + TimeSpan.FromMilliseconds(1000.0);
+                    //}
                 }
                 return RunStatus.Failure;
             });
@@ -529,27 +522,26 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region AutoRez
+        #region AutoRez@
 
         private static readonly Dictionary<ulong, DateTime> AutoRezListCache = new Dictionary<ulong, DateTime>();
 
         private static void AutoRezListCacheClear()
         {
-            var indexToRemove = AutoRezListCache.Where(
-                unit =>
-                unit.Value < DateTime.Now).Select(unit => unit.Key).ToList();
-
-            foreach (var index in indexToRemove)
+            foreach (ulong num in (from unit in AutoRezListCache
+                                   where unit.Value < DateTime.Now
+                                   select unit.Key).ToList<ulong>())
             {
-                //Logging.Write("Remove {0} from AutoRezList", AutoRezList[index]);
-                AutoRezListCache.Remove(index);
+                AutoRezListCache.Remove(num);
             }
         }
 
         private static void AutoRezListCacheAdd(WoWUnit unit, int expireSeconds = 20)
         {
-            if (AutoRezListCache.ContainsKey(unit.Guid)) return;
-            AutoRezListCache.Add(unit.Guid, DateTime.Now + TimeSpan.FromSeconds(expireSeconds));
+            if (!AutoRezListCache.ContainsKey(unit.Guid))
+            {
+                AutoRezListCache.Add(unit.Guid, DateTime.Now + TimeSpan.FromSeconds((double)expireSeconds));
+            }
         }
 
         private static WoWPlayer UnitAutoRez;
@@ -558,51 +550,30 @@ namespace TuanHA_Combat_Routine
         {
             AutoRezListCacheClear();
             UnitAutoRez = null;
-            UnitAutoRez =
-                ObjectManager.GetObjectsOfType<WoWPlayer>().
-                              OrderBy(unit => unit.Distance).
-                              FirstOrDefault(
-                                  p =>
-                                  !AutoRezListCache.ContainsKey(p.Guid) &&
-                                  p.IsPlayer &&
-                                  !p.IsAlive &&
-                                  p.Distance < 100 &&
-                                  p.IsInMyPartyOrRaid);
-
-            return UnitAutoRez != null && UnitAutoRez.IsValid;
+            UnitAutoRez = (from unit in ObjectManager.GetObjectsOfType<WoWPlayer>()
+                           orderby unit.Distance
+                           select unit).FirstOrDefault<WoWPlayer>(p => ((!AutoRezListCache.ContainsKey(p.Guid) && p.IsPlayer) && (!p.IsAlive && (p.Distance < 100.0))) && p.IsInMyPartyOrRaid);
+            return ((UnitAutoRez != null) && UnitAutoRez.IsValid);
         }
 
         private static Composite AutoRez()
         {
-            {
-                return new Decorator(
-                    ret =>
-                    THSettings.Instance.AutoRez &&
-                    //(InDungeon || InRaid) &&
-                    !Me.Combat &&
-                    //SSpellManager.HasSpell("Ancestral Spirit") &&
-                    CanCastCheck("Ancestral Spirit") &&
-                    GetUnitAutoRez(),
-                    new PrioritySelector(
-                        new Action(delegate
-                            {
-                                if (UnitAutoRez.Distance > 40 || !InLineOfSpellSightCheck(UnitAutoRez))
-                                {
-                                    Navigator.MoveTo(UnitAutoRez.Location);
-                                }
-                                else
-                                {
-                                    if (IsMoving(Me))
-                                    {
-                                        Navigator.PlayerMover.MoveStop();
-                                    }
-                                    CastSpell("Ancestral Spirit", UnitAutoRez, "Ancestral Spirit");
-                                    AutoRezListCacheAdd(UnitAutoRez);
-                                }
-                            })
-                        ))
-                    ;
-            }
+            Composite[] children = new Composite[] { new Styx.TreeSharp.Action(delegate (object param0) {
+                if (THSettings.Instance.AutoMove && ((UnitAutoRez.Distance > 40.0) || !InLineOfSpellSightCheck(UnitAutoRez)))
+                {
+                    Navigator.MoveTo(UnitAutoRez.Location);
+                }
+                else if ((UnitAutoRez.Distance <= 40.0) && UnitAutoRez.InLineOfSight)
+                {
+                    if (IsMoving(Me))
+                    {
+                        Navigator.PlayerMover.MoveStop();
+                    }
+                    CastSpell("Ancestral Spirit", UnitAutoRez, "Ancestral Spirit");
+                    AutoRezListCacheAdd(UnitAutoRez, 20);
+                }
+            }) };
+            return new Decorator(ret => ((THSettings.Instance.AutoRez && !Me.Combat) && CanCastCheck("Ancestral Spirit", false)) && GetUnitAutoRez(), new PrioritySelector(children));
         }
 
         #endregion
@@ -642,19 +613,10 @@ namespace TuanHA_Combat_Routine
 
         private static Composite BindElemental()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.BindElemental &&
-                (UseSpecialization != 2 ||
-                 UseSpecialization == 2 &&
-                 HealWeightUnitHeal >= THSettings.Instance.PriorityHeal) &&
-                //(InArena || InBattleground) &&
-                CanCastCheck("Bind Elemental") &&
-                !HasUnitBindElemental() &&
-                GetUnitUnitBindElemental(),
-                new Action(
-                    ret => { CastSpell("Bind Elemental", UnitBindElemental, "BindElemental"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.BindElemental && ((UseSpecialization != 2) || ((UseSpecialization == 2) && (HealWeightUnitHeal >= THSettings.Instance.PriorityHeal)))) && (CanCastCheck("Bind Elemental", false) && !HasUnitBindElemental())) && GetUnitUnitBindElemental(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Bind Elemental", UnitBindElemental, "BindElemental");
+            }));
         }
 
         #endregion
@@ -901,8 +863,9 @@ namespace TuanHA_Combat_Routine
         {
             for (int i = 0; i < 4; i++)
             {
-                if ((Me.Totems[i].Unit != null) && (Me.Totems[i].Unit.Name == "Capacitor Totem"))
+                if ((Me.Totems[i].Unit != null) && (Me.Totems[i].Unit.Entry == 61245))
                 {
+                    Logging.Write("CapacitorTotem will be timeout: " + Me.Totems[i].Unit.CurrentCastTimeLeft.TotalMilliseconds);
                     return Me.Totems[i].Unit.CurrentCastTimeLeft.TotalMilliseconds;
                 }
             }
@@ -913,15 +876,17 @@ namespace TuanHA_Combat_Routine
         {
             if ((THSettings.Instance.CapacitorProjection && SpellManager.HasSpell("Totemic Projection")) && ((MyTotemCheck("Capacitor Totem", Me, 100) && (CapacitorTotemCastTime() <= MsLeft)) && (SpellManager.Spells["Totemic Projection"].CooldownTimeLeft.TotalMilliseconds <= MsLeft)))
             {
+                Logging.Write("Trying to throw the totem");
                 CapacitorTarget = null;
                 CapacitorProjectionPurpose = null;
 
-                if (LastHotKey1Press >= DateTime.Now)
+                if ((LastHotKey1Press >= DateTime.Now && AttackableNoCC(HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target),40)) ||
+                    (LastHotKey2Press >= DateTime.Now && !AttackableNoCC(HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target), 40)))
                 {
                     CapacitorTarget = HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target);
                     CapacitorProjectionPurpose = "Capacitor on Target due to Hotkey1";
                 }
-                else if (LastHotKey2Press >= DateTime.Now)
+                else if (LastHotKey2Press >= DateTime.Now && AttackableNoCC(HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target), 40))
                 {
                     CapacitorTarget = HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target);
                     CapacitorProjectionPurpose = "Capacitor on Target due to Hotkey2";
@@ -945,6 +910,11 @@ namespace TuanHA_Combat_Routine
                 {
                     CapacitorTarget = UnitCapacitorEnemyLow;
                     CapacitorProjectionPurpose = "Capacitor on Enemy No Threadhold";
+                }
+                else
+                {
+                    CapacitorTarget = Me.CurrentTarget;
+                    CapacitorProjectionPurpose = "Capacitor on CurrentTarget";
                 }
 
                 if (!BasicCheck(CapacitorTarget))
@@ -972,20 +942,20 @@ namespace TuanHA_Combat_Routine
                     //Logging.Write("Me.CurrentPendingCursorSpell.Id {0}", Me.CurrentPendingCursorSpell.Id);
                     //Logging.Write("ClickRemoteLocation {0}", UnitProject.Location);
                     ObjectManager.Update();
-                    if (LastHotKey2Press >= DateTime.Now)
+                    if (LastHotKey2Press >= DateTime.Now || LastHotKey1Press >= DateTime.Now)
                     {
-                        var DropLocation = CalculateDropLocation(CapacitorTarget, LastHotKey2PressPosition.X - CapacitorTotem.Location.X, LastHotKey2PressPosition.Y - CapacitorTotem.Location.Y);
-                        Logging.Write("My location:" + LastHotKey2PressPosition.X + "," + LastHotKey2PressPosition.Y + "," + LastHotKey2PressPosition.Z);
+                        var DropLocation = CalculateDropLocation(CapacitorTarget, LastHotKeyPressPosition.X - CapacitorTotem.Location.X, LastHotKeyPressPosition.Y - CapacitorTotem.Location.Y);
+                        Logging.Write("My location:" + LastHotKeyPressPosition.X + "," + LastHotKeyPressPosition.Y + "," + LastHotKeyPressPosition.Z);
                         Logging.Write("Totem location:" + CapacitorTotem.Location.X + "," + CapacitorTotem.Location.Y + "," + CapacitorTotem.Location.Z);
                         Logging.Write("CapacitorTarget location:" + CapacitorTarget.Location.X + "," + CapacitorTarget.Location.Y + "," + CapacitorTarget.Location.Z);
                         Logging.Write("DropLocation location:" + DropLocation.X + "," + DropLocation.Y + "," + DropLocation.Z);
                         SpellManager.ClickRemoteLocation(DropLocation);
+                        LastHotKey1Press = DateTime.Now;
                         LastHotKey2Press = DateTime.Now;
                     }
                     else
                     {
                         SpellManager.ClickRemoteLocation(CapacitorTarget.Location);
-                        LastHotKey1Press = DateTime.Now;
                     }
                 //}
                 }
@@ -1126,73 +1096,33 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region ChainLightning
+        #region ChainLightning@
 
         private static Composite ChainLightning5MW()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.ChainLightningEnh &&
-                //SSpellManager.HasSpell("Chain Lightning") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                MyAuraStackCount(53817, Me) > 4 && //Maelstrom Weapon
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Chain Lightning"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Chain Lightning", Me.CurrentTarget, "ChainLightning5MW");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.ChainLightningEnh && CurrentTargetAttackable(30.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && (MyAuraStackCount(0xd239, Me) > 4.0))) && FacingOverride(Me.CurrentTarget)) && CanCastCheck("Chain Lightning", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Chain Lightning", Me.CurrentTarget, "ChainLightning5MW");
+            }));
         }
 
         private static Composite ChainLightningEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.ChainLightningEle &&
-                //SSpellManager.HasSpell("Chain Lightning") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                Me.ManaPercent >= THSettings.Instance.EleAoEMana &&
-                CountEnemyNear(Me.CurrentTarget, 15) >= THSettings.Instance.ChainLightningEleUnit &&
-                CanCastCheck("Chain Lightning") &&
-                !CanCastCheck("Lava Burst") &&
-                !CanCastCheck("Elemental Blast"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Chain Lightning", Me.CurrentTarget, "ChainLightningEle");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.ChainLightningEle && CurrentTargetAttackable(30.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && (((Me.ManaPercent >= THSettings.Instance.EleAoEMana) && (CountEnemyNear(Me.CurrentTarget, 15f) >= THSettings.Instance.ChainLightningEleUnit)) && (CanCastCheck("Chain Lightning", false) && !CanCastCheck("Lava Burst", false)))) && !CanCastCheck("Elemental Blast", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Chain Lightning", Me.CurrentTarget, "ChainLightningEle");
+            }));
         }
 
         private static Composite ChainLightningEleAoE()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.ChainLightningEle &&
-                //SSpellManager.HasSpell("Chain Lightning") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                Me.ManaPercent >= THSettings.Instance.EleAoEMana &&
-                CountEnemyNear(Me.CurrentTarget, 15) >= THSettings.Instance.ChainLightningEleUnit &&
-                CanCastCheck("Chain Lightning"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Chain Lightning", Me.CurrentTarget, "ChainLightningEleAoE");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.ChainLightningEle && CurrentTargetAttackable(30.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && ((Me.ManaPercent >= THSettings.Instance.EleAoEMana) && (CountEnemyNear(Me.CurrentTarget, 15f) >= THSettings.Instance.ChainLightningEleUnit))) && CanCastCheck("Chain Lightning", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Chain Lightning", Me.CurrentTarget, "ChainLightningEleAoE");
+            }));
         }
 
         #endregion
@@ -1231,17 +1161,17 @@ namespace TuanHA_Combat_Routine
             return (double)target.Debuffs.Values.Count<WoWAura>(debuff => (debuff.Spell.DispelType == WoWDispelType.Curse));
         }
 
-        private static double CountEnemyNear(WoWUnit unitCenter, float distance)
-        {
-            return (double)FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(delegate(WoWUnit unit)
-            {
-                if ((!InProvingGrounds && !IsDummy(unit)) && ((!unit.Combat || (unit.MaxHealth <= (MeMaxHealth * 0.2))) || (!unit.GotTarget || !FarFriendlyUnits.Contains(unit.CurrentTarget))))
-                {
-                    return false;
-                }
-                return (GetDistance(unitCenter, unit) <= distance);
-            });
-        }
+        //private static double CountEnemyNear(WoWUnit unitCenter, float distance)
+        //{
+        //    return (double)FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(delegate(WoWUnit unit)
+        //    {
+        //        if ((!InProvingGrounds && !IsDummy(unit)) && ((!unit.Combat || (unit.MaxHealth <= (MeMaxHealth * 0.2))) || (!unit.GotTarget || !FarFriendlyUnits.Contains(unit.CurrentTarget))))
+        //        {
+        //            return false;
+        //        }
+        //        return (GetDistance(unitCenter, unit) <= distance);
+        //    });
+        //}
         //////done
         private static bool GetPlayerFriendlyCleanseSpirit()
         {
@@ -1293,127 +1223,60 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region Earthbind
+        #region Earthbind@
 
         private static int CountNearEnemyEarthbindNoRooted(WoWUnit target, int dist)
         {
-            //var i = 0;
-
-            //foreach (var unit in NearbyUnFriendlyUnits)
-            //{
-            //    if (BasicCheck(unit) &&
-            //        (InArena || InBattleground) &&
-            //        unit.Combat &&
-            //        TalentSort(unit) == 1 &&
-            //        unit.CurrentTarget != null &&
-            //        NearbyFriendlyPlayers.Contains(unit.CurrentTarget) &&
-            //        unit.MaxHealth > MeMaxHealth*0.5 &&
-            //        GetDistance(target, unit) <= dist &&
-            //        !InvulnerableRootandSnare(unit) &&
-            //        !DebuffRoot(unit))
-            //    {
-            //        i = i + 1;
-            //    }
-            //    if (i >= THSettings.Instance.EarthbindUnit)
-            //    {
-            //        break;
-            //    }
-            //}
-
-            //return i;
-
-            return NearbyUnFriendlyUnits.Count(
-                unit =>
-                BasicCheck(unit) &&
-                unit.Combat &&
-                TalentSort(unit) == 1 &&
-                unit.CurrentTarget != null &&
-                NearbyFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                unit.MaxHealth > MeMaxHealth*0.5 &&
-                GetDistance(target, unit) <= dist &&
-                !InvulnerableRootandSnare(unit) &&
-                !DebuffRoot(unit));
+            return NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(unit => ((((unit.Combat && (TalentSort(unit) == 1)) && (unit.GotTarget && NearbyFriendlyPlayers.Contains(unit.CurrentTarget))) && (((unit.MaxHealth > (MeMaxHealth * 0.5)) && (GetDistance(target, unit) <= dist)) && !InvulnerableRootandSnare(unit))) && !DebuffRoot(unit)));
         }
 
         private static int CountNearEnemyEarthbind(WoWUnit target, int dist)
         {
-            //var i = 0;
-
-            //foreach (var unit in NearbyUnFriendlyUnits)
-            //{
-            //    if (BasicCheck(unit) &&
-            //        (InArena || InBattleground) &&
-            //        unit.Combat &&
-            //        TalentSort(unit) == 1 &&
-            //        unit.CurrentTarget != null &&
-            //        NearbyFriendlyPlayers.Contains(unit.CurrentTarget) &&
-            //        unit.MaxHealth > MeMaxHealth*0.5 &&
-            //        (GetDistance(target, unit) <= dist ||
-            //         GetDistance(target, unit) <= dist + 10 &&
-            //         unit.IsMoving &&
-            //         unit.IsSafelyFacing(target)) &&
-            //        !InvulnerableRootandSnare(unit) &&
-            //        !DebuffRootorSnare(unit))
-            //    {
-            //        i = i + 1;
-            //    }
-            //    if (i >= THSettings.Instance.EarthbindUnit)
-            //    {
-            //        break;
-            //    }
-            //}
-
-            //return i;
-
-            return NearbyUnFriendlyUnits.Count(
-                unit =>
-                BasicCheck(unit) &&
-                unit.Combat &&
-                TalentSort(unit) == 1 &&
-                unit.CurrentTarget != null &&
-                NearbyFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                unit.MaxHealth > MeMaxHealth*0.5 &&
-                (GetDistance(target, unit) <= dist ||
-                 GetDistance(target, unit) <= dist + 10 &&
-                 unit.IsMoving &&
-                 unit.IsSafelyFacing(target)) &&
-                !InvulnerableRootandSnare(unit) &&
-                !DebuffRootorSnare(unit));
+            return NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Count<WoWUnit>(unit => ((((((unit.Combat && (TalentSort(unit) == 1)) && (unit.GotTarget && NearbyFriendlyPlayers.Contains(unit.CurrentTarget))) && (unit.MaxHealth > (MeMaxHealth * 0.5))) && ((GetDistance(target, unit) <= dist) || (((GetDistance(target, unit) <= (dist + 10)) && unit.IsMoving) && unit.IsSafelyFacing(target)))) && !InvulnerableRootandSnare(unit)) && !DebuffRootorSnare(unit)));
         }
 
         private static Composite Earthbind()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.Earthbind &&
-                    (InArena || InBattleground) &&
-                    SpellManager.HasSpell("Earthgrab Totem") &&
-                    //!Me.Mounted &&
-                    !MyTotemEarthCheck(Me, 40) &&
-                    CanCastCheck("Earthgrab Totem") &&
-                    CountNearEnemyEarthbindNoRooted(Me, THSettings.Instance.EarthbindDistance) >=
-                    THSettings.Instance.EarthbindUnit,
-                    new Action(
-                        ret => { CastSpell("Earthgrab Totem", Me, "Earthgrab"); })
-                    ),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.Earthbind &&
-                    (InArena || InBattleground) &&
-                    //
-                    //SpellManager.HasSpell("Earthbind Totem") &&
-                    //!Me.Mounted &&
-                    !SpellManager.HasSpell("Earthgrab Totem") &&
-                    !MyTotemEarthCheck(Me, 40) &&
-                    CanCastCheck("Earthbind Totem") &&
-                    CountNearEnemyEarthbind(Me, THSettings.Instance.EarthbindDistance) >=
-                    THSettings.Instance.EarthbindUnit,
-                    new Action(
-                        ret => { CastSpell("Earthbind Totem", Me, "Earthbind"); })
-                    )
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(ret => ((THSettings.Instance.Earthbind && (InArena || InBattleground)) && (((Me.HealthPercent > THSettings.Instance.PriorityHeal) && !MyTotemEarthCheck(Me, 40)) && CanCastCheck("Earthgrab Totem", false))) && (CountNearEnemyEarthbindNoRooted(Me, THSettings.Instance.EarthbindDistance) >= THSettings.Instance.EarthbindUnit), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Earthgrab Totem", Me, "Earthgrab");
+            })), new Decorator(ret => ((THSettings.Instance.Earthbind && (InArena || InBattleground)) && (((Me.HealthPercent > THSettings.Instance.PriorityHeal) && !SpellManager.HasSpell("Earthgrab Totem")) && (!MyTotemEarthCheck(Me, 40) && CanCastCheck("Earthbind Totem", false)))) && (CountNearEnemyEarthbind(Me, THSettings.Instance.EarthbindDistance) >= THSettings.Instance.EarthbindUnit), new Styx.TreeSharp.Action(delegate (object ret) {
+                CastSpell("Earthbind Totem", Me, "Earthbind");
+            })) });
         }
+
+        //private static Composite Earthbind()
+        //{
+        //    return new PrioritySelector(
+        //        new Decorator(
+        //            ret =>
+        //            THSettings.Instance.Earthbind &&
+        //            (InArena || InBattleground) &&
+        //            SpellManager.HasSpell("Earthgrab Totem") &&
+        //            //!Me.Mounted &&
+        //            !MyTotemEarthCheck(Me, 40) &&
+        //            CanCastCheck("Earthgrab Totem") &&
+        //            CountNearEnemyEarthbindNoRooted(Me, THSettings.Instance.EarthbindDistance) >=
+        //            THSettings.Instance.EarthbindUnit,
+        //            new Action(
+        //                ret => { CastSpell("Earthgrab Totem", Me, "Earthgrab"); })
+        //            ),
+        //        new Decorator(
+        //            ret =>
+        //            THSettings.Instance.Earthbind &&
+        //            (InArena || InBattleground) &&
+        //            //
+        //            //SpellManager.HasSpell("Earthbind Totem") &&
+        //            //!Me.Mounted &&
+        //            !SpellManager.HasSpell("Earthgrab Totem") &&
+        //            !MyTotemEarthCheck(Me, 40) &&
+        //            CanCastCheck("Earthbind Totem") &&
+        //            CountNearEnemyEarthbind(Me, THSettings.Instance.EarthbindDistance) >=
+        //            THSettings.Instance.EarthbindUnit,
+        //            new Action(
+        //                ret => { CastSpell("Earthbind Totem", Me, "Earthbind"); })
+        //            )
+        //        );
+        //}
 
         #endregion
 
@@ -1421,7 +1284,7 @@ namespace TuanHA_Combat_Routine
 
         private static Composite EarthElemental()
         {
-            return new Decorator(ret => (((THSettings.Instance.EarthElementalCooldown || (THSettings.Instance.EarthElementalBurst && THSettings.Instance.Burst)) && ((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && ((InArena && IsWorthyTarget(Me.CurrentTarget, 2.0, 0.2)) || IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && !HasElementalAround()) && CanCastCheck("Earth Elemental Totem", false), new Styx.TreeSharp.Action(delegate(object ret)
+            return new Decorator(ret => (((THSettings.Instance.EarthElementalCooldown || (THSettings.Instance.EarthElementalBurst && THSettings.Instance.Burst)) && ((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && (IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && !HasElementalAround()) && CanCastCheck("Earth Elemental Totem", false), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 SafelyFacingTarget(Me.CurrentTarget);
                 CastSpell("Earth Elemental Totem", Me.CurrentTarget, "EarthElemental");
@@ -1513,68 +1376,33 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region EarthShock
+        #region EarthShock@
 
         private static Composite EarthShock()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.EarthShock &&
-                //SSpellManager.HasSpell("Earth Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Earth Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                CanCastCheck("Earth Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Earth Shock", Me.CurrentTarget, "EarthShock");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.EarthShock && CurrentTargetAttackable((double)((int)SpellManager.Spells["Earth Shock"].MaxRange), false, false)) && !CurrentTargetCheckInvulnerableMagic) && CanCastCheck("Earth Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Earth Shock", Me.CurrentTarget, "EarthShock");
+            }));
         }
 
         private static Composite EarthShockElemental()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.EarthShockElemental &&
-                //SSpellManager.HasSpell("Earth Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Earth Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                !MeHasAura(77762) && //Lava Surge
-                MyAuraStackCount("Lightning Shield", Me) >= THSettings.Instance.EarthShockElementalCharge &&
-                CanCastCheck("Earth Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Earth Shock", Me.CurrentTarget, "EarthShockElemental");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.EarthShockElemental && CurrentTargetAttackable((double)((int)SpellManager.Spells["Earth Shock"].MaxRange), false, false)) && (!CurrentTargetCheckInvulnerableMagic && !MeHasAura(0x12fc2))) && (MyAuraStackCount("Lightning Shield", Me) >= THSettings.Instance.EarthShockElementalCharge)) && CanCastCheck("Earth Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Earth Shock", Me.CurrentTarget, "EarthShockElemental");
+            }));
         }
 
         private static Composite EarthShockElementalPvP()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.EarthShockElemental &&
-                (InArena || InBattleground) &&
-                //SSpellManager.HasSpell("Earth Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Earth Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                !MeHasAura(77762) &&
-                CanCastCheck("Earth Shock") && //Lava Surge
-                MyAuraStackCount("Lightning Shield", Me) >= THSettings.Instance.EarthShockElementalCharge,
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Earth Shock", Me.CurrentTarget, "EarthShockElemental");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.EarthShockElemental && (InArena || InBattleground)) && ((CurrentTargetAttackable((double)((int)SpellManager.Spells["Earth Shock"].MaxRange), false, false) && !CurrentTargetCheckInvulnerableMagic) && (!MeHasAura(0x12fc2) && CanCastCheck("Earth Shock", false)))) && (MyAuraStackCount("Lightning Shield", Me) >= THSettings.Instance.EarthShockElementalCharge), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Earth Shock", Me.CurrentTarget, "EarthShockElemental");
+            }));
         }
 
         #endregion
@@ -1733,50 +1561,24 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region ElementalBlast
+        #region ElementalBlast@
 
         private static Composite ElementalBlastEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.ElementalBlastEle &&
-                //SSpellManager.HasSpell("Elemental Blast") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                //CanCastWhileMoving() &&
-                !MeHasAura(77762) && //Lava Surge
-                CanCastCheck("Elemental Blast",false),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Elemental Blast", Me.CurrentTarget, "ElementalBlastEle");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.ElementalBlastEle && CurrentTargetAttackable(40.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && !MeHasAura(0x12fc2)) && CanCastCheck("Elemental Blast", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Elemental Blast", Me.CurrentTarget, "ElementalBlastEle");
+            }));
         }
 
         private static Composite ElementalBlastEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.ElementalBlastEnh &&
-                //SSpellManager.HasSpell("Elemental Blast") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                //CanCastWhileMoving() &&
-                MyAuraStackCount(53817, Me) >= THSettings.Instance.ElementalBlastEnhStack &&
-                CanCastCheck("Elemental Blast"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Elemental Blast", Me.CurrentTarget, "ElementalBlastEnh");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.ElementalBlastEnh && CurrentTargetAttackable(40.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.ElementalBlastEnhStack)) && CanCastCheck("Elemental Blast", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Elemental Blast", Me.CurrentTarget, "ElementalBlastEnh");
+            }));
         }
 
         #endregion
@@ -1815,7 +1617,7 @@ namespace TuanHA_Combat_Routine
 
         private static Composite FireElemental()
         {
-            return new Decorator(ret => ((THSettings.Instance.FireElementalCooldown || (THSettings.Instance.FireElementalBurst && THSettings.Instance.Burst)) && (((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && CanCastCheck("Fire Elemental Totem", false)) && ((InArena && IsWorthyTarget(Me.CurrentTarget,2.0,0.2)) || IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && !HasElementalAround(), new Styx.TreeSharp.Action(delegate(object ret)
+            return new Decorator(ret => ((THSettings.Instance.FireElementalCooldown || (THSettings.Instance.FireElementalBurst && THSettings.Instance.Burst)) && (((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && CanCastCheck("Fire Elemental Totem", false)) && (IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && !HasElementalAround(), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 SafelyFacingTarget(Me.CurrentTarget);
                 CastSpell("Fire Elemental Totem", Me.CurrentTarget, "FireElemental");
@@ -1824,133 +1626,74 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region FireNova
+        #region FireNova@
 
         private static bool HasEnemyFlameShock()
         {
-            return FarUnFriendlyUnits.FirstOrDefault(unit => MyAura("Flame Shock", unit)) != null;
+            return (FarUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).FirstOrDefault<WoWUnit>(unit => MyAura("Flame Shock", unit)) != null);
         }
 
         private static Composite FireNovaAoE()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FireNova &&
-                //SSpellManager.HasSpell("Fire Nova") &&
-                //!Me.Mounted &&
-                Me.ManaPercent > 20 &&
-                CanCastCheck("Fire Nova") &&
-                HasEnemyFlameShock(),
-                new Action(
-                    ret => { CastSpell("Fire Nova", Me, "FireNovaAoE"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FireNova && (Me.ManaPercent > 20.0)) && CanCastCheck("Fire Nova", false)) && HasEnemyFlameShock(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Fire Nova", Me, "FireNovaAoE");
+            }));
         }
 
         private static Composite FireNovaLoS()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FireNova &&
-                !CurrentTargetAttackable(30) &&
-                //SSpellManager.HasSpell("Fire Nova") &&
-                Me.ManaPercent > 20 &&
-                CanCastCheck("Fire Nova") &&
-                HasEnemyFlameShock(),
-                new Action(
-                    ret => { CastSpell("Fire Nova", Me, "FireNovaLoS"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FireNova && !CurrentTargetAttackable(30.0, false, false)) && ((Me.ManaPercent > 20.0) && CanCastCheck("Fire Nova", false))) && HasEnemyFlameShock(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Fire Nova", Me, "FireNovaLoS");
+            }));
         }
 
         #endregion
 
-        #region FlameShock
+        #region FlameShock@
 
         private static Composite FlameShockEnhNoFlametongue()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockEnh &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Flame Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                (Me.Inventory.Equipped.OffHand == null || Me.Inventory.Equipped.OffHand != null &&
-                 Me.Inventory.Equipped.OffHand.TemporaryEnchantment.Id != 5) && //Flametongue
-                MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 3000 &&
-                CanCastCheck("Flame Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockEnhNoFlametongue");
-                        })
-                );
+            return new Decorator(ret => ((((THSettings.Instance.FlameShockEnh && CurrentTargetAttackable((double)((int)SpellManager.Spells["Flame Shock"].MaxRange), false, false)) && !CurrentTargetCheckInvulnerableMagic) && ((Me.Inventory.Equipped.OffHand == null) || ((Me.Inventory.Equipped.OffHand != null) && (Me.Inventory.Equipped.OffHand.TemporaryEnchantment.Id != 5)))) && (MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 3000.0)) && CanCastCheck("Flame Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockEnhNoFlametongue");
+            }));
         }
 
         private static Composite FlameShockUnleashFlame()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockEnh &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Flame Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                IsWorthyTarget(Me.CurrentTarget) &&
-                (MyAura("Unleash Flame", Me) ||
-                 !MyAura("Flame Shock", Me.CurrentTarget) ||
-                 MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 3000 &&
-                 (!SpellManager.HasSpell("Unleash Elements") ||
-                  SpellManager.HasSpell("Unleash Elements") &&
-                  SpellManager.Spells["Unleash Elements"].CooldownTimeLeft.TotalMilliseconds > 5000)) &&
-                CanCastCheck("Flame Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockUnleashFlame");
-                        })
-                );
+            return new Decorator(delegate(object ret)
+            {
+                if (((!THSettings.Instance.FlameShockEnh || !CurrentTargetAttackable((double)((int)SpellManager.Spells["Flame Shock"].MaxRange), false, false)) || (CurrentTargetCheckInvulnerableMagic || !IsWorthyTarget(Me.CurrentTarget, 1.0, 0.3))) || ((!MyAura("Unleash Flame", Me) && MyAura("Flame Shock", Me.CurrentTarget)) && ((MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) >= 3000.0) || (SpellManager.HasSpell("Unleash Elements") && (!SpellManager.HasSpell("Unleash Elements") || (SpellManager.Spells["Unleash Elements"].CooldownTimeLeft.TotalMilliseconds <= 5000.0))))))
+                {
+                    return false;
+                }
+                return CanCastCheck("Flame Shock", false);
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockUnleashFlame");
+            }));
         }
 
         private static Composite FlameShockEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockEnh &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Flame Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 5000 &&
-                CanCastCheck("Flame Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockEnh");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FlameShockEnh && CurrentTargetAttackable((double)((int)SpellManager.Spells["Flame Shock"].MaxRange), false, false)) && (!CurrentTargetCheckInvulnerableMagic && (MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 5000.0))) && CanCastCheck("Flame Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockEnh");
+            }));
         }
 
         private static Composite FlameShockEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockEle &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Flame Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 5000 &&
-                CanCastCheck("Flame Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockEle");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FlameShockEle && CurrentTargetAttackable((double)((int)SpellManager.Spells["Flame Shock"].MaxRange), false, false)) && (!CurrentTargetCheckInvulnerableMagic && (MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 5000.0))) && CanCastCheck("Flame Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Flame Shock", Me.CurrentTarget, "FlameShockEle");
+            }));
         }
 
         private static WoWUnit UnitFlameShockRogueDruid;
@@ -1958,47 +1701,19 @@ namespace TuanHA_Combat_Routine
         private static bool GetUnitFlameShockRogueDruid()
         {
             UnitFlameShockRogueDruid = null;
-
-            UnitFlameShockRogueDruid = NearbyUnFriendlyPlayers
-                .OrderBy(unit => MyAuraTimeLeft("Flame Shock", unit))
-                .FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    //FacingOverride(unit) &&
-                    TalentSort(unit) < 2 &&
-                    (unit.Class == WoWClass.Rogue || unit.Class == WoWClass.Druid) &&
-                    (unit.CurrentTarget == null ||
-                     unit.CurrentTarget != null &&
-                     unit.CurrentTarget != Me ||
-                     //SSpellManager.HasSpell("Frozen Power") &&
-                     unit.CurrentTarget != null &&
-                     unit.CurrentTarget == Me &&
-                     DebuffRoot(unit)) &&
-                    (!unit.Combat || !DebuffDotDuration(unit, 6000)) &&
-                    !InvulnerableSpell(unit) &&
-                    Attackable(unit, (int) SpellManager.Spells["Flame Shock"].MaxRange));
-
+            UnitFlameShockRogueDruid = (from unit in NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                        orderby MyAuraTimeLeft("Flame Shock", unit)
+                                        select unit).FirstOrDefault<WoWUnit>(unit => ((((TalentSort(unit) < 2) && ((unit.Class == WoWClass.Rogue) || (unit.Class == WoWClass.Druid))) && (((unit.CurrentTarget == null) || (unit.GotTarget && (unit.CurrentTarget != Me))) || ((unit.GotTarget && (unit.CurrentTarget == Me)) && DebuffRoot(unit)))) && ((!unit.Combat || !DebuffDotDuration(unit, 0x1770)) && !InvulnerableSpell(unit))) && Attackable(unit, (int)SpellManager.Spells["Flame Shock"].MaxRange));
             return BasicCheck(UnitFlameShockRogueDruid);
         }
 
         private static Composite FlameShockRogueDruid()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockRogueDruid &&
-                HealWeightUnitHeal > THSettings.Instance.UrgentHeal &&
-                (InArena || InBattleground) &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                CanCastCheck("Flame Shock") &&
-                GetUnitFlameShockRogueDruid(),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(UnitFlameShockRogueDruid);
-                            CastSpell("Flame Shock", UnitFlameShockRogueDruid, "FlameShockRogueDruid");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.FlameShockRogueDruid && (HealWeightUnitHeal > THSettings.Instance.UrgentHeal)) && (InArena || InBattleground)) && CanCastCheck("Flame Shock", false)) && GetUnitFlameShockRogueDruid(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(UnitFlameShockRogueDruid);
+                CastSpell("Flame Shock", UnitFlameShockRogueDruid, "FlameShockRogueDruid");
+            }));
         }
 
         private static WoWUnit UnitFlameShock55447;
@@ -2006,42 +1721,19 @@ namespace TuanHA_Combat_Routine
         private static bool GetUnitFlameShock55447()
         {
             UnitFlameShock55447 = null;
-
-            UnitFlameShock55447 = NearbyUnFriendlyUnits
-                .OrderByDescending(unit => unit.HealthPercent)
-                .FirstOrDefault(
-                    unit =>
-                    BasicCheck(unit) &&
-                    (IsDummy(unit) ||
-                     unit.CurrentTarget != null &&
-                     FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                     unit.MaxHealth > MeMaxHealth*0.5) &&
-                    FacingOverride(unit) &&
-                    !MyAura("Flame Shock", unit) &&
-                    !InvulnerableSpell(unit) &&
-                    Attackable(unit, (int) SpellManager.Spells["Flame Shock"].MaxRange));
-
+            UnitFlameShock55447 = (from unit in FarFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                   orderby unit.HealthPercent descending
+                                   select unit).FirstOrDefault<WoWUnit>(unit => (((InProvingGrounds || IsDummy(unit)) || ((unit.GotTarget && FarFriendlyPlayers.Contains(unit.CurrentTarget)) && (unit.MaxHealth > (MeMaxHealth * 0.5)))) && ((FacingOverride(unit) && !MyAura("Flame Shock", unit)) && !InvulnerableSpell(unit))) && Attackable(unit, (int)SpellManager.Spells["Flame Shock"].MaxRange));
             return BasicCheck(UnitFlameShock55447);
         }
 
         private static Composite FlameShock55447()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockEnh &&
-                HealWeightUnitHeal > THSettings.Instance.PriorityHeal &&
-                HasGlyph.Contains("55447") &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                CanCastCheck("Flame Shock") &&
-                GetUnitFlameShock55447(),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(UnitFlameShock55447);
-                            CastSpell("Flame Shock", UnitFlameShock55447, "FlameShock55447");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FlameShockEnh && (HealWeightUnitHeal > THSettings.Instance.PriorityHeal)) && (HasGlyph.Contains("55447") && CanCastCheck("Flame Shock", false))) && GetUnitFlameShock55447(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(UnitFlameShock55447);
+                CastSpell("Flame Shock", UnitFlameShock55447, "FlameShock55447");
+            }));
         }
 
         private static WoWUnit UnitFlameShockAoE;
@@ -2049,119 +1741,40 @@ namespace TuanHA_Combat_Routine
         private static bool GetUnitFlameShockAoE()
         {
             UnitFlameShockAoE = null;
-
             if (InArena || InBattleground)
             {
-                UnitFlameShockAoE = NearbyUnFriendlyUnits
-                    .OrderBy(unit => unit.HealthPercent)
-                    .FirstOrDefault(
-                        unit =>
-                        BasicCheck(unit) &&
-                        (IsDummy(unit) ||
-                         unit.CurrentTarget != null &&
-                         FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                         unit.MaxHealth > MeMaxHealth*0.5) &&
-                        Me.IsFacing(unit) &&
-                        !MyAura("Flame Shock", unit) &&
-                        !InvulnerableSpell(unit) &&
-                        Attackable(unit, (int) SpellManager.Spells["Flame Shock"].MaxRange - 3));
+                UnitFlameShockAoE = (from unit in NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                     orderby unit.HealthPercent
+                                     select unit).FirstOrDefault<WoWUnit>(unit => (((unit.MaxHealth > (MeMaxHealth * 0.5)) && Me.IsFacing(unit)) && (!MyAura("Flame Shock", unit) && !InvulnerableSpell(unit))) && Attackable(unit, ((int)SpellManager.Spells["Flame Shock"].MaxRange) - 3));
             }
             else
             {
-                UnitFlameShockAoE = NearbyUnFriendlyUnits
-                    .OrderByDescending(unit => unit.HealthPercent)
-                    .FirstOrDefault(
-                        unit =>
-                        BasicCheck(unit) &&
-                        (IsDummy(unit) ||
-                         unit.CurrentTarget != null &&
-                         FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                         unit.CurrentHealth > MeMaxHealth*0.5 &&
-                         unit.Combat) &&
-                        Me.IsFacing(unit) &&
-                        !MyAura("Flame Shock", unit) &&
-                        !InvulnerableSpell(unit) &&
-                        Attackable(unit, (int) SpellManager.Spells["Flame Shock"].MaxRange - 3));
+                UnitFlameShockAoE = (from unit in NearbyUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                     orderby unit.HealthPercent descending
+                                     select unit).FirstOrDefault<WoWUnit>(unit => (((InProvingGrounds || IsDummy(unit)) || ((unit.GotTarget && FarFriendlyPlayers.Contains(unit.CurrentTarget)) && ((unit.CurrentHealth > (MeMaxHealth * 0.5)) && unit.Combat))) && ((Me.IsFacing(unit) && !MyAura("Flame Shock", unit)) && !InvulnerableSpell(unit))) && Attackable(unit, ((int)SpellManager.Spells["Flame Shock"].MaxRange) - 3));
             }
             return BasicCheck(UnitFlameShockAoE);
         }
 
         private static bool ShouldFlameShockAoE()
         {
-            if (MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) < 7000 ||
-                MyAuraStackCount("Lightning Shield", Me) > 5)
-            {
-                return false;
-            }
-            return true;
+            return ((!Me.GotTarget || (MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) >= 7000.0)) && (MyAuraStackCount("Lightning Shield", Me) <= 5.0));
         }
 
         private static Composite FlameShockAoEEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FlameShockEle &&
-                //SSpellManager.HasSpell("Flame Shock") &&
-                //!Me.Mounted &&
-                Me.ManaPercent >= THSettings.Instance.EleAoEMana - 10 &&
-                ShouldFlameShockAoE() &&
-                CanCastCheck("Flame Shock") &&
-                GetUnitFlameShockAoE(),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(UnitFlameShockAoE);
-                            CastSpell("Flame Shock", UnitFlameShockAoE, "FlameShockAoEEle");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.FlameShockEle && (Me.ManaPercent >= (THSettings.Instance.EleAoEMana - 10))) && (ShouldFlameShockAoE() && CanCastCheck("Flame Shock", false))) && GetUnitFlameShockAoE(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(UnitFlameShockAoE);
+                CastSpell("Flame Shock", UnitFlameShockAoE, "FlameShockAoEEle");
+            }));
         }
 
         #endregion
 
-        #region FrostShock
+        #region FrostShock@
 
         private static WoWUnit UnitFrostShockNearby;
-
-        //private static bool GetUnitFrostShockNearby()
-        //{
-        //    UnitFrostShockNearby = null;
-
-        //    UnitFrostShockNearby = NearbyUnFriendlyPlayers.
-        //        OrderBy(TalentSort).
-        //        ThenBy(unit => unit.Distance).
-        //        FirstOrDefault(
-        //            unit =>
-        //            BasicCheck(unit) &&
-        //            (THSettings.Instance.FrostShockNearbyMelee &&
-        //             TalentSort(unit) < 2 ||
-        //             THSettings.Instance.FrostShockNearbyRange &&
-        //             TalentSort(unit) < 4 &&
-        //             TalentSort(unit) > 1 ||
-        //             THSettings.Instance.FrostShockNearbyHealer &&
-        //             TalentSort(unit) > 3) &&
-        //            //unit.CurrentTarget != null &&
-        //            //unit.CurrentTarget == Me &&
-        //            ( //SSpellManager.HasSpell("Frozen Power") &&
-        //                !DebuffRoot(unit) ||
-        //                !DebuffRootorSnare(unit)) &&
-        //            !InvulnerableSpell(unit) &&
-        //            !InvulnerableRootandSnare(unit) &&
-        //            Attackable(unit, (int) SpellManager.Spells["Frost Shock"].MaxRange));
-
-        //    //if (UnitFrostShockNearby == null)
-        //    //{
-        //    //    UnitFrostShockNearby = NearbyUnFriendlyPlayers
-        //    //        .OrderBy(unit => TalentSort(unit))
-        //    //        .FirstOrDefault(
-        //    //            unit =>
-        //    //            BasicCheck(unit) &&
-        //    //            !DebuffRootorSnare(unit) &&
-        //    //            !InvulnerableSpell(unit) &&
-        //    //            Attackable(unit, (int) SpellManager.Spells["Frost Shock"].MaxRange));
-        //    //}
-
-        //    return BasicCheck(UnitFrostShockNearby);
-        //}
 
         private static bool GetUnitFrostShockNearby()
         {
@@ -2172,114 +1785,64 @@ namespace TuanHA_Combat_Routine
 
         private static Composite FrostShockNearby()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FrostShockNearby &&
-                HealWeightUnitHeal > THSettings.Instance.PriorityHeal &&
-                (InArena || InBattleground) &&
-                //SSpellManager.HasSpell("Frost Shock") &&
-                //!Me.Mounted &&
-                Me.ManaPercent >= THSettings.Instance.FrostShockNearbyMana &&
-                CanCastCheck("Frost Shock") &&
-                GetUnitFrostShockNearby(),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(UnitFrostShockNearby);
-                            CastSpell("Frost Shock", UnitFrostShockNearby, "FrostShockNearby");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.FrostShockNearby && (HealWeightUnitHeal > THSettings.Instance.PriorityHeal)) && (InArena || InBattleground)) && ((Me.ManaPercent >= THSettings.Instance.FrostShockNearbyMana) && CanCastCheck("Frost Shock", false))) && GetUnitFrostShockNearby(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(UnitFrostShockNearby);
+                CastSpell("Frost Shock", UnitFrostShockNearby, "FrostShockNearby");
+            }));
         }
 
         private static Composite FrostShockEnhRoot()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FrostShockEnh &&
-                //SSpellManager.HasSpell("Frost Shock") &&
-                //SSpellManager.HasSpell("Frozen Power") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Frost Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                CurrentTargetCheckDist >= THSettings.Instance.FrostShockEnhMinDistance &&
-                !DebuffRoot(Me.CurrentTarget) &&
-                !InvulnerableRootandSnare(Me.CurrentTarget) &&
-                CanCastCheck("Frost Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Frost Shock", Me.CurrentTarget, "FrostShockEnhRoot");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.FrostShockEnh && CurrentTargetAttackable((double)((int)SpellManager.Spells["Frost Shock"].MaxRange), false, false)) && (!CurrentTargetCheckInvulnerableMagic && (CurrentTargetCheckDist >= THSettings.Instance.FrostShockEnhMinDistance))) && (!DebuffRoot(Me.CurrentTarget) && !InvulnerableRootandSnare(Me.CurrentTarget))) && CanCastCheck("Frost Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Frost Shock", Me.CurrentTarget, "FrostShockEnhRoot");
+            }));
         }
 
         private static Composite FrostShockEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.FrostShockEnh &&
-                //SSpellManager.HasSpell("Frost Shock") &&
-                //SSpellManager.HasSpell("Frozen Power") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Frost Shock"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                CurrentTargetCheckDist >= THSettings.Instance.FrostShockEnhMinDistance &&
-                !DebuffSnare(Me.CurrentTarget) &&
-                !InvulnerableRootandSnare(Me.CurrentTarget) &&
-                CanCastCheck("Frost Shock"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Frost Shock", Me.CurrentTarget, "FrostShockEnh");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.FrostShockEnh && CurrentTargetAttackable((double)((int)SpellManager.Spells["Frost Shock"].MaxRange), false, false)) && (!CurrentTargetCheckInvulnerableMagic && (CurrentTargetCheckDist >= THSettings.Instance.FrostShockEnhMinDistance))) && (!DebuffSnare(Me.CurrentTarget) && !InvulnerableRootandSnare(Me.CurrentTarget))) && CanCastCheck("Frost Shock", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Frost Shock", Me.CurrentTarget, "FrostShockEnh");
+            }));
         }
 
         #endregion
 
-        #region FeralSpirit
+        #region FeralSpirit@
 
         private static Composite FeralSpirit()
         {
-            return new PrioritySelector(
-                new Decorator(
-                    ret =>
-                    (THSettings.Instance.FeralSpiritCooldown ||
-                     THSettings.Instance.FeralSpiritBurst &&
-                     THSettings.Instance.Burst) &&
-                    //SSpellManager.HasSpell("Feral Spirit") &&
-                    //!Me.Mounted &&
-                    CurrentTargetAttackable(30) &&
-                    !CurrentTargetCheckInvulnerablePhysic &&
-                    CanCastCheck("Feral Spirit") &&
-                    (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                     HaveWorthyTargetAttackingMe()),
-                    new Action(
-                        ret =>
-                            {
-                                SafelyFacingTarget(Me.CurrentTarget);
-                                CastSpell("Feral Spirit", Me.CurrentTarget, "FeralSpirit");
-                            })),
-                new Decorator(
-                    ret =>
-                    THSettings.Instance.FeralSpiritLow &&
-                    HealWeightMe <= THSettings.Instance.FeralSpiritLowHP &&
-                    //SSpellManager.HasSpell("Feral Spirit") &&
-                    //!Me.Mounted &&
-                    CurrentTargetAttackable(30) &&
-                    !CurrentTargetCheckInvulnerablePhysic &&
-                    CanCastCheck("Feral Spirit") &&
-                    (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                     HaveWorthyTargetAttackingMe()),
-                    new Action(
-                        ret =>
-                            {
-                                SafelyFacingTarget(Me.CurrentTarget);
-                                CastSpell("Feral Spirit", Me.CurrentTarget, "FeralSpiritLow");
-                            }))
-                );
+            return new PrioritySelector(new Composite[] { new Decorator(delegate (object ret) {
+                if ((THSettings.Instance.FeralSpiritCooldown || (THSettings.Instance.FeralSpiritBurst && THSettings.Instance.Burst)) && ((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerablePhysic) && CanCastCheck("Feral Spirit", false)))
+                {
+                    if (!IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5))
+                    {
+                        return HaveWorthyTargetAttackingMe();
+                    }
+                    return true;
+                }
+                return false;
+            }, new Styx.TreeSharp.Action(delegate (object ret) {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Feral Spirit", Me.CurrentTarget, "FeralSpirit");
+            })), new Decorator(delegate (object ret) {
+                if (((!THSettings.Instance.FeralSpiritLow || (HealWeight(Me) > THSettings.Instance.FeralSpiritLowHP)) || (!CurrentTargetAttackable(30.0, false, false) || CurrentTargetCheckInvulnerablePhysic)) || !CanCastCheck("Feral Spirit", false))
+                {
+                    return false;
+                }
+                if (!IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5))
+                {
+                    return HaveWorthyTargetAttackingMe();
+                }
+                return true;
+            }, new Styx.TreeSharp.Action(delegate (object ret) {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Feral Spirit", Me.CurrentTarget, "FeralSpiritLow");
+            })) });
         }
 
         #endregion
@@ -2704,18 +2267,34 @@ namespace TuanHA_Combat_Routine
         //////done
         private static Composite HealingSurgeInCombatEnh()
         {
-            return new PrioritySelector(new Composite[] { new Decorator(ret => (((THSettings.Instance.HealingSurgeInCombatEnh && (LastHealingSurge < DateTime.Now)) && (((((MyAuraStackCount(0xd239, Me) > 4.0) || !CurrentTargetAttackable(20.0, false, false)) || (!CurrentTargetAttackable(5.0, false, false) && DebuffRoot(Me))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal)) && (Me.ManaPercent > 40.0))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent > HealWeight(Me))) && (Me.ManaPercent > 40.0)))) && ((HealWeight(Me) <= THSettings.Instance.HealingSurgeInCombatEnhHP) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStack))) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
-                CastSpell("Healing Surge", Me, "HealingSurgeInCombatEnh");
-                if (IsUsingAFKBot)
-                {
-                    HoldBotAction("Healing Surge");
-                }
-            })), new Decorator(ret => ((((THSettings.Instance.HealingSurgeInCombatEnhFriend && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeInCombatEnhHPFriend) && (LastHealingSurge < DateTime.Now))) && (((MyAuraStackCount(0xd239, Me) > 4.0) || (!CurrentTargetAttackable(20.0, false, false) && (Me.ManaPercent > 40.0))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent >= THSettings.Instance.UrgentHeal)) && (Me.ManaPercent > 40.0)))) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStackFriend)) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
-                CastSpell("Healing Surge", UnitHeal, "HealingSurgeInCombatEnhFriend");
-                if (IsUsingAFKBot)
-                {
-                    HoldBotAction("Healing Surge");
-                }
+            return new PrioritySelector(new Composite[] { 
+                new Decorator(ret => THSettings.Instance.HealingSurgeInCombatEnh && !HasHealerWithMe() && MyAuraStackCount(0xd239, Me) > 4 && CountDPSTarget(Me) > 1 && HealWeight(Me) <= THSettings.Instance.HealingSurgeInCombatEnhHP + 20 && CanCastCheck("Healing Surge", false),
+                    new Action(delegate
+                        {
+                            CastSpell("Healing Surge", Me, "HealingSurgeInCombatEnh");
+                            if (IsUsingAFKBot)
+                            {
+                                HoldBotAction("Healing Surge");
+                            }
+                        })),
+                new Decorator(ret => (((THSettings.Instance.HealingSurgeInCombatEnh && (LastHealingSurge < DateTime.Now)) && (((((MyAuraStackCount(0xd239, Me) > 4.0) || !CurrentTargetAttackable(20.0, false, false)) || (!CurrentTargetAttackable(5.0, false, false) && DebuffRoot(Me))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent > THSettings.Instance.UrgentHeal)) && (Me.ManaPercent > 40.0))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent > HealWeight(Me))) && (Me.ManaPercent > 40.0)))) && ((HealWeight(Me) <= THSettings.Instance.HealingSurgeInCombatEnhHP) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStack))) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
+                    CastSpell("Healing Surge", Me, "HealingSurgeInCombatEnh");
+                    if (IsUsingAFKBot)
+                    {
+                        HoldBotAction("Healing Surge");
+                    }
+                })),
+                new Decorator(ret => THSettings.Instance.HealingSurgeInCombatEnhFriend && InArena && MyAuraStackCount(0xd239, Me) > 4 && UnitHealIsValid && ((CountDPSTarget(UnitHeal) > 1 && HealWeightUnitHeal < THSettings.Instance.HealingSurgeInCombatEnhHPFriend + 20) || (TalentSort(UnitHeal) == 4 && DebuffStunDuration(UnitHeal,4000) && HealWeightUnitHeal < THSettings.Instance.HealingSurgeInCombatEnhHPFriend + 10) && CanCastCheck("Healing Surge", false)),
+                    new Action(delegate
+                        {
+                            CastSpell("Healing Surge", Me, "HealingSurgeInCombatEnh when friend health low");
+                        })),
+                new Decorator(ret => ((((THSettings.Instance.HealingSurgeInCombatEnhFriend && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingSurgeInCombatEnhHPFriend) && (LastHealingSurge < DateTime.Now))) && (((MyAuraStackCount(0xd239, Me) > 4.0) || (!CurrentTargetAttackable(20.0, false, false) && (Me.ManaPercent > 40.0))) || ((CurrentTargetAttackable(20.0, false, false) && (Me.CurrentTarget.HealthPercent >= THSettings.Instance.UrgentHeal)) && (Me.ManaPercent > 40.0)))) && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.HealingSurgeInCombatEnhStackFriend)) && CanCastCheck("Healing Surge", false), new Styx.TreeSharp.Action(delegate (object ret) {
+                    CastSpell("Healing Surge", UnitHeal, "HealingSurgeInCombatEnhFriend");
+                    if (IsUsingAFKBot)
+                    {
+                        HoldBotAction("Healing Surge");
+                    }
             })) });
         }
 
@@ -2860,7 +2439,7 @@ namespace TuanHA_Combat_Routine
 
         private static Composite HealingTideTotem()
         {
-            return new Decorator(ret => (((THSettings.Instance.HealingTideTotem && UnitHealIsValid) && ((HealWeightUnitHeal <= THSettings.Instance.HealingTideTotemHP) && (UnitHeal.Distance < 35.0))) && ((!MyTotemCheck("Spirit Link Totem", Me, 40) && !MyTotemCheck("Mana Tide Totem", Me, 40)) && CanCastCheck("Healing Tide Totem", true))) && (CountUnitHealingTideTotem() >= THSettings.Instance.HealingTideTotemUnit), new Styx.TreeSharp.Action(delegate(object ret)
+            return new Decorator(ret => (((THSettings.Instance.HealingTideTotem && UnitHealIsValid) && (!HasHealerWithMe() &&(HealWeightUnitHeal <= THSettings.Instance.HealingTideTotemHP) && (UnitHeal.Distance < 35.0))) && ((!MyTotemCheck("Spirit Link Totem", Me, 40) && !MyTotemCheck("Mana Tide Totem", Me, 40)) && CanCastCheck("Healing Tide Totem", true))) && (CountUnitHealingTideTotem() >= THSettings.Instance.HealingTideTotemUnit), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 CastSpell("Healing Tide Totem", Me, "HealingTideTotem");
             }));
@@ -2993,7 +2572,7 @@ namespace TuanHA_Combat_Routine
         }
 
         private static DateTime LastHotKey1Press;
-
+        private static WoWPoint LastHotKeyPressPosition;
 
         private static Composite Hotkey1()
         {
@@ -3033,25 +2612,33 @@ namespace TuanHA_Combat_Routine
                     if (THSettings.Instance.Hotkey1Target != 0 &&
                         THSettings.Instance.Hotkey1Key != 0 &&
                         THSettings.Instance.Hotkey1Spell != 0 &&
-                        (THSettings.Instance.Hotkey1Mod == 0 ||
+                        (((THSettings.Instance.Hotkey1Mod == 0 ||
                          THSettings.Instance.Hotkey1Mod != 0 &&
                          GetAsyncKeyState(IndexToKeysMod(THSettings.Instance.Hotkey1Mod)) < 0) &&
-                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey1Key)) < 0 &&
+                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey1Key)) < 0) ||
+                        (LastHotKey1Press > DateTime.Now)) &&
                         HotKeyTargetValidate(THSettings.Instance.Hotkey1Target) &&
-                        HotKeySpellValidate(THSettings.Instance.Hotkey1Spell) &&
-                        CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
+                        HotKeySpellValidate(THSettings.Instance.Hotkey1Spell))
+                        //CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
                     {
                         if (Me.IsCasting && Me.CastingSpell.Name != HotKeySpelltoName(THSettings.Instance.Hotkey1Spell))
                         {
                             SpellManager.StopCasting();
                         }
 
-                        LastHotKey1Press = DateTime.Now.AddSeconds(6);
-
-                        CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey1Spell),
+                        if (LastHotKey1Press < DateTime.Now)
+                        {
+                            LastHotKey1Press = DateTime.Now.AddSeconds(6);
+                        }
+                        if (CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
+                        {
+                            LastHotKeyPressPosition = Me.GetPosition();
+                            Logging.Write("my position:" + LastHotKeyPressPosition.X + " " + LastHotKeyPressPosition.Y + " " + LastHotKeyPressPosition.Z);
+                            CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey1Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target),
-                                  "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey1Spell) + " on " +
+                                  "Hotkey1: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey1Spell) + " on " +
                                   SafeName(HotkeyTargettoUnit(THSettings.Instance.Hotkey1Target)));
+                        }
 
                         if (GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey1Key)) < 0)
                         {
@@ -3064,7 +2651,7 @@ namespace TuanHA_Combat_Routine
         }
 
         private static DateTime LastHotKey2Press;
-        private static WoWPoint LastHotKey2PressPosition;
+
         private static Composite Hotkey2()
         {
             return new Action(delegate
@@ -3072,13 +2659,14 @@ namespace TuanHA_Combat_Routine
                     if (THSettings.Instance.Hotkey2Target != 0 &&
                         THSettings.Instance.Hotkey2Key != 0 &&
                         THSettings.Instance.Hotkey2Spell != 0 &&
-                        (THSettings.Instance.Hotkey2Mod == 0 ||
+                        (((THSettings.Instance.Hotkey2Mod == 0 ||
                          THSettings.Instance.Hotkey2Mod != 0 &&
                          GetAsyncKeyState(IndexToKeysMod(THSettings.Instance.Hotkey2Mod)) < 0) &&
-                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey2Key)) < 0 &&
+                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey2Key)) < 0) ||
+                        (LastHotKey2Press > DateTime.Now))&&
                         HotKeyTargetValidate(THSettings.Instance.Hotkey2Target) &&
-                        HotKeySpellValidate(THSettings.Instance.Hotkey2Spell) &&
-                        CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
+                        HotKeySpellValidate(THSettings.Instance.Hotkey2Spell))
+                        //CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
                     {
                         //SafelyFacingTarget(HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target));
 
@@ -3086,12 +2674,18 @@ namespace TuanHA_Combat_Routine
                         {
                             SpellManager.StopCasting();
                         }
-                        LastHotKey2Press = DateTime.Now.AddSeconds(6);
-                        LastHotKey2PressPosition = Me.GetPosition();
-                        CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell),
+                        if (LastHotKey2Press < DateTime.Now)
+                        {
+                            LastHotKey2Press = DateTime.Now.AddSeconds(6);
+                        }
+                        if (CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell)))
+                        {
+                            LastHotKeyPressPosition = Me.GetPosition();
+                            CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey2Spell),
                                   HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target),
-                                  "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey2Spell) + " on " +
+                                  "Hotkey2: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey2Spell) + " on " +
                                   SafeName(HotkeyTargettoUnit(THSettings.Instance.Hotkey2Target)));
+                        }
 
                         if (GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey2Key)) < 0)
                         {
@@ -3110,10 +2704,11 @@ namespace TuanHA_Combat_Routine
                     if (THSettings.Instance.Hotkey3Target != 0 &&
                         THSettings.Instance.Hotkey3Key != 0 &&
                         THSettings.Instance.Hotkey3Spell != 0 &&
-                        (THSettings.Instance.Hotkey3Mod == 0 ||
+                        (((THSettings.Instance.Hotkey3Mod == 0 ||
                          THSettings.Instance.Hotkey3Mod != 0 &&
                          GetAsyncKeyState(IndexToKeysMod(THSettings.Instance.Hotkey3Mod)) < 0) &&
-                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey3Key)) < 0 &&
+                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey3Key)) < 0) ||
+                        (LastHotKey3Press > DateTime.Now))&&
                         HotKeyTargetValidate(THSettings.Instance.Hotkey3Target) &&
                         HotKeySpellValidate(THSettings.Instance.Hotkey3Spell))
                     {
@@ -3123,11 +2718,18 @@ namespace TuanHA_Combat_Routine
                         {
                             SpellManager.StopCasting();
                         }
-                        LastHotKey3Press = DateTime.Now.AddSeconds(5);
-                        CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey3Spell),
-                                  HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target),
-                                  "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey3Spell) + " on " +
-                                  SafeName(HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target)));
+                        if (LastHotKey3Press < DateTime.Now)
+                        {
+                            LastHotKey3Press = DateTime.Now.AddSeconds(5);
+                        }
+                        if (!DebuffCC(Me) && !InvulnerableSpell(HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target)) && !DebuffCCDuration(HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target), 1500) && CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey3Spell)))
+                        {
+                            CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey3Spell),
+                                      HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target),
+                                      "Hotkey3: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey3Spell) + " on " +
+                                      SafeName(HotkeyTargettoUnit(THSettings.Instance.Hotkey3Target)));
+                            LastHotKey3Press = DateTime.Now;
+                        }
 
                         if (GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey3Key)) < 0)
                         {
@@ -3146,10 +2748,11 @@ namespace TuanHA_Combat_Routine
                     if (THSettings.Instance.Hotkey4Target != 0 &&
                         THSettings.Instance.Hotkey4Key != 0 &&
                         THSettings.Instance.Hotkey4Spell != 0 &&
-                        (THSettings.Instance.Hotkey4Mod == 0 ||
+                        (((THSettings.Instance.Hotkey4Mod == 0 ||
                          THSettings.Instance.Hotkey4Mod != 0 &&
                          GetAsyncKeyState(IndexToKeysMod(THSettings.Instance.Hotkey4Mod)) < 0) &&
-                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey4Key)) < 0 &&
+                        GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey4Key)) < 0) ||
+                        (LastHotKey4Press > DateTime.Now)) &&
                         HotKeyTargetValidate(THSettings.Instance.Hotkey4Target) &&
                         HotKeySpellValidate(THSettings.Instance.Hotkey4Spell))
                     {
@@ -3159,12 +2762,18 @@ namespace TuanHA_Combat_Routine
                         {
                             SpellManager.StopCasting();
                         }
-                        LastHotKey4Press = DateTime.Now.AddSeconds(5);
-                        CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey4Spell),
-                                  HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target),
-                                  "Hotkey: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey4Spell) + " on " +
-                                  SafeName(HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target)));
-
+                        if (LastHotKey4Press < DateTime.Now)
+                        {
+                            LastHotKey4Press = DateTime.Now.AddSeconds(5);
+                        }
+                        if (!DebuffCC(Me) && !InvulnerableSpell(HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target)) && !DebuffCCDuration(HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target), 1500) && CanCastCheck(HotKeySpelltoName(THSettings.Instance.Hotkey4Spell)))
+                        {
+                            CastSpell(HotKeySpelltoName(THSettings.Instance.Hotkey4Spell),
+                                      HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target),
+                                      "Hotkey4: Cast " + HotKeySpelltoName(THSettings.Instance.Hotkey4Spell) + " on " +
+                                      SafeName(HotkeyTargettoUnit(THSettings.Instance.Hotkey4Target)));
+                            LastHotKey4Press = DateTime.Now;
+                        }                                  
                         if (GetAsyncKeyState(IndexToKeys(THSettings.Instance.Hotkey4Key)) < 0)
                         {
                             return RunStatus.Success;
@@ -3261,199 +2870,95 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region LavaLash
+        #region LavaLash@
 
         private static Composite LavaLash()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LavaLash &&
-                //SSpellManager.HasSpell("Lava Lash") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(5) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Lava Lash"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Lava Lash", Me.CurrentTarget, "LavaLash");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.LavaLash && CurrentTargetAttackable(5.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && CanCastCheck("Lava Lash", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Lava Lash", Me.CurrentTarget, "LavaLash");
+            }));
         }
 
         #endregion
 
-        #region LightningBolt
+        #region LightningBolt@
 
         private static Composite LightningBoltAncestralSwiftness()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningBolt &&
-                THSettings.Instance.AncestralSwiftnessLB &&
-                //SSpellManager.HasSpell("Lightning Bolt") &&
-                //SSpellManager.HasSpell("Ancestral Swiftness") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                MyAuraStackCount(53817, Me) <= 0 && //Maelstrom Weapon
-                (IsWorthyTarget(Me.CurrentTarget, 2, 0.5) ||
-                 HaveWorthyTargetAttackingMe()) &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Ancestral Swiftness") &&
-                CanCastCheck("Lightning Bolt"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Ancestral Swiftness", Me.CurrentTarget,
-                                      "AncestralSwiftnessLightningBolt");
-                            CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltAncestralSwiftness");
-                        })
-                );
+            return new Decorator(ret => ((((THSettings.Instance.LightningBolt && THSettings.Instance.AncestralSwiftnessLB) && (CurrentTargetAttackable(30.0, false, false) && !CurrentTargetCheckInvulnerableMagic)) && ((MyAuraStackCount(0xd239, Me) <= 0.0) && (IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && (FacingOverride(Me.CurrentTarget) && CanCastCheck("Ancestral Swiftness", false))) && CanCastCheck("Lightning Bolt", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Ancestral Swiftness", Me.CurrentTarget, "AncestralSwiftnessLightningBolt");
+                CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltAncestralSwiftness");
+            }));
         }
 
         private static Composite LightningBoltEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningBoltEnh &&
-                //SSpellManager.HasSpell("Lightning Bolt") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                MyAuraStackCount(53817, Me) >= THSettings.Instance.LightningBoltEnhMaelstromStack && //Maelstrom Weapon
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Lightning Bolt"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltEnh");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.LightningBoltEnh && CurrentTargetAttackable(30.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && (MyAuraStackCount(0xd239, Me) >= THSettings.Instance.LightningBoltEnhMaelstromStack))) && FacingOverride(Me.CurrentTarget)) && CanCastCheck("Lightning Bolt", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltEnh");
+            }));
         }
 
         private static DateTime LastLightningBoltFiller;
         //////done
         private static Composite LightningBoltFillerEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningBoltFiller &&
-                LastLightningBoltFiller < DateTime.Now &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                !Me.IsCasting &&
-                FacingOverride(Me.CurrentTarget) &&
-                SpellManager.HasSpell("Lightning Bolt") &&
-                Me.CurrentMana > SpellManager.Spells["Lightning Bolt"].PowerCost*3 &&
-                (MyAuraStackCount(53817, Me) >= THSettings.Instance.LightningBoltFillerMaelstromStack ||
-                 !SpellManager.HasSpell("Maelstrom Weapon")) &&
-                //Maelstrom Weapon
-                CanCastCheck("Lightning Bolt"),
-                //////(!UseLightningShieldGCDCheck ||
-                ////// UseLightningShieldGCDCheck &&
-                ////// SpellManager.Spells["Lightning Shield"].CooldownTimeLeft.TotalMilliseconds <= MyLatency),
-                //!CanCastCheck("Stormstrike") &&
-                //!CanCastCheck("Lava Lash") &&
-                //!CanCastCheck("Unleash Elements"),
-                new Action(
-                    ret =>
-                        {
-                            LastLightningBoltFiller = DateTime.Now + TimeSpan.FromSeconds(3);
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFiller");
-                        })
-                );
+            return new Decorator(delegate(object ret)
+            {
+                if ((((!THSettings.Instance.LightningBoltFiller || (LastLightningBoltFiller >= DateTime.Now)) || (!CurrentTargetAttackable(30.0, false, false) || CurrentTargetCheckInvulnerableMagic)) || ((Me.IsCasting || !FacingOverride(Me.CurrentTarget)) || (!SpellManager.HasSpell("Lightning Bolt") || (Me.CurrentMana <= (SpellManager.Spells["Lightning Bolt"].PowerCost * 3))))) || ((MyAuraStackCount(0xd239, Me) < THSettings.Instance.LightningBoltFillerMaelstromStack) && SpellManager.HasSpell("Maelstrom Weapon")))
+                {
+                    return false;
+                }
+                return CanCastCheck("Lightning Bolt", false);
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                LastLightningBoltFiller = DateTime.Now + TimeSpan.FromSeconds(3.0);
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFiller");
+            }));
         }
 
         private static Composite LightningBoltFillerEnhRange()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningBolt &&
-                (InBattleground || InArena) &&
-                CurrentTargetAttackable(30) &&
-                !CurrentTargetAttackable(7) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                SpellManager.HasSpell("Lightning Bolt") &&
-                Me.CurrentMana > SpellManager.Spells["Lightning Bolt"].PowerCost*3 &&
-                CanCastCheck("Lightning Bolt") &&
-                (!MeHasAura(53817) || //Maelstrom Weapon
-                 MyAuraStackCount(53817, Me) < 2 &&
-                 DebuffRoot(Me)),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFillerEnhRange");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.LightningBolt && (InBattleground || InArena)) && (((CurrentTargetAttackable(30.0, false, false) && !CurrentTargetAttackable(7.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && ((SpellManager.HasSpell("Lightning Bolt") && (Me.CurrentMana > (SpellManager.Spells["Lightning Bolt"].PowerCost * 3))) && CanCastCheck("Lightning Bolt", false)))) && (!MeHasAura(0xd239) || ((MyAuraStackCount(0xd239, Me) < 2.0) && DebuffRoot(Me))), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFillerEnhRange");
+            }));
         }
 
         private static Composite LightningBoltFillerElemental()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningBoltFillerElemental &&
-                //SSpellManager.HasSpell("Lightning Bolt") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Lightning Bolt"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                !Me.IsCasting &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Lightning Bolt") &&
-                ( //SSpellManager.HasSpell("Flame Shock") ||
-                    MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) > 2000 ||
-                    !UseLightningShieldGCDCheck ||
-                    UseLightningShieldGCDCheck &&
-                    SpellManager.Spells["Lightning Shield"].CooldownTimeLeft.TotalMilliseconds <= MyLatency),
-                //!CanCastCheck("Lava Burst") &&
-                //!CanCastCheck("Elemental Blast") &&
-                //(Me.ManaPercent >= THSettings.Instance.EleAoEMana ||
-                // !CanCastCheck("Flame Shock")),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFillerElemental");
-                        })
-                );
+            return new Decorator(delegate(object ret)
+            {
+                if (((!THSettings.Instance.LightningBoltFillerElemental || !CurrentTargetAttackable((double)((int)SpellManager.Spells["Lightning Bolt"].MaxRange), false, false)) || (CurrentTargetCheckInvulnerableMagic || Me.IsCasting)) || (!FacingOverride(Me.CurrentTarget) || !CanCastCheck("Lightning Bolt", false)))
+                {
+                    return false;
+                }
+                if (SpellManager.HasSpell("Flame Shock"))
+                {
+                    return MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) > 2000.0;
+                }
+                return true;
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFillerElemental");
+            }));
         }
 
         private static Composite LightningBoltFillerElementalAoE()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.LightningBoltFillerElemental &&
-                //SSpellManager.HasSpell("Lightning Bolt") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable((int) SpellManager.Spells["Lightning Bolt"].MaxRange) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                !Me.IsCasting &&
-                FacingOverride(Me.CurrentTarget) &&
-                !MeHasAura(77762) && //Lava Surge
-                CanCastCheck("Lightning Bolt") &&
-                (!UseLightningShieldGCDCheck ||
-                 UseLightningShieldGCDCheck &&
-                 SpellManager.Spells["Lightning Shield"].CooldownTimeLeft.TotalMilliseconds <= MyLatency),
-                //!CanCastCheck("Lava Burst") &&
-                //!CanCastCheck("Elemental Blast") &&
-                //(Me.ManaPercent >= THSettings.Instance.EleAoEMana ||
-                // !CanCastCheck("Flame Shock")),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFillerElementalAoE");
-                        })
-                )
-                ;
+            return new Decorator(ret => (((THSettings.Instance.LightningBoltFillerElemental && CurrentTargetAttackable((double)((int)SpellManager.Spells["Lightning Bolt"].MaxRange), false, false)) && (!CurrentTargetCheckInvulnerableMagic && !Me.IsCasting)) && (FacingOverride(Me.CurrentTarget) && !MeHasAura(0x12fc2))) && CanCastCheck("Lightning Bolt", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Lightning Bolt", Me.CurrentTarget, "LightningBoltFillerElementalAoE");
+            }));
         }
 
         //Glyph of Telluric Currents - 55453
@@ -3462,62 +2967,28 @@ namespace TuanHA_Combat_Routine
         private static bool GetUnitAttackRTelluricCurrents()
         {
             UnitAttackRTelluricCurrents = null;
-
             if (InArena || InBattleground)
             {
-                UnitAttackRTelluricCurrents = NearbyUnFriendlyPlayers.
-                    OrderBy(unit => unit.HealthPercent).
-                    FirstOrDefault(
-                        unit =>
-                        BasicCheck(unit) &&
-                        unit.MaxHealth > MeMaxHealth*0.5 &&
-                        !InvulnerableSpell(unit) &&
-                        FacingOverride(unit) &&
-                        Attackable(unit, 30));
+                UnitAttackRTelluricCurrents = (from unit in NearbyUnFriendlyPlayers.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                               orderby unit.HealthPercent
+                                               select unit).FirstOrDefault<WoWUnit>(unit => (((unit.MaxHealth > (MeMaxHealth * 0.5)) && !InvulnerableSpell(unit)) && FacingOverride(unit)) && Attackable(unit, 30));
             }
-
             if (UnitAttackRTelluricCurrents == null)
             {
-                UnitAttackRTelluricCurrents = NearbyUnFriendlyUnits.
-                    OrderByDescending(unit => unit.HealthPercent).
-                    FirstOrDefault(
-                        unit =>
-                        BasicCheck(unit) &&
-                        (IsDummy(unit) ||
-                         unit.Combat &&
-                         unit.MaxHealth > MeMaxHealth*0.5) &&
-                        !InvulnerableSpell(unit) &&
-                        FacingOverride(unit) &&
-                        unit.CurrentTarget != null &&
-                        FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                        Attackable(unit, 30));
+                UnitAttackRTelluricCurrents = (from unit in NearbyUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck))
+                                               orderby unit.HealthPercent descending
+                                               select unit).FirstOrDefault<WoWUnit>(unit => (((InProvingGrounds || IsDummy(unit)) || (unit.Combat && (unit.MaxHealth > (MeMaxHealth * 0.5)))) && ((!InvulnerableSpell(unit) && FacingOverride(unit)) && (unit.GotTarget && FarFriendlyPlayers.Contains(unit.CurrentTarget)))) && Attackable(unit, 30));
             }
-
             return BasicCheck(UnitAttackRTelluricCurrents);
         }
 
         private static Composite LightningBoltTelluricCurrents()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.AttackRestoLightningBoltGlyph &&
-                //SSpellManager.HasSpell("Lightning Bolt") &&
-                HasGlyph.Contains("55453") && //Glyph of Telluric Currents - 55453
-                //!Me.Mounted &&
-                Me.Combat &&
-                !Me.IsCasting &&
-                Me.ManaPercent < THSettings.Instance.DoNotHealAbove &&
-                (Me.ManaPercent < 20 ||
-                 HealWeightUnitHeal > THSettings.Instance.PriorityHeal) &&
-                CanCastCheck("Lightning Bolt") &&
-                GetUnitAttackRTelluricCurrents(),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(UnitAttackRTelluricCurrents);
-                            CastSpell("Lightning Bolt", UnitAttackRTelluricCurrents,
-                                      "AttackRestoLightningBoltGlyph");
-                        }));
+            return new Decorator(ret => ((((THSettings.Instance.AttackRestoLightningBoltGlyph && HasGlyph.Contains("55453")) && (Me.Combat && !Me.IsCasting)) && ((Me.ManaPercent < THSettings.Instance.DoNotHealAbove) && ((Me.ManaPercent < 20.0) || (HealWeightUnitHeal > THSettings.Instance.PriorityHeal)))) && CanCastCheck("Lightning Bolt", false)) && GetUnitAttackRTelluricCurrents(), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(UnitAttackRTelluricCurrents);
+                CastSpell("Lightning Bolt", UnitAttackRTelluricCurrents, "AttackRestoLightningBoltGlyph");
+            }));
         }
 
         #endregion
@@ -3526,10 +2997,19 @@ namespace TuanHA_Combat_Routine
 
         private static Composite LightningShield()
         {
-            return new Decorator(ret => (THSettings.Instance.LightningShield && (MyAuraTimeLeft(0x144, Me) < 1800000.0)) && CanCastCheck("Lightning Shield", false), new Styx.TreeSharp.Action(delegate(object ret)
+            return new Decorator(ret => (THSettings.Instance.LightningShield && Me.ManaPercent >= 50 && (MyAuraTimeLeft(0x144, Me) < 1800000.0)) && CanCastCheck("Lightning Shield", false), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 CastSpell("Lightning Shield", Me, "LightningShield");
             }));
+        }
+
+        private static Composite WaterShieldEnh()
+        {
+            return new Decorator(ret => Me.ManaPercent < 20 && !MyAura("Water Shield",Me) && CanCastCheck("Water Shield", false),
+                new Action(delegate
+                    {
+                        CastSpell("Water Shield", Me, "Water Shield");
+                    }));
         }
 
         #endregion
@@ -3538,24 +3018,11 @@ namespace TuanHA_Combat_Routine
 
         private static Composite MagmaTotemEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.MagmaTotemEnh &&
-                //LastDropTotem < DateTime.Now &&
-                //SSpellManager.HasSpell("Magma Totem") &&
-                //!Me.Mounted &&
-                !MyTotemCheck("Fire Elemental Totem", Me, 40) &&
-                !MyTotemCheck("Magma Totem", Me, 40) &&
-                CanCastCheck("Magma Totem") &&
-                CountEnemyNear(Me, 10) >= THSettings.Instance.MagmaTotemEnhUnit,
-                new Action(
-                    ret =>
-                        {
-                            //LastDropTotem = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                            //SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Magma Totem", Me, "MagmaTotemEnh");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.MagmaTotemEnh && !MyTotemCheck("Fire Elemental Totem", Me, 40)) && (!MyTotemCheck("Magma Totem", Me, 40) && CanCastCheck("Magma Totem", true))) && (CountEnemyNear(Me, 10f) >= THSettings.Instance.MagmaTotemEnhUnit), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SpellManager.StopCasting();
+                CastSpell("Magma Totem", Me, "MagmaTotemEnh");
+            }));
         }
 
         private static Composite MagmaTotemEle()
@@ -3787,97 +3254,75 @@ namespace TuanHA_Combat_Routine
                     ret => { CastSpell("Purge", UnitPurgeNormalResto, "PurgeNormal"); })
                 );
         }
-
-        private static readonly HashSet<string> NeedPurgeASAPEleEnhHS = new HashSet<string>
-            {
-                //Death Knight
-                //"Unholy Frenzy",
-                //Druid
-                "Innervate",
-                "Nature's Swiftness",
-                "Predator's Swiftness",
-                //Hunter
-                "Master's Call",
-                //Mage
-                "Arcane Power",
-                "Alter Time",
-                "Ice Barrier",
-                "Icy Veins",
-                "Mana Shield",
-                "Fingers of Frost",
-                "Presence of Mind",
-                //Monk
-                //"Life Cocoon", Not dispellable
-                "Enveloping Mist",
-                //"Touch of Karma",//Thank cedricdu94. No, your healer can dispell you when you touch monk with touch of karma but you cant dispell enemy buff touch of karma
-                //Paladin
-                "Divine Plea",
-                "Hand of Freedom",
-                //"Avenging Wrath",
-                "Hand of Protection",
-                "Hand of Sacrifice",
-                //"Sacred Shield",
-                //Priest
-                "Inner Focus",
-                //"Fear Ward",
-                "Power Infusion",
-                "Power Word: Shield",
-                //Rogue
-                //??
-                //Shaman
-                //"Earth Shield",
-                "Elemental Mastery",
-                "Ghost Wolf",
-                "Ancestral Swiftness",
-                "Spiritwalker's Grace",
-                //Warlock
-                "Sacrifice",
-                //Warrior
-                //"Berserker Rage",
-                //"Enrage",
-                //Warlock
-                //"Dark Soul: Instability", Dark Soul is not dispellable
-                //"Dark Soul: Knowledge", Dark Soul is not dispellable
-                //"Dark Soul: Misery", Dark Soul is not dispellable
-            };
+        private static readonly HashSet<string> NeedPurgeASAPEleEnhHS = new HashSet<string> { 
+            "Innervate", "Nature's Swiftness", "Predator's Swiftness", "Master's Call", "Arcane Power", "Alter Time", "Ice Barrier", "Icy Veins", "Mana Shield", "Fingers of Frost", "Presence of Mind", "Enveloping Mist", "Divine Plea", "Hand of Freedom", "Hand of Protection", "Hand of Sacrifice", 
+            "Inner Focus", "Power Infusion", "Power Word: Shield", "Elemental Mastery", "Ghost Wolf", "Ancestral Swiftness", "Spiritwalker's Grace", "Sacrifice"
+         };
+        //private static readonly HashSet<string> NeedPurgeASAPEleEnhHS = new HashSet<string>
+        //    {
+        //        //Death Knight
+        //        //"Unholy Frenzy",
+        //        //Druid
+        //        "Innervate",
+        //        "Nature's Swiftness",
+        //        "Predator's Swiftness",
+        //        //Hunter
+        //        "Master's Call",
+        //        //Mage
+        //        "Arcane Power",
+        //        "Alter Time",
+        //        "Ice Barrier",
+        //        "Icy Veins",
+        //        "Mana Shield",
+        //        "Fingers of Frost",
+        //        "Presence of Mind",
+        //        //Monk
+        //        //"Life Cocoon", Not dispellable
+        //        "Enveloping Mist",
+        //        //"Touch of Karma",//Thank cedricdu94. No, your healer can dispell you when you touch monk with touch of karma but you cant dispell enemy buff touch of karma
+        //        //Paladin
+        //        "Divine Plea",
+        //        "Hand of Freedom",
+        //        //"Avenging Wrath",
+        //        "Hand of Protection",
+        //        "Hand of Sacrifice",
+        //        //"Sacred Shield",
+        //        //Priest
+        //        "Inner Focus",
+        //        //"Fear Ward",
+        //        "Power Infusion",
+        //        "Power Word: Shield",
+        //        //Rogue
+        //        //??
+        //        //Shaman
+        //        //"Earth Shield",
+        //        "Elemental Mastery",
+        //        "Ghost Wolf",
+        //        "Ancestral Swiftness",
+        //        "Spiritwalker's Grace",
+        //        //Warlock
+        //        "Sacrifice",
+        //        //Warrior
+        //        //"Berserker Rage",
+        //        //"Enrage",
+        //        //Warlock
+        //        //"Dark Soul: Instability", Dark Soul is not dispellable
+        //        //"Dark Soul: Knowledge", Dark Soul is not dispellable
+        //        //"Dark Soul: Misery", Dark Soul is not dispellable
+        //    };
 
         private static bool NeedPurgeASAPEleEnh(WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return false;
-            }
-
-            AuraCacheUpdate(target);
-
-            if (AuraCacheList.Any(
-                a => a.AuraCacheUnit == target.Guid && NeedPurgeASAPEleEnhHS.Contains(a.AuraCacheAura.Name)))
-            {
-                //Logging.Write(target.Name + " got DebuffRoot");
-                return true;
-            }
-            return false;
+            AuraCacheUpdate(target, false);
+            return AuraCacheList.Any<AuraCacheClass>(a => ((a.AuraCacheUnit == target.Guid) && NeedPurgeASAPEleEnhHS.Contains(a.AuraCacheAura.Name)));
         }
 
         private static Composite PurgeASAPEleEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.PurgeASAP &&
-                //SSpellManager.HasSpell("Purge") &&
-                //!Me.Mounted &&
-                Me.ManaPercent >= THSettings.Instance.PurgeASAPMana &&
-                BasicCheck(Me.CurrentTarget) &&
-                Me.CurrentTarget.IsPlayer &&
-                !CurrentTargetCheckInvulnerable &&
-                CurrentTargetCheckIsEnemy &&
-                CurrentTargetCheckDist <= 30 &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                NeedPurgeASAPEleEnh(Me.CurrentTarget) &&
-                CanCastCheck("Purge"),
-                new Action(
-                    ret => { CastSpell("Purge", Me.CurrentTarget, "PurgeASAPEleEnh"); })
-                );
+            return new Decorator(ret => ((((THSettings.Instance.PurgeASAP && (Me.ManaPercent >= THSettings.Instance.PurgeASAPMana)) && (BasicCheck(Me.CurrentTarget) && Me.CurrentTarget.IsPlayer)) && ((!CurrentTargetCheckInvulnerable && CurrentTargetCheckIsEnemy) && ((CurrentTargetCheckDist <= 30.0) && !CurrentTargetCheckInvulnerableMagic))) && NeedPurgeASAPEleEnh(Me.CurrentTarget)) && CanCastCheck("Purge", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Purge", Me.CurrentTarget, "PurgeASAPEleEnh");
+            }));
         }
 
         #endregion
@@ -4086,87 +3531,37 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region SearingTotem
+        #region SearingTotem@
 
         private static DateTime LastDropTotem;
 
         private static Composite SearingTotem()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.SearingTotem &&
-                //LastDropTotem < DateTime.Now &&
-                //SSpellManager.HasSpell("Searing Totem") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(THSettings.Instance.SearingTotemDistance) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                Me.ManaPercent > 20 &&
-                !MyTotemFireCheck(Me, 40) &&
-                CanCastCheck("Searing Totem") &&
-                (!MyTotemCheck("Searing Totem", Me.CurrentTarget, THSettings.Instance.SearingTotemDistance) ||
-                 Me.CurrentTarget.IsPlayer &&
-                 MyTotemCheck("Searing Totem", Me.CurrentTarget, THSettings.Instance.SearingTotemDistance) &&
-                 GetDistance(Me.Totems[0].Unit, Me.CurrentTarget) > 10 &&
-                 !Styx.WoWInternals.World.GameWorld.TraceLine(Me.Totems[0].Unit.Location, Me.CurrentTarget.Location,
-                                                              GameWorld.CGWorldFrameHitFlags.HitTestWMO)),
-                new Action(
-                    ret =>
-                        {
-                            //if (Me.Totems[0] != null)
-                            //{
-                            //    Logging.Write("MyTotemCheck {0}", MyTotemCheck("Searing Totem", Me.CurrentTarget, 15));
-                            //    Logging.Write("Range {0}",
-                            //                  GetDistance(Me.Totems[0].Unit, Me.CurrentTarget));
-                            //    Logging.Write("TraceLine {0}",
-                            //                  Styx.WoWInternals.World.GameWorld.TraceLine(Me.Totems[0].Unit.Location,
-                            //                                                              Me.CurrentTarget.Location,
-                            //                                                              GameWorld.CGWorldFrameHitFlags
-                            //                                                                       .HitTestLOS));
-                            //}
-                            //LastDropTotem = DateTime.Now + TimeSpan.FromMilliseconds(2000);
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Searing Totem", Me.CurrentTarget, "SearingTotem");
-                        })
-                );
+            return new Decorator(delegate(object ret)
+            {
+                if (((!THSettings.Instance.SearingTotem || !CurrentTargetAttackable((double)THSettings.Instance.SearingTotemDistance, false, false)) || (CurrentTargetCheckInvulnerableMagic || (Me.ManaPercent <= 20.0))) || (MyTotemFireCheck(Me, 40) || !CanCastCheck("Searing Totem", false)))
+                {
+                    return false;
+                }
+                return !MyTotemCheck("Searing Totem", Me.CurrentTarget, THSettings.Instance.SearingTotemDistance) || (((Me.CurrentTarget.IsPlayer && MyTotemCheck("Searing Totem", Me.CurrentTarget, THSettings.Instance.SearingTotemDistance)) && (GetDistance(Me.Totems[0].Unit, Me.CurrentTarget) > 10f)) && !GameWorld.TraceLine(Me.Totems[0].Unit.Location, Me.CurrentTarget.Location, GameWorld.CGWorldFrameHitFlags.HitTestBoundingModels | GameWorld.CGWorldFrameHitFlags.HitTestGround | GameWorld.CGWorldFrameHitFlags.HitTestMovableObjects | GameWorld.CGWorldFrameHitFlags.HitTestWMO));
+            }, new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Searing Totem", Me.CurrentTarget, "SearingTotem");
+            }));
         }
 
         private static bool NeedSearingTotemResto(int dist)
         {
-            return NearbyUnFriendlyUnits.Any(
-                unit =>
-                BasicCheck(unit) &&
-                (IsDummy(unit) ||
-                 unit.CurrentTarget != null &&
-                 FarFriendlyPlayers.Contains(unit.CurrentTarget) &&
-                 unit.MaxHealth > MeMaxHealth*0.5) &&
-                GetDistance(unit) <= dist &&
-                //!DebuffCCBreakonDamage(unit) &&
-                InLineOfSpellSightCheck(unit));
+            return NearbyUnFriendlyUnits.Where<WoWUnit>(new Func<WoWUnit, bool>(Classname.BasicCheck)).Any<WoWUnit>(unit => ((((InProvingGrounds || IsDummy(unit)) || ((unit.GotTarget && FarFriendlyPlayers.Contains(unit.CurrentTarget)) && (unit.MaxHealth > (MeMaxHealth * 0.5)))) && (GetDistance(unit) <= dist)) && InLineOfSpellSightCheck(unit)));
         }
 
         private static Composite SearingTotemResto()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.SearingTotem &&
-                HealWeightUnitHeal >= THSettings.Instance.PriorityHeal &&
-                //LastDropTotem < DateTime.Now &&
-                //SSpellManager.HasSpell("Searing Totem") &&
-                //!Me.Mounted &&
-                !MyTotemFireCheck(Me, 60) &&
-                CanCastCheck("Searing Totem") &&
-                NeedSearingTotemResto(THSettings.Instance.SearingTotemDistance),
-                new Action(
-                    ret =>
-                        {
-                            //LastDropTotem = DateTime.Now + TimeSpan.FromMilliseconds(2000);
-                            CastSpell("Searing Totem", Me, "SearingTotemResto");
-                            //Eval("MyTotemFireCheck(Me, 60)", () => MyTotemFireCheck(Me, 60));
-                            //Eval("NeedSearingTotemResto(THSettings.Instance.SearingTotemDistance) &&",
-                            //     () => NeedSearingTotemResto(THSettings.Instance.SearingTotemDistance));
-                        })
-                )
-                ;
+            return new Decorator(ret => ((THSettings.Instance.SearingTotem && (HealWeightUnitHeal >= THSettings.Instance.PriorityHeal)) && (!MyTotemFireCheck(Me, 60) && CanCastCheck("Searing Totem", false))) && NeedSearingTotemResto(THSettings.Instance.SearingTotemDistance), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Searing Totem", Me, "SearingTotemResto");
+            }));
         }
 
         #endregion
@@ -4678,6 +4073,7 @@ namespace TuanHA_Combat_Routine
                     //SSpellManager.HasSpell(ImbuesIdToName(THSettings.Instance.WeaponOffHand)) &&
                     //!Me.Mounted &&
                     Me.Inventory.Equipped.OffHand != null &&
+                    Me.Inventory.Equipped.OffHand.TemporaryEnchantment == null &&
                     Me.Inventory.Equipped.OffHand.TemporaryEnchantment.Id !=
                     ImbuesIdToTemporaryEnchantmentId(THSettings.Instance.WeaponOffHand) &&
                     CanCastCheck(ImbuesIdToName(THSettings.Instance.WeaponOffHand)),
@@ -4953,37 +4349,18 @@ namespace TuanHA_Combat_Routine
 
         private static bool MyTotemCheck(string totemName, WoWUnit target, int distance)
         {
-            if (!BasicCheck(target))
+            for (int i = 0; i < 4; i++)
             {
-                return false;
-            }
-
-            for (var i = 0; i < 4; i++)
-            {
-                if (Me.Totems[i].Unit != null &&
-                    Me.Totems[i].Unit.Entry == TotemNametoEntry(totemName) &&
-                    GetDistance(Me.Totems[i].Unit, target) <= distance)
+                if (((Me.Totems[i].Unit != null) && (Me.Totems[i].Unit.Entry == TotemNametoEntry(totemName))) && (GetDistance(Me.Totems[i].Unit, target) <= distance))
                 {
+                    if (totemName == "Capacitor Totem")
+                    {
+                        CapacitorTotem = Me.Totems[i].Unit;
+                    }
                     return true;
                 }
             }
-
             return false;
-
-            //var totem = FarFriendlyUnits.FirstOrDefault(
-            //    unit =>
-            //    BasicCheck(unit) &&
-            //    unit.Entry == TotemNametoEntry(totemName) &&
-            //    unit.CreatedByUnit == Me);
-
-            //if (totem == null)
-            //{
-            //    return false;
-            //}
-
-            ////Logging.Write("Name {0} Get Distance {1} Distance {2}", totem.Name, GetDistance(totem, target),
-            ////              totem.Location.Distance(target.Location));
-            //return GetDistance(totem, target) <= distance;
         }
 
         private static bool MyTotemAirCheck(WoWUnit target, int distance)
@@ -5214,9 +4591,9 @@ namespace TuanHA_Combat_Routine
         //        87204, //Sin and Punishment
         //        104045, //Sleep (Metamorphosis)
         //    };
-        private static readonly HashSet<int> BuffBurstHS = new HashSet<int> { 
-            0x1a436, 0x3004, 0x1da7f, 0xc847, 0xbf78, 0x190a0, 0x1e82e, 0x1a1c8, 0x4c76, 0xbe5, 0x30b8, 0x7c8c, 0x19d51, 0x152aa, 0x1528d, 0xca01, 
-            0xc9ea, 0x35b6, 0x1bd81, 0x1bd83, 0x1bcc2, 0x6b7, 0x1be1f
+        private static readonly HashSet<int> DebuffNeedTremor = new HashSet<int> { 
+            0x1696, 0x1cfab, 0x1fe38, 0xa4d, 0x156c, 0x1b9a0, 0x1b96c, 0x147e, 0x501f, 0x1ed26, 0x1c244, 0x1a85, 0xfa2c, 0x1fba, 0x1bc80, 0x2053c, 
+            0x18d6, 0x764b, 0x20448, 0x154a4, 0x1966d
          };
 
         private static bool NeedTremor(WoWUnit target, int duration, bool writelog = true)
@@ -5259,119 +4636,55 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region UnleashElements
+        #region UnleashElements@
 
         private static Composite UnleashElementsEle()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.UnleashElementsEle &&
-                //SSpellManager.HasSpell("Unleash Elements") &&
-                (InArena || InBattleground) &&
-                //!Me.Mounted &&
-                IsMoving(Me) &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Unleash Elements"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEle");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.UnleashElementsEle && (InArena || InBattleground)) && ((IsMoving(Me) && CurrentTargetAttackable(40.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget)))) && CanCastCheck("Unleash Elements", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEle");
+            }));
         }
 
         private static Composite UnleashElementsEnh()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.UnleashElementsEnh &&
-                //SSpellManager.HasSpell("Unleash Elements") &&
-                //SSpellManager.HasSpell("Unleashed Fury") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Unleash Elements"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEnh");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.UnleashElementsEnh && CurrentTargetAttackable(40.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && CanCastCheck("Unleash Elements", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEnh");
+            }));
         }
 
         private static Composite UnleashElementsEnhSnare()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.UnleashElementsEnh &&
-                //SSpellManager.HasSpell("Unleash Elements") &&
-                //SSpellManager.HasSpell("Unleashed Fury") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                Me.Inventory.Equipped.OffHand != null &&
-                Me.Inventory.Equipped.OffHand.TemporaryEnchantment.Id == 2 && //Frostband
-                !InvulnerableRootandSnare(Me.CurrentTarget) &&
-                CanCastCheck("Unleash Elements"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEnhSnare");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.UnleashElementsEnh && CurrentTargetAttackable(40.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && (((Me.Inventory.Equipped.OffHand != null) && (Me.Inventory.Equipped.OffHand.TemporaryEnchantment.Id == 2)) && !InvulnerableRootandSnare(Me.CurrentTarget))) && CanCastCheck("Unleash Elements", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEnhSnare");
+            }));
         }
 
         private static Composite UnleashElementsEnhUnleashedFury()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.UnleashElementsEnh &&
-                //SSpellManager.HasSpell("Unleashed Fury") &&
-                //!Me.Mounted &&
-                CurrentTargetAttackable(40) &&
-                !CurrentTargetCheckInvulnerableMagic &&
-                FacingOverride(Me.CurrentTarget) &&
-                CanCastCheck("Unleash Elements"),
-                new Action(
-                    ret =>
-                        {
-                            SafelyFacingTarget(Me.CurrentTarget);
-                            CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEnhUnleashedFury");
-                        })
-                );
+            return new Decorator(ret => ((THSettings.Instance.UnleashElementsEnh && CurrentTargetAttackable(40.0, false, false)) && (!CurrentTargetCheckInvulnerableMagic && FacingOverride(Me.CurrentTarget))) && CanCastCheck("Unleash Elements", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                SafelyFacingTarget(Me.CurrentTarget);
+                CastSpell("Unleash Elements", Me.CurrentTarget, "UnleashElementsEnhUnleashedFury");
+            }));
         }
 
         private static Composite UnleashElementsRes()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.UnleashElementsRes &&
-                UnitHealIsValid &&
-                HealWeightUnitHeal <= THSettings.Instance.UnleashElementsResHP &&
-                //SSpellManager.HasSpell("Unleash Elements") &&
-                //!Me.Mounted &&
-                CanCastCheck("Unleash Elements"),
-                new Action(
-                    ret => { CastSpell("Unleash Elements", UnitHeal, "UnleashElementsRes"); })
-                );
+            return new Decorator(ret => ((THSettings.Instance.UnleashElementsRes && UnitHealIsValid) && (HealWeightUnitHeal <= THSettings.Instance.UnleashElementsResHP)) && CanCastCheck("Unleash Elements", false), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                CastSpell("Unleash Elements", UnitHeal, "UnleashElementsRes");
+            }));
         }
 
         private static void UnleaseElementEarthLiving(bool Enabled, WoWUnit UnitToUnleaseElementEarthLiving)
         {
-            if (Enabled &&
-                Me.Inventory.Equipped.MainHand != null &&
-                Me.Inventory.Equipped.MainHand.TemporaryEnchantment.Id == 3345 &&
-                //SSpellManager.HasSpell("Unleash Elements") &&
-                BasicCheck(UnitToUnleaseElementEarthLiving) &&
-                !MeHasAura(73685) && //Unleash Life
-                CanCastCheck("Unleash Elements"))
+            if (((Enabled && (Me.Inventory.Equipped.MainHand != null)) && ((Me.Inventory.Equipped.MainHand.TemporaryEnchantment.Id == 0xd11) && BasicCheck(UnitToUnleaseElementEarthLiving))) && (!MeHasAura(0x11fd5) && CanCastCheck("Unleash Elements", false)))
             {
                 CastSpell("Unleash Elements", UnitToUnleaseElementEarthLiving, "Unleash Elements before CH/GHW/HR/HS");
             }
@@ -6143,31 +5456,17 @@ namespace TuanHA_Combat_Routine
 
         #endregion
 
-        #region WaterWalking
+        #region WaterWalking@
 
         private static DateTime WaterWalkingLast;
 
         private static Composite WaterWalking()
         {
-            return new Decorator(
-                ret =>
-                THSettings.Instance.AutoWaterWalking &&
-                HealWeightUnitHeal >= THSettings.Instance.DoNotHealAbove &&
-                WaterWalkingLast < DateTime.Now &&
-                //SSpellManager.HasSpell("Water Walking") &&
-                //!Me.Mounted &&
-                !Me.Combat &&
-                Me.ManaPercent >= THSettings.Instance.UrgentHeal &&
-                !MeHasAura("Water Walking") &&
-                CanCastCheck("Water Walking") &&
-                !DebuffDot(Me),
-                new Action(
-                    ret =>
-                        {
-                            WaterWalkingLast = DateTime.Now + TimeSpan.FromMilliseconds(5000);
-                            CastSpell("Water Walking", Me, "WaterWalking");
-                        })
-                );
+            return new Decorator(ret => (((THSettings.Instance.AutoWaterWalking && (HealWeightUnitHeal >= THSettings.Instance.DoNotHealAbove)) && ((WaterWalkingLast < DateTime.Now) && !Me.Combat)) && (((Me.ManaPercent >= THSettings.Instance.UrgentHeal) && !MeHasAura("Water Walking")) && CanCastCheck("Water Walking", false))) && !DebuffDot(Me), new Styx.TreeSharp.Action(delegate(object ret)
+            {
+                WaterWalkingLast = DateTime.Now + TimeSpan.FromMilliseconds(5000.0);
+                CastSpell("Water Walking", Me, "WaterWalking");
+            }));
         }
 
         #endregion
@@ -6259,23 +5558,19 @@ namespace TuanHA_Combat_Routine
             return BasicCheck(WorthyTargetAttackingMe);
         }
 
-        private static bool IsWorthyTarget(WoWUnit target, double pvEPercent = 1, double pvPPercent = 0.3)
+        private static bool IsWorthyTarget(WoWUnit target, double pvEPercent = 1.0, double pvPPercent = 0.3)
         {
-            //////if (!BasicCheck(target) || Me.GetPredictedHealthPercent() < 20)
-            if (!InArena && Me.HealthPercent < 20)
+            if (InArena)
+            {
+                return true;
+            }else if (HealWeight(Me) < 20.0)
+            {
+                return false;
+            }else if ((!IsDummy(target) && (target.IsPet || (target.CurrentHealth <= (Me.CurrentHealth * pvEPercent)))) && (!target.IsPlayer || (target.CurrentHealth <= (Me.CurrentHealth * pvPPercent))))
             {
                 return false;
             }
-
-            if (IsDummy(target) ||
-                !target.IsPet &&
-                target.CurrentHealth > Me.CurrentHealth*pvEPercent ||
-                target.IsPlayer &&
-                target.CurrentHealth > Me.CurrentHealth*pvPPercent)
-            {
-                return true;
-            }
-            return false;
+            return true;
         }
 
         #endregion

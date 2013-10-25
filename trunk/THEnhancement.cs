@@ -46,14 +46,13 @@ namespace TuanHA_Combat_Routine
                         //.AutoAttack(),
                         ///恢复SM用来回蓝的
                         AutoAttackOffTarget(),
-                        ///血少,或者蓝少,且40码内有敌人以我为目标, -30伤害,15秒不耗蓝,未实现插雕文清魔法效果
+                        ///血少,或者蓝少,且40码内有敌人以我为目标, -30伤害,15秒不耗蓝
                         ShamanisticRage(),
-                        ///升腾,
-                        //////done
+                        ///升腾
                         AscendanceEnh(),
                         ///元素掌握,+30%急速?
                         ElementalMastery(),
-                        ///先祖指引，爆发或者按CD使用，需要更新, 例如爆发的时候,如果大家血都多,就不用这个技能了
+                        ///先祖指引，爆发或者按CD使用，有治疗50%一下用，无治疗，70%一下用
                         //////done
                         AncestralGuidance(),
                         ///不同天赋对自己或者队友使用幽灵步免疫减速
@@ -95,12 +94,16 @@ namespace TuanHA_Combat_Routine
                         HealingStreamTotem(),
                         //////done
                         ///4层漩涡或20码外或5码外且自己被定身或20码内，对方血不少或比我高，蓝高于40%，用治疗波,需要增加治疗被晕时给治疗加血
+                        ///无治疗时，5层漩涡给自己回血（门限+20）
+                        ///治疗被控时，5层漩涡给治疗回血（门限+10）
+                        ///任何人被两个人攻击时，5层漩涡给血少的人回血（门限+20）
                         HealingSurgeInCombatEnh(),
                         ///自动补电盾,血少改水盾
+                        WaterShieldEnh(),
                         LightningShield(),
                         ///武器付魔
                         //////TemporaryEnchantmentEnhancement(),
-                        ///召唤狼
+                        ///召唤狼, 取消了JJC内worthy target的判断
                         FeralSpirit(),
                         ///火元素图腾, CD或者爆发用, 判断是否有worthy的目标
                         FireElemental(),
@@ -109,7 +112,6 @@ namespace TuanHA_Combat_Routine
                         ///对于会隐身职业用烈焰震击上debuff
                         FlameShockRogueDruid(),
                         ///没有被定身时用冰震
-                        //////done
                         FrostShockEnhRoot(),
                         //////debuff<2秒时补debuff
                         //////done
@@ -168,7 +170,7 @@ namespace TuanHA_Combat_Routine
                 new Decorator(
                     ret => AoEModeOn && !Me.Mounted,
                     new PrioritySelector(
-                        AutoAttack(),
+                        //AutoAttack(),
                         ShamanisticRage(),
                         AscendanceEnh(),
                         ElementalMastery(),

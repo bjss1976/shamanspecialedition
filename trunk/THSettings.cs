@@ -177,6 +177,13 @@ namespace TuanHA_Combat_Routine
         public bool AutoAttackOutCombat { get; set; }
 
         [Setting, DefaultValue(true)]
+        public bool AutoDetectManualCast { get; set; }
+
+        [Setting, DefaultValue(100)]
+        public int AutoDetectManualCastMS { get; set; }
+
+
+        [Setting, DefaultValue(true)]
         public bool BattleStandard { get; set; }
 
         [Setting, DefaultValue(50)] //S

@@ -473,133 +473,196 @@ namespace TuanHA_Combat_Routine
         }
 
         //////done
+        //private static bool CanCastCheck(string spellName, bool IsOffGCDSpell = false)
+        //{
+        //    SpellsCooldownCacheClear();
+
+        //    if (SpellsCooldownCache.ContainsKey(spellName))
+        //    {
+        //        //Logging.Write("SpellsCooldownCache contains {0}, skip check", spellName);
+        //        return false;
+        //    }
+
+        //    //if (!IsOffGCDSpell && SkipOnGcdSpellCheck > DateTime.Now)
+        //    //{
+        //    //    //Logging.Write("CanCastCheck: Global Cooldown back time {0} - Now is {1}, SkipOffGCDSpellCheck check",
+        //    //    //              SkipOffGCDSpellCheck.ToString("ss:fff"), DateTime.Now.ToString("ss:fff"));
+        //    //    return false;
+        //    //}
+
+        //    if (!SpellManager.HasSpell(spellName))
+        //    {
+        //        return false;
+        //    }
+
+        //    if ((InArena || InBattleground) &&
+        //        spellName != "Thunderstorm" &&
+        //        spellName != "Shamanistic Rage" &&
+        //        spellName != "Tremor Totem" &&
+        //        DebuffCC(Me))
+        //    {
+        //        return false;
+        //    }
+
+        //    double spellPowerCost;
+        //    if (UseSpecialization == 2 &&
+        //        SpellManager.Spells[spellName].School.ToString().Contains("Nature"))
+        //        //SpellManager.Spells[spellName].School == WoWSpellSchool.Nature)
+        //    {
+        //        spellPowerCost = (GetSpellPowerCost(spellName) / 100) * (100 - (20 * MyAuraStackCount(53817, Me)));
+        //        //Maelstrom Weapon 
+        //    }
+        //    else
+        //    {
+        //        spellPowerCost = GetSpellPowerCost(spellName);
+        //    }
+
+        //    if (Me.CurrentMana < spellPowerCost)
+        //    {
+        //        return false;
+        //    }
+
+        //    if (spellName == "Elemental Blast")
+        //    {
+        //        Logging.Write("Elemental Blash:" + MyAuraStackCount(53817, Me) + ":" + SpellManager.Spells[spellName].School);
+        //    }
+
+        //    double spellCastTime;
+        //    //if (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature &&
+
+        //    if (!IsMoving(Me))
+        //    {
+        //        spellCastTime = 0;
+        //    }
+        //    else if (spellName == "Earthgrab Totem" ||
+        //        (SpellManager.Spells[spellName].School.ToString().Contains("Nature") &&
+        //        (MeHasAura(16188) || UseSpecialization == 2 && MyAuraStackCount(53817, Me) > 4)) ||
+        //        (MeHasAura(77762) && spellName == "Lava Burst"))
+        //        //Nature Swiftness and Maelstrom Weapon
+        //    {
+        //        spellCastTime = 0;
+        //    }
+        //    else
+        //    {
+        //        spellCastTime = GetSpellCastTime(spellName);
+        //    }
+
+        //    if (spellName != "Lightning Bolt" && spellCastTime > 0 && IsMoving(Me) && !MeHasAura("Spiritwalker's Grace"))
+        //    {
+        //        return false;
+        //    }
+
+        //    if (IsOffGCDSpell && GetSpellCooldown(spellName).TotalMilliseconds <= 0)
+        //    {
+        //        return true;
+        //    }
+
+
+        //    if ((!Me.IsCasting || Me.IsCasting && Me.CurrentCastTimeLeft.TotalMilliseconds <= MyLatency))
+        //    {
+        //        if ((UseSpecialization == 3) && (((spellName == "Healing Raing") || (spellName == "Cleanse")) || (spellName == "Riptide")))
+        //        {
+        //            spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - (TimeSpan.FromMilliseconds(MyLatency) + TimeSpan.FromMilliseconds(300.0));
+        //        }
+        //        else if (((spellName == "Lightning Bolt") || (spellName == "Healing Wave")) && (MyLatency > 0.0))
+        //        {
+        //            spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency * 0.5);
+        //        }
+
+        //        else
+        //        {
+        //            spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency);
+        //        }
+        //        //////spellCooldownBack = DateTime.Now + GetSpellCooldown(spellName) - TimeSpan.FromMilliseconds(MyLatency);
+
+        //        if (spellCooldownBack <= DateTime.Now)
+        //        {
+        //            return true;
+        //        }
+        //    }
+
+        //    //if (spellCooldownBack > DateTime.Now)
+        //    //{
+        //    SpellsCooldownCacheAdd(spellName, spellCooldownBack);
+        //    //}
+
+        //    //if (SkipOnGcdSpellCheck < DateTime.Now)
+        //    //{
+        //    //    if (UseLightningShieldGCDCheck)
+        //    //    {
+        //    //        SkipOnGcdSpellCheck = DateTime.Now + SpellManager.Spells["Lightning Shield"].CooldownTimeLeft -
+        //    //                              TimeSpan.FromMilliseconds(MyLatency);
+        //    //    }
+        //    //    else
+        //    //    {
+        //    //        SkipOnGcdSpellCheck = DateTime.Now + SpellManager.GlobalCooldownLeft -
+        //    //                              TimeSpan.FromMilliseconds(MyLatency);
+        //    //    }
+        //    //}
+
+        //    return false;
+        //}
+
         private static bool CanCastCheck(string spellName, bool IsOffGCDSpell = false)
         {
             SpellsCooldownCacheClear();
-
-            if (SpellsCooldownCache.ContainsKey(spellName))
+            if (!SpellsCooldownCache.ContainsKey(spellName))
             {
-                //Logging.Write("SpellsCooldownCache contains {0}, skip check", spellName);
-                return false;
-            }
-
-            //if (!IsOffGCDSpell && SkipOnGcdSpellCheck > DateTime.Now)
-            //{
-            //    //Logging.Write("CanCastCheck: Global Cooldown back time {0} - Now is {1}, SkipOffGCDSpellCheck check",
-            //    //              SkipOffGCDSpellCheck.ToString("ss:fff"), DateTime.Now.ToString("ss:fff"));
-            //    return false;
-            //}
-
-            if (!SpellManager.HasSpell(spellName))
-            {
-                return false;
-            }
-
-            if ((InArena || InBattleground) &&
-                spellName != "Thunderstorm" &&
-                spellName != "Shamanistic Rage" &&
-                spellName != "Tremor Totem" &&
-                DebuffCC(Me))
-            {
-                return false;
-            }
-
-            double spellPowerCost;
-            if (UseSpecialization == 2 &&
-                SpellManager.Spells[spellName].School.ToString().Contains("Nature"))
-                //SpellManager.Spells[spellName].School == WoWSpellSchool.Nature)
-            {
-                spellPowerCost = (GetSpellPowerCost(spellName) / 100) * (100 - (20 * MyAuraStackCount(53817, Me)));
-                //Maelstrom Weapon 
-            }
-            else
-            {
-                spellPowerCost = GetSpellPowerCost(spellName);
-            }
-
-            if (Me.CurrentMana < spellPowerCost)
-            {
-                return false;
-            }
-
-            if (spellName == "Elemental Blast")
-            {
-                Logging.Write("Elemental Blash:" + MyAuraStackCount(53817, Me) + ":" + SpellManager.Spells[spellName].School);
-            }
-
-            double spellCastTime;
-            //if (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature &&
-
-            if (!IsMoving(Me))
-            {
-                spellCastTime = 0;
-            }
-            else if (spellName == "Earthgrab Totem" ||
-                (SpellManager.Spells[spellName].School.ToString().Contains("Nature") &&
-                (MeHasAura(16188) || UseSpecialization == 2 && MyAuraStackCount(53817, Me) > 4)) ||
-                (MeHasAura(77762) && spellName == "Lava Burst"))
-                //Nature Swiftness and Maelstrom Weapon
-            {
-                spellCastTime = 0;
-            }
-            else
-            {
-                spellCastTime = GetSpellCastTime(spellName);
-            }
-
-            if (spellName != "Lightning Bolt" && spellCastTime > 0 && IsMoving(Me) && !MeHasAura("Spiritwalker's Grace"))
-            {
-                return false;
-            }
-
-            if (IsOffGCDSpell && GetSpellCooldown(spellName).TotalMilliseconds <= 0)
-            {
-                return true;
-            }
-
-
-            if ((!Me.IsCasting || Me.IsCasting && Me.CurrentCastTimeLeft.TotalMilliseconds <= MyLatency))
-            {
-                if ((UseSpecialization == 3) && (((spellName == "Healing Raing") || (spellName == "Cleanse")) || (spellName == "Riptide")))
+                double spellPowerCost;
+                double spellCastTime;
+                if (!SpellManager.HasSpell(spellName))
                 {
-                    spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - (TimeSpan.FromMilliseconds(MyLatency) + TimeSpan.FromMilliseconds(300.0));
+                    return false;
                 }
-                else if (((spellName == "Lightning Bolt") || (spellName == "Healing Wave")) && (MyLatency > 0.0))
+                if ((InArena || InBattleground) && (((spellName != "Thunderstorm") && (spellName != "Shamanistic Rage")) && ((spellName != "Tremor Totem") && DebuffCC(Me))))
                 {
-                    spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency * 0.5);
+                    return false;
                 }
-
+                if (spellName == "Elemental Blast")
+                {
+                    Logging.Write("Elemental Blash:" + MyAuraStackCount(53817, Me) + ":" + SpellManager.Spells[spellName].School);
+                }
+                if ((UseSpecialization == 2) && (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature))
+                {
+                    spellPowerCost = (GetSpellPowerCost(spellName) / 100.0) * (100.0 - (20.0 * MyAuraStackCount(0xd239, Me)));
+                }
                 else
                 {
-                    spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency);
+                    spellPowerCost = GetSpellPowerCost(spellName);
                 }
-                //////spellCooldownBack = DateTime.Now + GetSpellCooldown(spellName) - TimeSpan.FromMilliseconds(MyLatency);
-
-                if (spellCooldownBack <= DateTime.Now)
+                if (Me.CurrentMana < spellPowerCost)
                 {
-                    return true;
+                    return false;
+                }
+                if (!IsMoving(Me))
+                {
+                    spellCastTime = 0.0;
+                }
+                else if ((((spellName == "Lightning Bolt") || MeHasAura("Spiritwalker's Grace")) || ((spellName == "Lava Burst") && MeHasAura(0x12fc2))) || (SpellManager.Spells[spellName].School.ToString().Contains("Nature") && (MeHasAura(0x3f3c) || ((UseSpecialization == 2) && (MyAuraStackCount(0xd239, Me) > 4.0)))))
+                {
+                    spellCastTime = 0.0;
+                }
+                else
+                {
+                    spellCastTime = GetSpellCastTime(spellName);
+                }
+                if ((spellCastTime <= 0.0) || !IsMoving(Me))
+                {
+                    if (IsOffGCDSpell && (GetSpellCooldown(spellName).TotalMilliseconds <= 0.0))
+                    {
+                        return true;
+                    }
+                    if (!Me.IsCasting || ((Me.IsCasting && (Me.CurrentCastTimeLeft.TotalMilliseconds <= MyLatency)) && (Me.CurrentChannelTimeLeft.TotalMilliseconds <= MyLatency)))
+                    {
+                        spellCooldownBack = (DateTime.Now + GetSpellCooldown(spellName)) - TimeSpan.FromMilliseconds(MyLatency);
+                        if (spellCooldownBack <= DateTime.Now)
+                        {
+                            return true;
+                        }
+                    }
+                    SpellsCooldownCacheAdd(spellName, spellCooldownBack);
                 }
             }
-
-            //if (spellCooldownBack > DateTime.Now)
-            //{
-            SpellsCooldownCacheAdd(spellName, spellCooldownBack);
-            //}
-
-            //if (SkipOnGcdSpellCheck < DateTime.Now)
-            //{
-            //    if (UseLightningShieldGCDCheck)
-            //    {
-            //        SkipOnGcdSpellCheck = DateTime.Now + SpellManager.Spells["Lightning Shield"].CooldownTimeLeft -
-            //                              TimeSpan.FromMilliseconds(MyLatency);
-            //    }
-            //    else
-            //    {
-            //        SkipOnGcdSpellCheck = DateTime.Now + SpellManager.GlobalCooldownLeft -
-            //                              TimeSpan.FromMilliseconds(MyLatency);
-            //    }
-            //}
-
             return false;
         }
 
