@@ -5498,11 +5498,11 @@ namespace TuanHA_Combat_Routine
                     SpellManager.StopCasting();
                 }
                 SafelyFacingTarget(UnitWindShear);
-                while (BasicCheck(UnitWindShear) && (UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds > (THSettings.Instance.WindShearInterruptMs + MyLatency)))
-                {
-                    Styx.Common.Logging.Write("Waiting for Wind Shear");
-                }
-                if (UnitWindShear.IsCasting)
+                //while (BasicCheck(UnitWindShear) && (UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds > (THSettings.Instance.WindShearInterruptMs + MyLatency)))
+                //{
+                //    Styx.Common.Logging.Write("Waiting for Wind Shear");
+                //}
+                if ((UnitWindShear.IsCasting && UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds > (MyLatency + 50.0)) || UnitWindShear.IsChanneling)
                 {
                     LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
                     CastSpell("Wind Shear", UnitWindShear, string.Concat(new object[] { "Casting ", UnitWindShear.CastingSpell.Name, " - ", UnitWindShear.CastingSpellId }));
