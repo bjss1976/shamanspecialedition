@@ -622,7 +622,7 @@ namespace TuanHA_Combat_Routine
                 {
                     Logging.Write("Elemental Blash:" + MyAuraStackCount(53817, Me) + ":" + SpellManager.Spells[spellName].School);
                 }
-                if ((UseSpecialization == 2) && (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature))
+                if (UseSpecialization == 2 && SpellManager.Spells[spellName].School == WoWSpellSchool.Nature)
                 {
                     spellPowerCost = (GetSpellPowerCost(spellName) / 100.0) * (100.0 - (20.0 * MyAuraStackCount(0xd239, Me)));
                 }
@@ -639,6 +639,7 @@ namespace TuanHA_Combat_Routine
                     spellCastTime = 0.0;
                 }
                 else if ((((spellName == "Lightning Bolt") || MeHasAura("Spiritwalker's Grace")) || ((spellName == "Lava Burst") && MeHasAura(0x12fc2))) || (SpellManager.Spells[spellName].School.ToString().Contains("Nature") && (MeHasAura(0x3f3c) || ((UseSpecialization == 2) && (MyAuraStackCount(0xd239, Me) > 4.0)))))
+                //else if ((((spellName == "Lightning Bolt") || MeHasAura("Spiritwalker's Grace")) || ((spellName == "Lava Burst") && MeHasAura(0x12fc2))) || (SpellManager.Spells[spellName].School == WoWSpellSchool.Nature && (MeHasAura(0x3f3c) || ((UseSpecialization == 2) && (MyAuraStackCount(0xd239, Me) > 4.0)))))
                 {
                     spellCastTime = 0.0;
                 }
