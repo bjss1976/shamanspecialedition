@@ -59,7 +59,6 @@ namespace TuanHA_Combat_Routine
             return new Decorator(ret => ((((THSettings.Instance.AscendanceResto && (HealWeightUnitHeal <= THSettings.Instance.AscendanceRestoHP)) && (UnitHealIsValid && UnitHeal.Combat)) && ((!UnitHeal.IsPet && !MeHasAura("Ascendance")) && (!Invulnerable(UnitHeal) && HaveDPSTarget(UnitHeal)))) && CanCastCheck("Ascendance", true)) && (CountUnitAscendanceResto(UnitHeal) >= THSettings.Instance.AscendanceRestoUnit), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 CastSpell("Ascendance", Me, "AscendanceResto");
-                AuraCacheUpdate(Me, true);
                 return RunStatus.Failure;
             }));
         }
@@ -80,7 +79,6 @@ namespace TuanHA_Combat_Routine
             }, new Styx.TreeSharp.Action(delegate(object ret)
             {
                 CastSpell("Ascendance", Me, "AscendanceEnh");
-                AuraCacheUpdate(Me, true);
                 return RunStatus.Failure;
             }));
         }
@@ -90,7 +88,6 @@ namespace TuanHA_Combat_Routine
             return new Decorator(ret => (((THSettings.Instance.AscendanceEleCooldown || (THSettings.Instance.AscendanceEleBurst && THSettings.Instance.Burst)) && (((!MeHasAura("Ascendance") && Me.Combat) && (CurrentTargetAttackable(40.0, false, false) && !CurrentTargetCheckInvulnerableMagic)) && (IsWorthyTarget(Me.CurrentTarget, 2.0, 0.5) || HaveWorthyTargetAttackingMe()))) && ((MyAuraTimeLeft("Flame Shock", Me.CurrentTarget) > 15000.0) && CanCastCheck("Ascendance", true))) && (GetSpellCooldown("Lava Burst").TotalMilliseconds > 5000.0), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 CastSpell("Ascendance", Me, "AscendanceEle");
-                AuraCacheUpdate(Me, true);
                 return RunStatus.Failure;
             }));
         }
@@ -1492,14 +1489,19 @@ namespace TuanHA_Combat_Routine
 
         private static bool GetMyShieldonUnit(WoWUnit target)
         {
-            AuraCacheUpdate(target);
+            return target.GetAllAuras().Any<WoWAura>(delegate(WoWAura aura)
+            {
+                if (aura.CreatorGuid != target.Guid)
+                {
+                    return false;
+                }
+                if ((aura.SpellId != 974) && (aura.SpellId != 324))
+                {
+                    return (aura.SpellId == 52127);
+                }
+                return true;
+            });
 
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                aura.AuraCacheAura.CreatorGuid == Me.Guid &&
-                (aura.AuraCacheId == 974 || aura.AuraCacheId == 324 ||
-                 aura.AuraCacheId == 52127));
         }
 
         private static Composite EarthShield()
@@ -1590,7 +1592,6 @@ namespace TuanHA_Combat_Routine
             return new Decorator(ret => ((THSettings.Instance.ElementalMasteryCooldown || (THSettings.Instance.ElementalMasteryBurst && THSettings.Instance.Burst)) && Me.Combat) && CanCastCheck("Elemental Mastery", true), new Styx.TreeSharp.Action(delegate(object ret)
             {
                 CastSpell("Elemental Mastery", Me, "ElementalMastery");
-                AuraCacheUpdate(Me, true);
                 return RunStatus.Failure;
             }));
         }
@@ -1881,13 +1882,13 @@ namespace TuanHA_Combat_Routine
                 {
                     SpellManager.StopCasting();
                 }
-                while (UnitGhostWolfCC.CurrentCastTimeLeft.TotalMilliseconds > 1500.0)
+                if (UnitGhostWolfCC.CurrentCastTimeLeft.TotalMilliseconds < 1500.0)
                 {
                     Styx.Common.Logging.Write(string.Concat(new object[] { "INCOMING ", UnitGhostWolfCC.SafeName, " is Casting ", UnitGhostWolfCC.CastingSpell.Name, " - ", UnitGhostWolfCC.CastingSpellId }));
+                    LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(2000.0);
+                    SpellManager.StopCasting();
+                    CastSpell("Ghost Wolf", Me, string.Concat(new object[] { "GhostWolfAvoidCC: ", UnitGhostWolfCC.SafeName, " is Casting ", UnitGhostWolfCC.CastingSpell.Name, " - ", UnitGhostWolfCC.CastingSpellId }));
                 }
-                LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(2000.0);
-                SpellManager.StopCasting();
-                CastSpell("Ghost Wolf", Me, string.Concat(new object[] { "GhostWolfAvoidCC: ", UnitGhostWolfCC.SafeName, " is Casting ", UnitGhostWolfCC.CastingSpell.Name, " - ", UnitGhostWolfCC.CastingSpellId }));
             }
         }
         #endregion
@@ -2471,10 +2472,9 @@ namespace TuanHA_Combat_Routine
 
         private static bool CanHex(WoWUnit target)
         {
-            AuraCacheUpdate(target, false);
-            return (from aura in AuraCacheList
-                    where aura.AuraCacheUnit == target.Guid
-                    select aura).All<AuraCacheClass>(aura => !HexImmuneAura.Contains(aura.AuraCacheId));
+
+            return target.GetAllAuras().All<WoWAura>(aura => !HexImmuneAura.Contains(aura.SpellId));
+
         }
 
         private static WoWUnit UnitHex;
@@ -3136,20 +3136,7 @@ namespace TuanHA_Combat_Routine
 
         private static bool NeedPurgeASAPResto(WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return false;
-            }
-
-            AuraCacheUpdate(target);
-
-            if (AuraCacheList.Any(
-                a => a.AuraCacheUnit == target.Guid && NeedPurgeASAPRestoHS.Contains(a.AuraCacheAura.Name)))
-            {
-                //Logging.Write(target.Name + " got DebuffRoot");
-                return true;
-            }
-            return false;
+            return target.GetAllAuras().Any<WoWAura>(aura => NeedPurgeASAPRestoHS.Contains(aura.Name));
         }
 
         private static WoWUnit UnitPurgeASAPResto;
@@ -3192,19 +3179,7 @@ namespace TuanHA_Combat_Routine
 
         private static int CountMagicBuffPurge(WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return 0;
-            }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Count(
-                a =>
-                a.AuraCacheUnit == target.Guid &&
-                a.AuraCacheAura.IsActive &&
-                !a.AuraCacheAura.IsHarmful &&
-                a.AuraCacheAura.Spell.DispelType == WoWDispelType.Magic);
+            return target.GetAllAuras().Count<WoWAura>(a => ((a.IsActive && !a.IsHarmful) && (a.get_Spell().get_DispelType() == ((WoWDispelType)((int)WoWDispelType.Magic)))));
         }
 
         private static bool GetUnitUnitPurgeNormalResto()
@@ -3313,8 +3288,7 @@ namespace TuanHA_Combat_Routine
 
         private static bool NeedPurgeASAPEleEnh(WoWUnit target)
         {
-            AuraCacheUpdate(target, false);
-            return AuraCacheList.Any<AuraCacheClass>(a => ((a.AuraCacheUnit == target.Guid) && NeedPurgeASAPEleEnhHS.Contains(a.AuraCacheAura.Name)));
+            return target.GetAllAuras().Any<WoWAura>(aura => NeedPurgeASAPEleEnhHS.Contains(aura.Name));
         }
 
         private static Composite PurgeASAPEleEnh()
@@ -3631,19 +3605,7 @@ namespace TuanHA_Combat_Routine
 
         private static bool Debuff63280Duration(WoWUnit target, double duration, bool LogSpell = false)
         {
-            AuraCacheUpdate(target, false);
-            AuraCacheClass class2 = (from a in AuraCacheList
-                                     orderby a.AuraCacheAura.TimeLeft descending
-                                     select a).FirstOrDefault<AuraCacheClass>(a => ((a.AuraCacheUnit == target.Guid) && Debuff63280DurationHS.Contains(a.AuraCacheId)) && (a.AuraCacheAura.TimeLeft.TotalMilliseconds > duration));
-            if (class2 == null)
-            {
-                return false;
-            }
-            if (LogSpell)
-            {
-                Styx.Common.Logging.Write("Debuff63280Duration on {0} {1} SpellID {2} Duration: {3}", new object[] { target.SafeName, class2.AuraCacheAura.Name, class2.AuraCacheId, class2.AuraCacheAura.TimeLeft.TotalMilliseconds });
-            }
-            return true;
+            return target.GetAllAuras().Any<WoWAura>(aura => Debuff63280DurationHS.Contains(aura.SpellId));
         }
 
         private static void ShamanisticCC()
@@ -3706,7 +3668,6 @@ namespace TuanHA_Combat_Routine
                     ret =>
                         {
                             CastSpell("Spiritwalker's Grace", Me, "SpiritwalkersGrace");
-                            AuraCacheUpdate(Me, true);
                             return RunStatus.Failure;
                         })
                 );
@@ -3833,88 +3794,167 @@ namespace TuanHA_Combat_Routine
 
         private void StopCastingCheck()
         {
-            if (((StopCastingCheckLast <= DateTime.Now) || InArena) && ((LastCastTime + TimeSpan.FromMilliseconds(2000.0)) >= DateTime.Now))
+            //if (((StopCastingCheckLast <= DateTime.Now) || InArena) && ((LastCastTime + TimeSpan.FromMilliseconds(2000.0)) >= DateTime.Now))
+            //{
+            //    StopCastingCheckLast = DateTime.Now + TimeSpan.FromMilliseconds(50.0);
+            //    if (Me.IsCasting)
+            //    {
+            //        try
+            //        {
+            //            if (Me.CastingSpell.Id == 0xc93a)
+            //            {
+            //                if (!BasicCheck(LastCastUnit))
+            //                {
+            //                    SpellManager.StopCasting();
+            //                }
+            //                else
+            //                {
+            //                    AuraCacheUpdate(LastCastUnit, true);
+            //                }
+            //                if ((InvulnerableSpell(LastCastUnit) || DebuffCCDuration(LastCastUnit, 3000.0, false)) || !CanHex(LastCastUnit))
+            //                {
+            //                    SpellManager.StopCasting();
+            //                    Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
+            //                    return;
+            //                }
+            //            }
+            //            if ((((UseSpecialization == 3) && (Me.CastingSpell.Id == 0x193)) && (UnitHealIsValid && HasGlyph.Contains("55453"))) && ((Me.ManaPercent > THSettings.Instance.UrgentHeal) && (UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
+            //            }
+            //            else if (((UseSpecialization == 2) && (InArena || InBattleground)) && ((Me.CastingSpell.Id == 0x193) && CurrentTargetAttackable(5.0, false, false)))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
+            //            }
+            //            else if (((UseSpecialization == 1) && ((Me.CastingSpell.Id == 0x193) || (Me.CastingSpell.Id == 0x1a5))) && (MeHasAura(0x12fc2) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
+            //            }
+            //            else if (((UseSpecialization == 1) && (InArena || InBattleground)) && (((Me.CastingSpell.Id == 0x1c916) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)) && (MeHasAura(0x12fc2) && HaveInterrupterRound(Me))))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
+            //            }
+            //            else if ((((UseSpecialization == 3) && (LastCastSpell == "Greater Healing Wave")) && (Me.CastingSpell.Id == 0x12ea0)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.GreaterHealingWaveHP + 20) + THSettings.Instance.HealBalancing))))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
+            //            }
+            //            else if ((((UseSpecialization == 3) && (LastCastSpell == "Chain Heal")) && (Me.CastingSpell.Id == 0x428)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.ChainHealHP + 20) + THSettings.Instance.HealBalancing))))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
+            //            }
+            //            else if ((((UseSpecialization == 3) && (LastCastSpell == "Healing Surge")) && (Me.CastingSpell.Id == 0x1f44)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.HealingSurgeResHP + 20) + THSettings.Instance.HealBalancing))))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
+            //            }
+            //            else if (((((UseSpecialization == 3) && !InDungeon) && (!InRaid && !InProvingGrounds)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b)) && ((Me.ManaPercent > 30.0) && (Me.CurrentCastTimeLeft.TotalMilliseconds > 1300.0)))) && (((LastCastUnit.HealthPercent < (THSettings.Instance.GreaterHealingWaveHP + THSettings.Instance.HealBalancing)) && MyAura("Tidal Waves", Me)) && (LastCastUnit.Combat || Me.Combat)))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
+            //            }
+            //            else if ((((UseSpecialization == 3) && InRaid) && ((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b))) && (LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
+            //            }
+            //            else if (((UseSpecialization == 3) && (InArena || InBattleground)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b)) && ((LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)) && (Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(600, 0x3e8)))))
+            //            {
+            //                SpellManager.StopCasting();
+            //                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
+            //            }
+            //        }
+            //        catch (Exception)
+            //        {
+            //            Styx.Common.Logging.Write("StopCastingCheck Fail");
+            //            throw;
+            //        }
+            //    }
+            //}
+            if (((StopCastingCheckLast <= DateTime.Now) || Me.get_CurrentMap().IsArena) && ((LastCastTime + TimeSpan.FromMilliseconds(2000.0)) >= DateTime.Now))
             {
                 StopCastingCheckLast = DateTime.Now + TimeSpan.FromMilliseconds(50.0);
                 if (Me.IsCasting)
                 {
                     try
                     {
-                        if (Me.CastingSpell.Id == 0xc93a)
+                        if (Me.get_CastingSpell().Id == 51514)
                         {
                             if (!BasicCheck(LastCastUnit))
                             {
                                 SpellManager.StopCasting();
                             }
-                            else
-                            {
-                                AuraCacheUpdate(LastCastUnit, true);
-                            }
                             if ((InvulnerableSpell(LastCastUnit) || DebuffCCDuration(LastCastUnit, 3000.0, false)) || !CanHex(LastCastUnit))
                             {
                                 SpellManager.StopCasting();
-                                Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
+                                Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Hex: Unit is CC/Sharpshifted");
                                 return;
                             }
                         }
-                        if ((((UseSpecialization == 3) && (Me.CastingSpell.Id == 0x193)) && (UnitHealIsValid && HasGlyph.Contains("55453"))) && ((Me.ManaPercent > THSettings.Instance.UrgentHeal) && (UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)))
+                        if ((((UseSpecialization == 3) && (Me.get_CastingSpell().Id == 403)) && (UnitHealIsValid && HasGlyph.Contains("55453"))) && ((Me.ManaPercent > THSettings.Instance.UrgentHeal) && (UnitHeal.HealthPercent < THSettings.Instance.UrgentHeal)))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Telluric Currents. Someone Need Urgent Heal!");
                         }
-                        else if (((UseSpecialization == 2) && (InArena || InBattleground)) && ((Me.CastingSpell.Id == 0x193) && CurrentTargetAttackable(5.0, false, false)))
+                        else if (((UseSpecialization == 2) && (Me.get_CurrentMap().IsArena || Me.get_CurrentMap().IsBattleground)) && ((Me.get_CastingSpell().Id == 403) && CurrentTargetAttackable(5.0, false, false)))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt: Enemy in Melee Range");
                         }
-                        else if (((UseSpecialization == 1) && ((Me.CastingSpell.Id == 0x193) || (Me.CastingSpell.Id == 0x1a5))) && (MeHasAura(0x12fc2) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)))
+                        else if (((UseSpecialization == 1) && ((Me.get_CastingSpell().Id == 403) || (Me.get_CastingSpell().Id == 421))) && (MeHasAura(77762) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Lightning Bolt/Chain Lightning: Lava Burst Proc");
                         }
-                        else if (((UseSpecialization == 1) && (InArena || InBattleground)) && (((Me.CastingSpell.Id == 0x1c916) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)) && (MeHasAura(0x12fc2) && HaveInterrupterRound(Me))))
+                        else if (((UseSpecialization == 1) && (Me.get_CurrentMap().IsArena || Me.get_CurrentMap().IsBattleground)) && (((Me.get_CastingSpell().Id == 117014) && (Me.CurrentCastTimeLeft.TotalMilliseconds > MyLatency)) && (MeHasAura(77762) && HaveInterrupterRound((WoWUnit)Me))))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Elemental Blash: Lava Burst Proc and Interrupter Nearby");
                         }
-                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Greater Healing Wave")) && (Me.CastingSpell.Id == 0x12ea0)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.GreaterHealingWaveHP + 20) + THSettings.Instance.HealBalancing))))
+                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Greater Healing Wave")) && (Me.get_CastingSpell().Id == 77472)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.GreaterHealingWaveHP + 20) + THSettings.Instance.HealBalancing))))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Greater Healing Wave");
                         }
-                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Chain Heal")) && (Me.CastingSpell.Id == 0x428)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.ChainHealHP + 20) + THSettings.Instance.HealBalancing))))
+                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Chain Heal")) && (Me.get_CastingSpell().Id == 1064)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.ChainHealHP + 20) + THSettings.Instance.HealBalancing))))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Chain Heal");
                         }
-                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Healing Surge")) && (Me.CastingSpell.Id == 0x1f44)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.HealingSurgeResHP + 20) + THSettings.Instance.HealBalancing))))
+                        else if ((((UseSpecialization == 3) && (LastCastSpell == "Healing Surge")) && (Me.get_CastingSpell().Id == 8004)) && ((LastCastUnit.HealthPercent > THSettings.Instance.DoNotHealAbove) || (LastCastUnit.HealthPercent > ((THSettings.Instance.HealingSurgeResHP + 20) + THSettings.Instance.HealBalancing))))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Surge");
                         }
-                        else if (((((UseSpecialization == 3) && !InDungeon) && (!InRaid && !InProvingGrounds)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b)) && ((Me.ManaPercent > 30.0) && (Me.CurrentCastTimeLeft.TotalMilliseconds > 1300.0)))) && (((LastCastUnit.HealthPercent < (THSettings.Instance.GreaterHealingWaveHP + THSettings.Instance.HealBalancing)) && MyAura("Tidal Waves", Me)) && (LastCastUnit.Combat || Me.Combat)))
+                        else if (((((UseSpecialization == 3) && !Me.get_CurrentMap().IsDungeon) && (!Me.get_CurrentMap().IsRaid && (Me.get_CurrentMap().Name != "Proving Grounds"))) && (((LastCastSpell == "Healing Wave") && (Me.get_CastingSpell().Id == 331)) && ((Me.ManaPercent > 30.0) && (Me.CurrentCastTimeLeft.TotalMilliseconds > 1300.0)))) && (((LastCastUnit.HealthPercent < (THSettings.Instance.GreaterHealingWaveHP + THSettings.Instance.HealBalancing)) && MyAura("Tidal Waves", (WoWUnit)Me)) && (LastCastUnit.Combat || Me.Combat)))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting Healing Wave. Need Faster Heal!");
                         }
-                        else if ((((UseSpecialization == 3) && InRaid) && ((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b))) && (LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)))
+                        else if ((((UseSpecialization == 3) && Me.get_CurrentMap().IsRaid) && ((LastCastSpell == "Healing Wave") && (Me.get_CastingSpell().Id == 331))) && (LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: Save Mana Healing Wave");
                         }
-                        else if (((UseSpecialization == 3) && (InArena || InBattleground)) && (((LastCastSpell == "Healing Wave") && (Me.CastingSpell.Id == 0x14b)) && ((LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)) && (Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(600, 0x3e8)))))
+                        else if (((UseSpecialization == 3) && (Me.get_CurrentMap().IsArena || Me.get_CurrentMap().IsBattleground)) && (((LastCastSpell == "Healing Wave") && (Me.get_CastingSpell().Id == 331)) && ((LastCastUnit.HealthPercent >= (THSettings.Instance.DoNotHealAbove + THSettings.Instance.HealBalancing)) && (Me.CurrentCastTimeLeft.TotalMilliseconds > rnd.Next(600, 1000)))))
                         {
                             SpellManager.StopCasting();
-                            Styx.Common.Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
+                            Logging.Write(DateTime.Now.ToString("ss:fff ") + "Stop Casting: HealingWaveBaitInterrupt");
                         }
                     }
                     catch (Exception)
                     {
-                        Styx.Common.Logging.Write("StopCastingCheck Fail");
+                        Logging.Write("StopCastingCheck Fail");
                         throw;
                     }
                 }
             }
+
         }
         #endregion
 
@@ -4598,19 +4638,19 @@ namespace TuanHA_Combat_Routine
 
         private static bool NeedTremor(WoWUnit target, int duration, bool writelog = true)
         {
-            AuraCacheUpdate(target, false);
-            foreach (AuraCacheClass class2 in AuraCacheList)
+            foreach (WoWAura aura in target.GetAllAuras())
             {
-                if ((((class2.AuraCacheUnit == target.Guid) && (class2.AuraCacheAura.TimeLeft.TotalMilliseconds >= duration)) && ((class2.AuraCacheId != 0x764b) && (class2.AuraCacheId != 0x20448))) && ((DebuffNeedTremor.Contains(class2.AuraCacheId) || (class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Asleep)) || (((class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Charmed) || (class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Fleeing)) || (class2.AuraCacheAura.Spell.Mechanic == WoWSpellMechanic.Horrified))))
+                if ((((aura.TimeLeft.TotalMilliseconds >= duration) && (aura.SpellId != 30283)) && (aura.SpellId != 132168)) && ((DebuffNeedTremor.Contains(aura.SpellId) || (aura.get_Spell().get_Mechanic() == ((WoWSpellMechanic)((int)WoWSpellMechanic.Asleep)))) || (((aura.get_Spell().get_Mechanic() == ((WoWSpellMechanic)((int)WoWSpellMechanic.Charmed))) || (aura.get_Spell().get_Mechanic() == ((WoWSpellMechanic)((int)WoWSpellMechanic.Fleeing)))) || (aura.get_Spell().get_Mechanic() == ((WoWSpellMechanic)((int)WoWSpellMechanic.Horrified))))))
                 {
                     if (writelog)
                     {
-                        Styx.Common.Logging.Write("NeedTremor {0} {1} ID: {2}", new object[] { target.SafeName, class2.AuraCacheAura.Name, class2.AuraCacheId });
+                        Logging.Write("NeedTremor {0} {1} ID: {2}", new object[] { target.SafeName, aura.Name, aura.SpellId });
                     }
                     return true;
                 }
             }
             return false;
+
         }
 
         private static bool GetUnitNeedTremor()
@@ -5502,7 +5542,7 @@ namespace TuanHA_Combat_Routine
                 //{
                 //    Styx.Common.Logging.Write("Waiting for Wind Shear");
                 //}
-                if ((UnitWindShear.IsCasting && UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds > (MyLatency + 50.0)) || UnitWindShear.IsChanneling)
+                if ((UnitWindShear.IsCasting && UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds > MyLatency + 50.0 && UnitWindShear.CurrentCastTimeLeft.TotalMilliseconds < THSettings.Instance.WindShearInterruptMs + MyLatency) || UnitWindShear.IsChanneling)
                 {
                     LastInterrupt = DateTime.Now + TimeSpan.FromMilliseconds(1500.0);
                     CastSpell("Wind Shear", UnitWindShear, string.Concat(new object[] { "Casting ", UnitWindShear.CastingSpell.Name, " - ", UnitWindShear.CastingSpellId }));

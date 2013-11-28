@@ -110,254 +110,127 @@ namespace TuanHA_Combat_Routine
 
         private static bool UnitHasAura(string auraName, WoWUnit target)
         {
-            AuraCacheUpdate(target);
+            return target.GetAllAuras().Any<WoWAura>(aura => (aura.Name == auraName));
 
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", Me.SafeName);
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == Me))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-            return AuraCacheList != null &&
-                   AuraCacheList.Any(aura => aura.AuraCacheUnit == target.Guid &&
-                                             aura.AuraCacheAura.Name == auraName);
         }
 
         private static bool UnitHasAura(int auraID, WoWUnit target)
         {
-            AuraCacheUpdate(target);
+            return target.GetAllAuras().Any<WoWAura>(aura => (aura.SpellId == auraID));
 
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", Me.SafeName);
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == Me))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-
-            return AuraCacheList != null &&
-                   AuraCacheList.Any(aura => aura.AuraCacheUnit == target.Guid &&
-                                             aura.AuraCacheId == auraID);
         }
 
         private static bool MeHasAura(string auraName)
         {
-            AuraCacheUpdate(Me);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", Me.SafeName);
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == Me))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-            return AuraCacheList != null &&
-                   AuraCacheList.Any(aura => aura.AuraCacheUnit == Me.Guid &&
-                                             aura.AuraCacheAura.Name == auraName);
+            return Me.GetAllAuras().Any<WoWAura>(aura => (aura.Name == auraName));
         }
 
         private static bool MeHasAura(int auraID)
         {
-            AuraCacheUpdate(Me);
+            //AuraCacheUpdate(Me);
 
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", Me.SafeName);
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == Me))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
+            ////Logging.Write("========================");
+            ////Logging.Write("Total AuraCacheAura of {0}", Me.SafeName);
+            ////foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == Me))
+            ////{
+            ////    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
+            ////                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
+            ////}
 
 
-            return AuraCacheList != null &&
-                   AuraCacheList.Any(aura => aura.AuraCacheUnit == Me.Guid &&
-                                             aura.AuraCacheId == auraID);
+            //return AuraCacheList != null &&
+            //       AuraCacheList.Any(aura => aura.AuraCacheUnit == Me.Guid &&
+            //                                 aura.AuraCacheId == auraID);
+            return Me.GetAllAuras().Any<WoWAura>(aura => (aura.SpellId == auraID));
         }
 
         private static bool MyAura(string auraName, WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return false;
-            }
-
-            AuraCacheUpdate(target);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
-
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
+            //if (!BasicCheck(target))
             //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
+            //    return false;
             //}
 
+            //AuraCacheUpdate(target);
 
-            var AuraFound = AuraCacheList != null &&
-                            AuraCacheList.Any(
-                                aura => aura.AuraCacheUnit == target.Guid &&
-                                        aura.AuraCacheAura.Name == auraName &&
-                                        aura.AuraCacheAura.CreatorGuid == Me.Guid);
+            ////Logging.Write("========================");
+            ////Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
 
-            return AuraFound;
+            ////foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
+            ////{
+            ////    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
+            ////                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
+            ////}
+
+
+            //var AuraFound = AuraCacheList != null &&
+            //                AuraCacheList.Any(
+            //                    aura => aura.AuraCacheUnit == target.Guid &&
+            //                            aura.AuraCacheAura.Name == auraName &&
+            //                            aura.AuraCacheAura.CreatorGuid == Me.Guid);
+
+            //return AuraFound;
+            return target.GetAllAuras().Any<WoWAura>(aura => ((aura.Name == auraName) && (aura.CreatorGuid == Me.Guid)));
+
         }
 
 
         private static bool MyAura(int auraID, WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return false;
-            }
-
-            AuraCacheUpdate(target);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
-
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
+            //if (!BasicCheck(target))
             //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
+            //    return false;
             //}
 
-            var AuraFound = AuraCacheList != null &&
-                            AuraCacheList.Any(
-                                aura => aura.AuraCacheUnit == target.Guid &&
-                                        aura.AuraCacheAura.CreatorGuid == Me.Guid &&
-                                        aura.AuraCacheId == auraID);
+            //AuraCacheUpdate(target);
 
-            return AuraFound;
+            ////Logging.Write("========================");
+            ////Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
+
+            ////foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
+            ////{
+            ////    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
+            ////                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
+            ////}
+
+            //var AuraFound = AuraCacheList != null &&
+            //                AuraCacheList.Any(
+            //                    aura => aura.AuraCacheUnit == target.Guid &&
+            //                            aura.AuraCacheAura.CreatorGuid == Me.Guid &&
+            //                            aura.AuraCacheId == auraID);
+
+            //return AuraFound;
+            return target.GetAllAuras().Any<WoWAura>(aura => ((aura.SpellId == auraID) && (aura.CreatorGuid == Me.Guid)));
         }
 
         private static double MyAuraTimeLeft(string auraName, WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return 0;
-            }
+            return (from aura in target.GetAllAuras()
+                    where (aura.Name == auraName) && (aura.CreatorGuid == Me.Guid)
+                    select aura.TimeLeft.TotalMilliseconds).FirstOrDefault<double>();
 
-            AuraCacheUpdate(target);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
-
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-            return AuraCacheList == null
-                       ? 0
-                       : AuraCacheList.Where(
-                           aura =>
-                           aura.AuraCacheUnit == target.Guid && aura.AuraCacheAura.CreatorGuid == Me.Guid &&
-                           aura.AuraCacheName == auraName)
-                                      .Select(Aura => Aura.AuraCacheAura.TimeLeft.TotalMilliseconds)
-                                      .FirstOrDefault();
-
-            //if (AuraCacheList != null)
-            //{
-            //    foreach (var Aura in AuraCacheList)
-            //    {
-            //        if (Aura.AuraCacheUnit==target&&
-            //            Aura.AuraCacheAura.CreatorGuid==Me.Guid&&
-            //            Aura.AuraCacheName == auraName)
-            //        {
-            //            return Aura.AuraCacheAura.TimeLeft.TotalMilliseconds;
-            //        }
-            //    }
-            //}
-            //return 0;
         }
 
         private static double MyAuraTimeLeft(int auraID, WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return 0;
-            }
-
-            AuraCacheUpdate(target);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
-
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-            return AuraCacheList == null
-                       ? 0
-                       : AuraCacheList.Where(
-                           aura =>
-                           aura.AuraCacheUnit == target.Guid && aura.AuraCacheAura.CreatorGuid == Me.Guid &&
-                           aura.AuraCacheId == auraID)
-                                      .Select(Aura => Aura.AuraCacheAura.TimeLeft.TotalMilliseconds)
-                                      .FirstOrDefault();
+            return (from aura in target.GetAllAuras()
+                    where (aura.SpellId == auraID) && (aura.CreatorGuid == Me.Guid)
+                    select aura.TimeLeft.TotalMilliseconds).FirstOrDefault<double>();
         }
 
         private static double MyAuraStackCount(string auraName, WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return 0;
-            }
+            return (double)(from aura in target.GetAllAuras()
+                            where (aura.Name == auraName) && (aura.CreatorGuid == Me.Guid)
+                            select aura.StackCount).FirstOrDefault<uint>();
 
-            AuraCacheUpdate(target);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
-
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-            return AuraCacheList == null
-                       ? 0
-                       : AuraCacheList.Where(
-                           aura =>
-                           aura.AuraCacheUnit == target.Guid && aura.AuraCacheAura.CreatorGuid == Me.Guid &&
-                           aura.AuraCacheName == auraName)
-                                      .Select(aura => aura.AuraCacheAura.StackCount)
-                                      .FirstOrDefault();
         }
 
         private static double MyAuraStackCount(int auraID, WoWUnit target)
         {
-            if (!BasicCheck(target))
-            {
-                return 0;
-            }
-
-            AuraCacheUpdate(target);
-
-            //Logging.Write("========================");
-            //Logging.Write("Total AuraCacheAura of {0}", target.SafeName);
-
-            //foreach (var Aura in AuraCacheList.Where(aura => aura.AuraCacheUnit == target .Guid))
-            //{
-            //    Logging.Write("Aura.AuraCacheUnit {0} - Aura.AuraCacheAura.Name {1} - Aura.AuraCacheId {2}",
-            //                  Aura.AuraCacheUnit, Aura.AuraCacheAura.Name, Aura.AuraCacheId);
-            //}
-
-            return AuraCacheList == null
-                       ? 0
-                       : AuraCacheList.Where(
-                           aura =>
-                           aura.AuraCacheUnit == target.Guid && aura.AuraCacheAura.CreatorGuid == Me.Guid &&
-                           aura.AuraCacheId == auraID)
-                                      .Select(aura => aura.AuraCacheAura.StackCount)
-                                      .FirstOrDefault();
+            return (double)(from aura in target.GetAllAuras()
+                            where (aura.SpellId == auraID) && (aura.CreatorGuid == Me.Guid)
+                            select aura.StackCount).FirstOrDefault<uint>();
         }
 
         #endregion

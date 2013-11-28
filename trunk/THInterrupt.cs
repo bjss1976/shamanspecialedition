@@ -136,6 +136,7 @@ namespace TuanHA_Combat_Routine
                 77767, //Cobra Shot
                 56641, //Steady Shot
                 403, //Lightning Bolt
+                0x1bbf8, 0x5045, 0x1c25e, 0x1aacb, 0x1d4bc, 0xbb92, 0x7e77
             };
 
         //////done

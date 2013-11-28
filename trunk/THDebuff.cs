@@ -41,17 +41,18 @@ namespace TuanHA_Combat_Routine
         //////done
         private static readonly HashSet<int> BuffBurstHS = new HashSet<int> { 
             0x1a436, 0x3004, 0x1da7f, 0xc847, 0xbf78, 0x190a0, 0x1e82e, 0x1a1c8, 0x4c76, 0xbe5, 0x30b8, 0x7c8c, 0x19d51, 0x152aa, 0x1528d, 0xca01, 
-            0xc9ea, 0x35b6, 0x1bd81, 0x1bd83, 0x1bcc2, 0x6b7, 0x1be1f
+            0xc9ea, 0x35b6, 0x1bd81, 0x1bd83, 0x1bcc2, 0x6b7, 0x1be1f, 0xb74c, 0x3004
          };
         private static bool BuffBurst(WoWUnit target)
         {
-            if (InRaid)
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-            AuraCacheUpdate(target, false);
-            return AuraCacheList.Any<AuraCacheClass>(aura => ((aura.AuraCacheUnit == target.Guid) && BuffBurstHS.Contains(aura.AuraCacheId)));
+            return target.GetAllAuras().Any<WoWAura>(aura => BuffBurstHS.Contains(aura.SpellId));
         }
+
+
 
         #endregion
 
@@ -66,19 +67,21 @@ namespace TuanHA_Combat_Routine
 
         private static bool BuffEnrage(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura => aura.AuraCacheUnit == target.Guid &&
-                        //aura.AuraCacheAura.IsActive &&
-                        (BuffEnrageHS.Contains(aura.AuraCacheId) ||
-                         aura.AuraCacheAura.Spell.DispelType == WoWDispelType.Enrage));
+            return target.GetAllAuras().Any<WoWAura>(delegate(WoWAura aura)
+            {
+                if (!BuffEnrageHS.Contains(aura.SpellId))
+                {
+                    return (aura.get_Spell().get_DispelType() == ((WoWDispelType)((int)WoWDispelType.Enrage)));
+                }
+                return true;
+            });
         }
+
+
 
         #endregion
 
@@ -112,20 +115,14 @@ namespace TuanHA_Combat_Routine
 
         private static bool BuffHeal(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                BuffHealHS.Contains(aura.AuraCacheId));
+            return target.GetAllAuras().Any<WoWAura>(aura => BuffHealHS.Contains(aura.SpellId));
         }
+
+
 
         #endregion
 
@@ -156,22 +153,14 @@ namespace TuanHA_Combat_Routine
 
         private static bool DebuffRootCanCloak(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                DebuffRootCanCloakHS.Contains(aura.AuraCacheId));
-            //aura.AuraCacheAura.IsActive &&
-            //(aura.AuraCacheAura.ApplyAuraType == WoWApplyAuraType.ModRoot &&
-            // aura.AuraCacheAura.Spell.DispelType == WoWDispelType.Magic ||
-            // DebuffRootCanCloakHS.Contains(aura.AuraCacheId)));
+            return target.GetAllAuras().Any<WoWAura>(aura => DebuffRootCanCloakHS.Contains(aura.SpellId));
         }
+
+
 
         #endregion
 
@@ -281,19 +270,15 @@ namespace TuanHA_Combat_Routine
 
         private static bool DebuffCC(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                DebuffCCHS.Contains(aura.AuraCacheId));
+            return target.GetAllAuras().Any<WoWAura>(aura => DebuffCCHS.Contains(aura.SpellId));
         }
+
+ 
+
 
         #endregion
 
@@ -1397,21 +1382,19 @@ namespace TuanHA_Combat_Routine
 
         private static bool DebuffStunFearDuration(WoWUnit target, double duration)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
+            return target.GetAllAuras().Any<WoWAura>(delegate(WoWAura aura)
+            {
+                if ((!DebuffStunFearDurationHS.Contains(aura.SpellId) && (aura.get_ApplyAuraType() != ((WoWApplyAuraType)((int)WoWApplyAuraType.ModStun)))) && (aura.get_ApplyAuraType() != ((WoWApplyAuraType)((int)WoWApplyAuraType.ModFear))))
+                {
+                    return false;
+                }
+                return (aura.TimeLeft.TotalMilliseconds >= duration);
+            });
 
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura => aura.AuraCacheUnit == target.Guid &&
-                        aura.AuraCacheAura.TimeLeft.TotalMilliseconds > duration &&
-                        DebuffStunFearDurationHS.Contains(aura.AuraCacheId));
-            //aura.AuraCacheAura.IsActive &&
-            //(aura.AuraCacheAura.ApplyAuraType == WoWApplyAuraType.ModStun ||
-            // aura.AuraCacheAura.ApplyAuraType == WoWApplyAuraType.ModFear ||
-            // DebuffStunFearDurationHS.Contains(aura.AuraCacheId)) &&
         }
 
         #endregion
@@ -1421,30 +1404,26 @@ namespace TuanHA_Combat_Routine
         private static readonly HashSet<int> InvulnerableHS = new HashSet<int>
             {
                 //"Bladestorm",
-                33786, //"Cyclone",
+                33786, //"Cyclone",0x83fa
                 //"Desecrated Ground",
-                19263, //"Deterrence",
-                47585, //"Dispersion",
-                642, //"Divine Shield", //Grapple Weapon (Monk)
-                45438, //"Ice Block"
-                27827, //Spirit of Redemption
+                19263, //"Deterrence",0x4b3f
+                47585, //"Dispersion",0xb9e1
+                642, //"Divine Shield", //Grapple Weapon (Monk)0x282
+                45438, //"Ice Block"0xb17e
+                27827, //Spirit of Redemption,0x6cb3
+                0x243f3, 0x1e8f6
             };
 
         private static bool Invulnerable(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                InvulnerableHS.Contains(aura.AuraCacheId));
+            return target.GetAllAuras().Any<WoWAura>(aura => InvulnerableHS.Contains(aura.SpellId));
         }
+
+
 
         #endregion
 
@@ -1453,14 +1432,12 @@ namespace TuanHA_Combat_Routine
         //1022/hand-of-protection
         private static bool InvulnerablePhysic(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
             return UnitHasAura(1022, target);
+
         }
 
         #endregion
@@ -1480,19 +1457,15 @@ namespace TuanHA_Combat_Routine
 
         private static bool InvulnerableSpell(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                InvulnerableSpellHS.Contains(aura.AuraCacheId));
+            return target.GetAllAuras().Any<WoWAura>(aura => InvulnerableSpellHS.Contains(aura.SpellId));
         }
+
+ 
+
 
         #endregion
 
@@ -1507,19 +1480,14 @@ namespace TuanHA_Combat_Routine
 
         private static bool InvulnerableRootandSnare(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                InvulnerableRootandSnareHS.Contains(aura.AuraCacheId));
+            return target.GetAllAuras().Any<WoWAura>(aura => InvulnerableRootandSnareHS.Contains(aura.SpellId));
         }
+
+
 
         #endregion
 
@@ -1533,19 +1501,15 @@ namespace TuanHA_Combat_Routine
 
         private static bool InvulnerableStun(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                InvulnerableStunHS.Contains(aura.AuraCacheId));
+            return (((target.get_Class() == ((WoWClass)((uint)WoWClass.Monk))) && (TalentSort(target) > 3)) || target.GetAllAuras().Any<WoWAura>(aura => InvulnerableStunHS.Contains(aura.SpellId)));
         }
+
+ 
+
 
         #endregion
 
@@ -1559,19 +1523,15 @@ namespace TuanHA_Combat_Routine
 
         private static bool SafeUsingCooldown(WoWUnit target)
         {
-            if (InRaid || !BasicCheck(target))
+            if (Me.get_CurrentMap().IsRaid)
             {
                 return false;
             }
-
-            AuraCacheUpdate(target);
-
-            return !AuraCacheList.Any(
-                aura =>
-                aura.AuraCacheUnit == target.Guid &&
-                //aura.AuraCacheAura.IsActive &&
-                SafeUsingCooldownHS.Contains(aura.AuraCacheId));
+            return !target.GetAllAuras().Any<WoWAura>(aura => SafeUsingCooldownHS.Contains(aura.SpellId));
         }
+
+ 
+
 
         #endregion
 
@@ -1584,18 +1544,16 @@ namespace TuanHA_Combat_Routine
                 return;
             }
 
-            AuraCacheUpdate(target);
-
-            foreach (var aura in AuraCacheList)
+            foreach (WoWAura aura in target.GetAllAuras())
             {
-                if (!aura.AuraCacheAura.IsHarmful) continue; //Name: Battle Fatigue (134735)
-                if (aura.AuraCacheId == 134735) continue; //Name: Battle Fatigue (134735)
-                var spell = aura.AuraCacheAura.Spell;
-                Logging.Write("--------" + aura.AuraCacheAura.Name + " (" + aura.AuraCacheId + ")" + " (" +
+                if (!aura.IsHarmful) continue; //Name: Battle Fatigue (134735)
+                if (aura.SpellId == 134735) continue; //Name: Battle Fatigue (134735)
+                var spell = aura.Spell;
+                Logging.Write("--------" + aura.Spell.Name + " (" + aura.SpellId + ")" + " (" +
                               target.Class + ")" +
                               "--------");
                 //Logging.Write("Name: " + aura.Name + " (" + aura.AuraCacheId + ")");
-                Logging.Write("ApplyAuraType: " + aura.AuraCacheAura.ApplyAuraType);
+                Logging.Write("ApplyAuraType: " + aura.ApplyAuraType);
                 Logging.Write("SpellEffects: " + spell.SpellEffects);
                 Logging.Write("SpellEffect1: " + spell.SpellEffect1);
                 Logging.Write("SpellEffect2: " + spell.SpellEffect2);
